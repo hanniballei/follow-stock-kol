@@ -43,7 +43,7 @@
 ## 步骤 2 · 配置文件（已预先创建，仅需写加载器）
 
 文件：
-- [x] `config/kols.yaml` — 53 个 handle，已存在
+- [x] `config/kols.yaml` — 55 个 handle，已存在
 - [x] `config/settings.yaml` — 全部参数，已存在
 - [x] `src/kol_monitor/config.py` — 加载 yaml + dotenv，提供单例 `settings`
 
@@ -56,7 +56,7 @@
 **验证**：
 ```bash
 python -c "from kol_monitor.config import settings; print(len(settings.kols), settings.schedule.hour)"
-# 期望输出：53 20
+# 期望输出：55 20
 ```
 
 ---
@@ -267,6 +267,7 @@ async def call_claude_with_retry(messages, max_tokens) -> ClaudeResponse: ...
 - 图片走 `{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": ...}}`
 - Layer 2 prompt 要求输出 JSON，用 `response.content[0].text` 后 json.loads，失败重试一次（带"请严格按此 JSON 输出"prompt 强化）
 - Layer 1 prompt 是 markdown 输出，按 6 维度（DESIGN §9.2）
+- Layer 1 / Layer 2 展示文本里涉及具体股票代码时统一用 `$代码`，例如 `$NVDA`
 - token 计数累加到 `digests.input_tokens / output_tokens`
 
 **输入**：当日 tweets + media
@@ -292,6 +293,7 @@ def git_publish(date, files: list[Path]) -> bool: ...
 - README 模板用 jinja2 不必要，直接 f-string + 拼接就够
 - KOL 列表渲染：每位用 `[@{handle}](https://x.com/{handle})` 格式
 - Layer 2 折叠用 `<details><summary>...</summary>...</details>`，按当日发推数倒序
+- Layer 2 的 `tickers` 渲染为 `$代码`，即使模型返回不带 `$` 的 `NVDA` 也要显示为 `$NVDA`
 - 推文链接：`https://x.com/{handle}/status/{tweet_id}`
 - 历史归档区：列出 `digests/` 下最近 12 个月的目录链接
 
@@ -367,7 +369,7 @@ freezegun>=1.4
 
 1. 用户填好 `.env`（3 个变量）
 2. 用户配好 git remote（`git remote add origin git@github.com:...`）
-3. `kol-monitor list-kols` 校验 53 个 handle 都被加载
+3. `kol-monitor list-kols` 校验 55 个 handle 都被加载
 4. `kol-monitor add-kol --validate-all` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
 5. `kol-monitor run-once` 跑一次完整流程（冷启动只拉当天）
 6. 检查 `digests/2026/05/29.md` 和 `README.md` 输出

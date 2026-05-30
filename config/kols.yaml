@@ -1,4 +1,4 @@
-# 监控的 KOL 列表（53 位）
+# 监控的 KOL 列表（55 位）
 # - 纯 Twitter / X handle，不带 @
 # - 大小写按 X 实际显示
 # - 按字母序排列（不区分大小写），方便后续增补不重复
@@ -29,6 +29,7 @@ kols:
   - josephwang
   - jukan05
   - labubu_trader
+  - leopoldasch
   - LinQingV
   - LizAnnSonders
   - LucyBuilding
@@ -53,6 +54,7 @@ kols:
   - SpermCapital
   - sssjeffpu
   - starzq
+  - SV_Nomad
   - TJ_Research
   - tychozzz
   - WallStreet0Name

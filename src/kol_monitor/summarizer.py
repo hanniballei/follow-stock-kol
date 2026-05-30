@@ -186,8 +186,9 @@ def _image_block(path: Path) -> dict[str, Any]:
 def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media: bool) -> str:
     lines = [
         f"请总结美股 KOL @{kol['screen_name']} 当日推文。",
+        "涉及具体股票代码时，展示文本统一使用 $股票代码 格式，例如 $NVDA；tickers 字段仍只填不带 $ 的代码。",
         "输出严格 JSON，格式：",
-        '{"core_view":"≤30字一句话","bullets":[{"point":"...","tickers":["NVDA"],"tweet_url":"https://x.com/..."}],"sentiment":"bullish|bearish|neutral|unclear"}',
+        '{"core_view":"≤30字一句话","bullets":[{"point":"$NVDA ...","tickers":["NVDA"],"tweet_url":"https://x.com/..."}],"sentiment":"bullish|bearish|neutral|unclear"}',
         "推文：",
     ]
     for tweet in tweets:
@@ -212,6 +213,7 @@ def build_layer1_prompt(
         "特朗普相关、今日关键词、重要新闻、宏观判断、产业/个股焦点、交易信号、投资理念。"
         "“特朗普相关”小节必须总结 realDonaldTrump 当天发言可能影响的美股标的、行业、事件线索，"
         "若只是推测也要明确写出推测依据。每条要点尽量附原推链接。"
+        "所有涉及具体股票代码的 markdown 文本必须使用 $代码 格式，例如 $TSLA，不要只写 TSLA。"
     )
     parts = [intro]
     if trump_summary is not None:

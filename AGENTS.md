@@ -16,7 +16,7 @@
 
 不要重新创建以下文件，直接复用 / 增量编辑：
 
-- `config/kols.yaml` — 53 位 KOL，按字母序，handle 大小写如 X 实际显示
+- `config/kols.yaml` — 55 位 KOL，按字母序，handle 大小写如 X 实际显示
 - `config/settings.yaml` — 全部可调参数（调度、抓取、媒体、AI、发布、保留、日志）
 - `.env.example` — 环境变量模板，复制为 `.env` 填值
 - `.gitignore` — 已正确忽略 `.env / *.db / *.log / media/` 等
@@ -56,7 +56,7 @@ ANTHROPIC_THIRD_MODEL=      # 可选第三层模型名；默认同 settings.yaml
 
 ### 2.1 速率与计费
 
-- 文档没有公开的速率限制数字，**实测前先小心**：53 个 KOL 一轮抓取期间 KOL 之间 sleep 2-5 秒，整个 batch 约 5-10 分钟。
+- 文档没有公开的速率限制数字，**实测前先小心**：55 个 KOL 一轮抓取期间 KOL 之间 sleep 2-5 秒，整个 batch 约 5-10 分钟。
 - 计费按调用量，跑批前看一眼 [6551.io 控制台](https://6551.io/mcp) 余额。
 - token 用尽时 API 一般返回 4xx，**千万不要重试 4xx**（tenacity 装饰器只对 ConnectError / ReadTimeout 重试，不要扩到 HTTPStatusError）。
 
@@ -321,6 +321,8 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 
 - 2026-05-30：当前工作目录的 `.git` 是只读 tmpfs 挂载点，不能作为普通 git repo 初始化。已改用 `.git-data/` 作为备用 `GIT_DIR`，`publisher.py` 检测到 `.git-data/` 时会设置 `GIT_DIR` / `GIT_WORK_TREE` 后再执行 git 命令。`.git-data/` 已加入 `.gitignore`。
 - 2026-05-30：`realDonaldTrump` 的 6551 返回 ID 可能是 `truth_数字`，不能直接 `int(tweet_id)`。已在 fetcher 里改为用数字后缀比较，仍保存完整原始 ID，避免 Trump 账号首拉和增量都失败。
+- 2026-05-30：`SV_Nomad` 是真实 X 用户，但 6551 的 `twitter_user_tweets` 可能返回 400 `no tweet`；`twitter_search fromUser=SV_Nomad` 可正常返回内容。已保留该账号，并在 fetcher 中对 `user_tweets` 400 增加 search 兜底。
+- 2026-05-30：日报展示里所有具体股票代码统一用 `$代码`，例如 `$NVDA`。Layer 2 JSON 的 `tickers` 字段可继续存 `NVDA`，发布渲染时会补 `$`。
 
 ---
 
@@ -347,4 +349,4 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 4. **情绪时序** — 把每位 KOL 每日 sentiment 存进 `kol_sentiment_daily`，画图
 5. **Telegram 机器人** — `/today` 推送当日 digest 到 channel
 
-不要在初版就尝试以上任何一项 —— 先把 53 个 KOL 每天总结这件事跑稳一个月。
+不要在初版就尝试以上任何一项 —— 先把 55 个 KOL 每天总结这件事跑稳一个月。

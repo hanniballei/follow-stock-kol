@@ -7,7 +7,9 @@ import pytest
 
 from kol_monitor.summarizer import (
     _anthropic_sdk_base_url,
+    _layer2_prompt,
     call_claude_with_retry,
+    build_layer1_prompt,
     parse_layer2,
     summarize_one_kol,
 )
@@ -139,8 +141,6 @@ def test_anthropic_sdk_base_url_keeps_clean_provider_root():
 
 
 def test_build_layer1_prompt_includes_trump_section():
-    from kol_monitor.summarizer import build_layer1_prompt
-
     prompt = build_layer1_prompt(
         [{"screen_name": "qinbafrank", "tweet_count": 1, "core_view": "x", "bullets": [], "sentiment": "neutral"}],
         trump_summary={
@@ -155,3 +155,15 @@ def test_build_layer1_prompt_includes_trump_section():
     text = prompt[0]["content"][0]["text"]
     assert "特朗普相关" in text
     assert "realDonaldTrump" in text
+    assert "$TSLA" in text
+
+
+def test_layer2_prompt_requires_dollar_ticker_display():
+    text = _layer2_prompt(
+        {"screen_name": "qinbafrank"},
+        [{"text": "NVDA earnings", "favorite_count": 1, "retweet_count": 0, "url": "https://x.com/a/status/1"}],
+        had_media=False,
+    )
+
+    assert "$NVDA" in text
+    assert "tickers" in text

@@ -36,6 +36,7 @@ def test_render_readme_contains_required_sections():
     assert "## 历史归档" in md
     assert "https://x.com/qinbafrank/status/1" in md
     assert "2026-05-29" in md
+    assert "$AMAT" in md
 
 
 def test_digest_md_no_collapse():

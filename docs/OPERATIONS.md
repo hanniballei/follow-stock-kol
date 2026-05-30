@@ -82,6 +82,7 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 4. 清除 `incomplete` 标记。
 
 注意：4xx 不重试，避免 token 无效、欠费、权限问题时反复烧调用量。只对连接错误和读取超时重试。
+例外：如果 `twitter_user_tweets` 对某个真实账号返回 400（例如 `SV_Nomad` 的 `no tweet`），程序会改用 `twitter_search fromUser=<handle>` 兜底一次；这不是对同一 4xx 请求重试。
 
 ## 4. 归档策略
 

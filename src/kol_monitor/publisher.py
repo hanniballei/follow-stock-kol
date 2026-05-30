@@ -204,8 +204,15 @@ def _render_bullets(bullets: list[dict]) -> str:
     lines = []
     for bullet in bullets:
         tickers = bullet.get("tickers") or []
-        ticker_text = f" ({', '.join(tickers)})" if tickers else ""
+        formatted_tickers = [_format_ticker(ticker) for ticker in tickers]
+        formatted_tickers = [ticker for ticker in formatted_tickers if ticker]
+        ticker_text = f" ({', '.join(formatted_tickers)})" if formatted_tickers else ""
         link = bullet.get("tweet_url")
         link_text = f" [原推]({link})" if link else ""
         lines.append(f"- {bullet.get('point', '')}{ticker_text}{link_text}")
     return "\n".join(lines)
+
+
+def _format_ticker(ticker: object) -> str:
+    code = str(ticker).strip().lstrip("$").upper()
+    return f"${code}" if code else ""

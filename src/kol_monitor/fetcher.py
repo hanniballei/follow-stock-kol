@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import httpx
+
 from kol_monitor import db
 from kol_monitor.config import settings
 from kol_monitor.client import OpenTwitterClient
@@ -78,6 +80,19 @@ def _insert_tweets(tweets: list[dict[str, Any]], kol: dict[str, Any]) -> int:
     return inserted
 
 
+async def _latest_tweets(client: Any, handle: str, max_results: int) -> list[dict[str, Any]]:
+    try:
+        return await client.user_tweets(handle, max_results=max_results)
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code == 400:
+            logger.warning(
+                "user_tweets returned 400 for @%s; falling back to twitter_search",
+                handle,
+            )
+            return await client.search(from_user=handle, max_results=max_results)
+        raise
+
+
 async def fetch_one_kol(
     client: Any,
     kol: dict[str, Any],
@@ -92,7 +107,7 @@ async def fetch_one_kol(
     last_id = kol.get("last_seen_tweet_id")
 
     if last_id is None:
-        batch = await client.user_tweets(handle, max_results=initial_pull_size)
+        batch = await _latest_tweets(client, handle, initial_pull_size)
         inserted = _insert_tweets(batch, kol)
         newest_id = _max_id(batch)
         db.update_kol_anchor(kol["id"], newest_id, datetime.now(timezone.utc), incomplete=False)
@@ -104,7 +119,7 @@ async def fetch_one_kol(
     overlap = False
 
     for _ in range(max_rounds):
-        batch = await client.user_tweets(handle, max_results=page_size)
+        batch = await _latest_tweets(client, handle, page_size)
         for tweet in batch:
             fetched_by_id[_tweet_id(tweet)] = tweet
         if not batch:

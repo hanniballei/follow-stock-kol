@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+import httpx
 import pytest
 
 from kol_monitor.db import get_kol, update_kol_anchor, upsert_kol
@@ -13,15 +14,20 @@ class FakeClient:
         self.pages = list(pages)
         self.calls = 0
         self.search_calls = 0
+        self.search_kwargs = []
         self.search_result = []
 
     async def user_tweets(self, username, max_results=50, **kwargs):
         idx = min(self.calls, len(self.pages) - 1)
         self.calls += 1
-        return self.pages[idx]
+        page = self.pages[idx]
+        if isinstance(page, Exception):
+            raise page
+        return page
 
     async def search(self, **kwargs):
         self.search_calls += 1
+        self.search_kwargs.append(kwargs)
         return self.search_result
 
 
@@ -64,6 +70,38 @@ async def test_first_time_fetch_accepts_prefixed_numeric_ids(tmp_db, make_tweet)
     assert res.inserted == 2
     assert res.incomplete is False
     assert get_kol("realDonaldTrump")["last_seen_tweet_id"] == "truth_1780116388200996847"
+
+
+@pytest.mark.asyncio
+async def test_first_time_fetch_falls_back_to_search_on_user_tweets_400(tmp_db, make_tweet):
+    upsert_kol("SV_Nomad")
+    kol = get_kol("SV_Nomad")
+    request = httpx.Request("POST", "https://ai.6551.io/open/twitter_user_tweets")
+    response = httpx.Response(400, request=request, json={"error": "no tweet"})
+    client = FakeClient(pages=[httpx.HTTPStatusError("no tweet", request=request, response=response)])
+    client.search_result = [make_tweet(handle="SV_Nomad", offset=1)]
+
+    res = await fetch_one_kol(client, kol)
+
+    assert res.inserted == 1
+    assert res.incomplete is False
+    assert client.search_calls == 1
+    assert client.search_kwargs[0]["from_user"] == "SV_Nomad"
+    assert get_kol("SV_Nomad")["last_seen_tweet_id"] == str(1800000000000000001)
+
+
+@pytest.mark.asyncio
+async def test_first_time_fetch_does_not_fallback_on_auth_4xx(tmp_db):
+    upsert_kol("qinbafrank")
+    kol = get_kol("qinbafrank")
+    request = httpx.Request("POST", "https://ai.6551.io/open/twitter_user_tweets")
+    response = httpx.Response(401, request=request, json={"error": "invalid token"})
+    client = FakeClient(pages=[httpx.HTTPStatusError("invalid token", request=request, response=response)])
+
+    with pytest.raises(httpx.HTTPStatusError):
+        await fetch_one_kol(client, kol)
+
+    assert client.search_calls == 0
 
 
 @pytest.mark.asyncio
