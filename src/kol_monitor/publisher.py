@@ -18,12 +18,13 @@ def render_readme(
     recent_digests: list[tuple[str, str]] | None = None,
 ) -> str:
     today_digest_path = _digest_rel_path(date)
+    kol_count = len(kol_list)
     parts = [
         "# 美股 KOL 每日监控",
         "",
         f"最后更新：{date}",
         "",
-        "每天自动抓取 55 位美股相关 X/KOL，提炼当日市场共识、分歧和特朗普相关影响。",
+        f"每天自动抓取 {kol_count} 位美股相关 X/KOL，提炼当日市场共识、分歧和特朗普相关影响。",
         "",
         f"[阅读今日完整报告]({today_digest_path})",
         "",

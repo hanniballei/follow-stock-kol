@@ -43,7 +43,7 @@
 ## 步骤 2 · 配置文件（已预先创建，仅需写加载器）
 
 文件：
-- [x] `config/kols.yaml` — 55 个 handle，已存在
+- [x] `config/kols.yaml` — 53 个 handle，已存在
 - [x] `config/settings.yaml` — 全部参数，已存在
 - [x] `src/kol_monitor/config.py` — 加载 yaml + dotenv，提供单例 `settings`
 
@@ -56,7 +56,7 @@
 **验证**：
 ```bash
 python -c "from kol_monitor.config import settings; print(len(settings.kols), settings.schedule.hour)"
-# 期望输出：55 20
+# 期望输出：53 20
 ```
 
 ---
@@ -367,7 +367,7 @@ freezegun>=1.4
 
 1. 用户填好 `.env`（3 个变量）
 2. 用户配好 git remote（`git remote add origin git@github.com:...`）
-3. `kol-monitor list-kols` 校验 55 个 handle 都被加载
+3. `kol-monitor list-kols` 校验 53 个 handle 都被加载
 4. `kol-monitor add-kol --validate-all` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
 5. `kol-monitor run-once` 跑一次完整流程（冷启动只拉当天）
 6. 检查 `digests/2026/05/29.md` 和 `README.md` 输出

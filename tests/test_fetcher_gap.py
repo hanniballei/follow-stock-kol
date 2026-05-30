@@ -41,6 +41,32 @@ async def test_first_time_fetch_inserts_all(tmp_db, make_tweet):
 
 
 @pytest.mark.asyncio
+async def test_first_time_fetch_accepts_prefixed_numeric_ids(tmp_db, make_tweet):
+    upsert_kol("realDonaldTrump")
+    kol = get_kol("realDonaldTrump")
+    client = FakeClient(
+        pages=[
+            [
+                make_tweet(
+                    handle="realDonaldTrump",
+                    id="truth_1780116388200996844",
+                ),
+                make_tweet(
+                    handle="realDonaldTrump",
+                    id="truth_1780116388200996847",
+                ),
+            ]
+        ]
+    )
+
+    res = await fetch_one_kol(client, kol)
+
+    assert res.inserted == 2
+    assert res.incomplete is False
+    assert get_kol("realDonaldTrump")["last_seen_tweet_id"] == "truth_1780116388200996847"
+
+
+@pytest.mark.asyncio
 async def test_incremental_with_overlap(tmp_db, make_tweet):
     upsert_kol("qinbafrank")
     update_kol_anchor(
@@ -66,6 +92,32 @@ async def test_incremental_with_overlap(tmp_db, make_tweet):
     assert res.inserted == 2
     assert res.incomplete is False
     assert get_kol("qinbafrank")["last_seen_tweet_id"] == str(1800000000000000102)
+
+
+@pytest.mark.asyncio
+async def test_incremental_fetch_accepts_prefixed_numeric_anchor(tmp_db, make_tweet):
+    upsert_kol("realDonaldTrump")
+    update_kol_anchor(
+        get_kol("realDonaldTrump")["id"],
+        "truth_1780116388200996844",
+        datetime.now(timezone.utc),
+        incomplete=False,
+    )
+    kol = get_kol("realDonaldTrump")
+    client = FakeClient(
+        pages=[
+            [
+                make_tweet(handle="realDonaldTrump", id="truth_1780116388200996847"),
+                make_tweet(handle="realDonaldTrump", id="truth_1780116388200996844"),
+            ]
+        ]
+    )
+
+    res = await fetch_one_kol(client, kol)
+
+    assert res.inserted == 1
+    assert res.incomplete is False
+    assert get_kol("realDonaldTrump")["last_seen_tweet_id"] == "truth_1780116388200996847"
 
 
 @pytest.mark.asyncio

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -12,6 +13,7 @@ from kol_monitor.config import settings
 from kol_monitor.client import OpenTwitterClient
 
 logger = logging.getLogger(__name__)
+NUMERIC_SUFFIX_RE = re.compile(r"(\d+)$")
 
 
 @dataclass
@@ -40,7 +42,17 @@ def _tweet_id(tweet: dict[str, Any]) -> str:
 
 
 def _tweet_id_int(tweet: dict[str, Any]) -> int:
-    return int(_tweet_id(tweet))
+    return _tweet_id_sort_value(_tweet_id(tweet))
+
+
+def _tweet_id_sort_value(tweet_id: str) -> int:
+    try:
+        return int(tweet_id)
+    except ValueError:
+        match = NUMERIC_SUFFIX_RE.search(tweet_id)
+        if match:
+            return int(match.group(1))
+        raise
 
 
 def _attach_kol(tweet: dict[str, Any], kol: dict[str, Any]) -> dict[str, Any]:
@@ -55,7 +67,7 @@ def _attach_kol(tweet: dict[str, Any], kol: dict[str, Any]) -> dict[str, Any]:
 def _max_id(tweets: list[dict[str, Any]]) -> str | None:
     if not tweets:
         return None
-    return str(max(_tweet_id_int(tweet) for tweet in tweets))
+    return _tweet_id(max(tweets, key=_tweet_id_int))
 
 
 def _insert_tweets(tweets: list[dict[str, Any]], kol: dict[str, Any]) -> int:
@@ -86,7 +98,7 @@ async def fetch_one_kol(
         db.update_kol_anchor(kol["id"], newest_id, datetime.now(timezone.utc), incomplete=False)
         return KolFetchResult(handle, inserted=inserted, fetched=len(batch), incomplete=False)
 
-    last_id_int = int(last_id)
+    last_id_int = _tweet_id_sort_value(str(last_id))
     page_size = initial_pull_size
     fetched_by_id: dict[str, dict[str, Any]] = {}
     overlap = False
@@ -122,7 +134,7 @@ async def backfill_incomplete(client: Any) -> None:
             tweet
             for tweet in tweets
             if kol.get("last_seen_tweet_id") is None
-            or _tweet_id_int(tweet) > int(kol["last_seen_tweet_id"])
+            or _tweet_id_int(tweet) > _tweet_id_sort_value(str(kol["last_seen_tweet_id"]))
         ]
         _insert_tweets(new_tweets, kol)
         newest_id = _max_id(new_tweets)

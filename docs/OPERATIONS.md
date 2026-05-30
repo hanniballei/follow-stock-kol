@@ -68,7 +68,7 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 1. 读取数据库里该 KOL 的 `last_seen_tweet_id`。
 2. 调 6551 `twitter_user_tweets` 拉最新 20 条。
-3. 把返回的 tweet_id 全部转成 `int` 比较，避免字符串比较出错。
+3. 把返回的 tweet_id 全部转成数值排序键比较，避免字符串比较出错；`truth_数字` 这类 ID 取数字后缀比较。
 4. 如果这批推文里出现了上次锚点，或者最小 tweet_id 已经小于上次锚点，说明和历史数据发生重叠。
 5. 只保留 `tweet_id > last_seen_tweet_id` 的推文入库。
 6. 只有本轮确实有新推文时，才把 `last_seen_tweet_id` 更新为新推文里的最大 id。
