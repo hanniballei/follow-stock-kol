@@ -10,6 +10,7 @@ from kol_monitor.summarizer import (
     _layer2_prompt,
     call_claude_with_retry,
     build_layer1_prompt,
+    normalize_layer1_source_links,
     parse_layer2,
     summarize_one_kol,
 )
@@ -185,6 +186,8 @@ def test_build_layer1_prompt_includes_trump_section():
     assert "特朗普相关" in text
     assert "realDonaldTrump" in text
     assert "$TSLA" in text
+    assert "不要使用 [来源]" in text
+    assert "[@screen_name]" in text
 
 
 def test_layer2_prompt_requires_dollar_ticker_display():
@@ -196,3 +199,24 @@ def test_layer2_prompt_requires_dollar_ticker_display():
 
     assert "$NVDA" in text
     assert "tickers" in text
+
+
+def test_normalize_layer1_source_links_uses_handles():
+    md = (
+        "- **$SIVE** 管道增长 77%。[来源](https://x.com/aleabitoreddit/status/1)\n"
+        "| $NVDA | 多 | 调仓砸盘 | [链接](https://x.com/ArtofSpecuycky/status/2) |\n"
+        "- 多条来源：[来源1](https://x.com/jukan05/status/3) [来源2](https://x.com/jukan05/status/4)\n"
+        "- 特朗普本人：[原文](https://x.com/realDonaldTrump/status/truth_1)\n"
+        "[阅读今日完整报告](digests/2026/05/30.md)"
+    )
+
+    normalized = normalize_layer1_source_links(md)
+
+    assert "[@aleabitoreddit](https://x.com/aleabitoreddit/status/1)" in normalized
+    assert "[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2)" in normalized
+    assert "[@jukan05 · 1](https://x.com/jukan05/status/3)" in normalized
+    assert "[@jukan05 · 2](https://x.com/jukan05/status/4)" in normalized
+    assert "[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1)" in normalized
+    assert "[阅读今日完整报告](digests/2026/05/30.md)" in normalized
+    assert "[来源]" not in normalized
+    assert "[链接]" not in normalized

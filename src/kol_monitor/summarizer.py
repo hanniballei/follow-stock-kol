@@ -16,6 +16,8 @@ from kol_monitor.config import settings
 
 _client: Any = None
 logger = logging.getLogger(__name__)
+GENERIC_SOURCE_LABEL_RE = re.compile(r"^(来源|链接|原文|原推)\s*(\d*)$")
+TWEET_URL_RE = re.compile(r"https?://(?:www\.)?(?:x|twitter)\.com/([^/]+)/status/[^)\s]+")
 
 
 @dataclass(frozen=True)
@@ -111,6 +113,27 @@ def _parse_jsonish_tickers(text: str) -> list[str]:
     except Exception:
         pass
     return re.findall(r'"([^"]+)"', text)
+
+
+def normalize_layer1_source_links(markdown: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        label = match.group(1)
+        url = match.group(2)
+        generic = GENERIC_SOURCE_LABEL_RE.match(label.strip())
+        tweet = TWEET_URL_RE.match(url)
+        if generic is None or tweet is None:
+            return match.group(0)
+        kind, suffix = generic.groups()
+        handle = tweet.group(1)
+        if kind == "原文" and handle.lower() == "realdonaldtrump":
+            new_label = f"@{handle} 原文{suffix}".rstrip()
+        elif suffix:
+            new_label = f"@{handle} · {suffix}"
+        else:
+            new_label = f"@{handle}"
+        return f"[{new_label}]({url})"
+
+    return re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", replace, markdown)
 
 
 def _get_client() -> Any:
@@ -278,6 +301,10 @@ def build_layer1_prompt(
         "“特朗普相关”小节必须总结 realDonaldTrump 当天发言可能影响的美股标的、行业、事件线索，"
         "若只是推测也要明确写出推测依据。每条要点尽量附原推链接。"
         "所有涉及具体股票代码的 markdown 文本必须使用 $代码 格式，例如 $TSLA，不要只写 TSLA。"
+        "来源链接不要使用 [来源]、[链接]、[原文] 这类泛称；综合正文和交易信号表格中，"
+        "链接文字必须显示来源账号，例如 [@screen_name](tweet_url)。"
+        "同一账号多条来源可写 [@screen_name · 1](tweet_url)、[@screen_name · 2](tweet_url)。"
+        "特朗普本人发言使用 [@realDonaldTrump 原文](tweet_url)；其他账号对特朗普事件的解读使用 [@screen_name](tweet_url)。"
     )
     parts = [intro]
     if trump_summary is not None:
@@ -309,7 +336,7 @@ async def summarize_day(date: str) -> dict[str, Any]:
         messages=build_layer1_prompt(layer2_results, trump_summary=trump_summary),
         max_tokens=settings.ai.max_tokens_layer1,
     )
-    summary_md = layer1_response.content[0].text
+    summary_md = normalize_layer1_source_links(layer1_response.content[0].text)
     input_tokens = sum(item.get("input_tokens", 0) for item in layer2_results)
     output_tokens = sum(item.get("output_tokens", 0) for item in layer2_results)
     usage = getattr(layer1_response, "usage", None)
