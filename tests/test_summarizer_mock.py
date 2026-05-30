@@ -5,7 +5,12 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from kol_monitor.summarizer import call_claude_with_retry, parse_layer2, summarize_one_kol
+from kol_monitor.summarizer import (
+    _anthropic_sdk_base_url,
+    call_claude_with_retry,
+    parse_layer2,
+    summarize_one_kol,
+)
 
 
 def test_parse_clean_json():
@@ -112,7 +117,7 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", "fallback")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_base_url", "https://fallback.example")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", "third")
-    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_base_url", "https://third.example/v1")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_base_url", "https://third.example")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_model", "anthropic/claude-sonnet-4.6")
 
     response = await call_claude_with_retry(
@@ -126,6 +131,11 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     assert events[1][2] == "claude-sonnet-4-6"
     assert events[2][1] == "https://third.example"
     assert events[2][2] == "anthropic/claude-sonnet-4.6"
+
+
+def test_anthropic_sdk_base_url_keeps_clean_provider_root():
+    assert _anthropic_sdk_base_url("https://third.example") == "https://third.example"
+    assert _anthropic_sdk_base_url("https://third.example/v1") == "https://third.example"
 
 
 def test_build_layer1_prompt_includes_trump_section():

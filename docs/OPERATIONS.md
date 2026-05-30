@@ -121,4 +121,4 @@ Claude 调用按三层顺序尝试：
 2. 第二层备用：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同主配置
 3. 第三层备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
 
-只有上一层调用抛错或无结果时，才会尝试下一层。当前第三层模型名配置为 `anthropic/claude-sonnet-4.6`。
+三层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第三层模型名配置为 `anthropic/claude-sonnet-4.6`。
