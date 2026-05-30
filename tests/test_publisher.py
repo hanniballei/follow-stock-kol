@@ -23,10 +23,13 @@ def test_render_readme_contains_required_sections():
             }
         ],
         kol_list=["qinbafrank", "NickTimiraos"],
+        recent_digests=[("2026-05-29", "digests/2026/05/29.md")],
         history_dirs=[("2026-05", "digests/2026/05/"), ("2026-04", "digests/2026/04/")],
     )
 
     assert "## 监控的 KOL" in md
+    assert "[阅读今日完整报告](digests/2026/05/29.md)" in md
+    assert "## 最近 7 天" in md
     assert "[@qinbafrank](https://x.com/qinbafrank)" in md
     assert "<details>" in md
     assert "## 历史归档" in md

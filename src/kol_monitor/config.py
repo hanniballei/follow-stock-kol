@@ -56,6 +56,10 @@ def load_settings(root: str | Path | None = None) -> SimpleNamespace:
     settings.opentwitter_base_url = os.getenv("OPENTWITTER_BASE_URL") or "https://ai.6551.io"
     settings.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
     settings.anthropic_base_url = os.getenv("ANTHROPIC_BASE_URL") or None
+    settings.anthropic_fallback_api_key = os.getenv("ANTHROPIC_FALLBACK_API_KEY")
+    settings.anthropic_fallback_base_url = (
+        os.getenv("ANTHROPIC_FALLBACK_BASE_URL") or settings.anthropic_base_url
+    )
     return settings
 
 

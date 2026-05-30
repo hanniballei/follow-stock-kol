@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -13,6 +14,7 @@ from kol_monitor import db
 from kol_monitor.config import settings
 
 _client: Any = None
+logger = logging.getLogger(__name__)
 
 
 def parse_layer2(text: str) -> dict[str, Any] | None:
@@ -51,13 +53,55 @@ def _get_client() -> Any:
 
 
 async def call_claude_with_retry(messages: list[dict[str, Any]], max_tokens: int) -> Any:
-    client = _get_client()
-    return await client.messages.create(
-        model=settings.ai.model,
-        max_tokens=max_tokens,
-        temperature=settings.ai.temperature,
-        messages=messages,
-    )
+    if _client is not None:
+        return await _client.messages.create(
+            model=settings.ai.model,
+            max_tokens=max_tokens,
+            temperature=settings.ai.temperature,
+            messages=messages,
+        )
+
+    last_error: Exception | None = None
+    for label, client in _anthropic_clients():
+        try:
+            return await client.messages.create(
+                model=settings.ai.model,
+                max_tokens=max_tokens,
+                temperature=settings.ai.temperature,
+                messages=messages,
+            )
+        except Exception as exc:
+            last_error = exc
+            logger.warning("Claude request failed via %s credentials: %s", label, exc)
+    if last_error:
+        raise last_error
+    raise RuntimeError("ANTHROPIC_API_KEY is required")
+
+
+def _anthropic_clients() -> list[tuple[str, Any]]:
+    clients = []
+    if settings.anthropic_api_key:
+        clients.append(
+            (
+                "primary",
+                AsyncAnthropic(
+                    api_key=settings.anthropic_api_key,
+                    base_url=settings.anthropic_base_url,
+                ),
+            )
+        )
+    if getattr(settings, "anthropic_fallback_api_key", None):
+        clients.append(
+            (
+                "fallback",
+                AsyncAnthropic(
+                    api_key=settings.anthropic_fallback_api_key,
+                    base_url=getattr(settings, "anthropic_fallback_base_url", None)
+                    or settings.anthropic_base_url,
+                ),
+            )
+        )
+    return clients
 
 
 async def summarize_one_kol(

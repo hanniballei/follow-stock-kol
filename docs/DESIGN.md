@@ -307,3 +307,7 @@ python -m kol_monitor add-kol <handle>        # 增加 KOL（去重 + 校验）
 - ❌ GitHub Pages（用户要求只 README）
 - ❌ 推送图片到 GitHub（仓库膨胀风险，X CDN 直链可用）
 - ❌ Web UI / API 服务（命令行和 README 已满足）
+
+## 16. 运维说明
+
+持久化运行、单 KOL 拉取条数、防漏拉机制和归档策略的详细说明见 [OPERATIONS.md](OPERATIONS.md)。

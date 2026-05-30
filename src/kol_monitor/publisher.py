@@ -15,11 +15,15 @@ def render_readme(
     layer2_kols: list[dict],
     kol_list: list[str],
     history_dirs: list[tuple[str, str]],
+    recent_digests: list[tuple[str, str]] | None = None,
 ) -> str:
+    today_digest_path = _digest_rel_path(date)
     parts = [
         "# 美股 KOL 每日监控",
         "",
         f"最后更新：{date}",
+        "",
+        f"[阅读今日完整报告]({today_digest_path})",
         "",
         "## 监控的 KOL",
         "",
@@ -35,6 +39,10 @@ def render_readme(
         _render_layer2(layer2_kols),
         "",
         "</details>",
+        "",
+        "## 最近 7 天",
+        "",
+        _render_recent_digests(recent_digests or []),
         "",
         "## 历史归档",
         "",
@@ -81,6 +89,7 @@ def write_outputs(date: str) -> tuple[Path, Path]:
         layer2_kols=layer2,
         kol_list=settings.kols,
         history_dirs=history_dirs(),
+        recent_digests=recent_digest_links(),
     )
     digest_md = render_digest_md(date, digest["summary_md"], layer2)
     readme_path = settings.project_root / "README.md"
@@ -129,6 +138,28 @@ def history_dirs() -> list[tuple[str, str]]:
     return entries[: settings.publish.history_index_months]
 
 
+def recent_digest_links(limit: int = 7) -> list[tuple[str, str]]:
+    base = settings.project_root / "digests"
+    if not base.exists():
+        return []
+    files = sorted(base.glob("*/*/*.md"), reverse=True)
+    entries = []
+    for path in files:
+        if path.name == "README.md":
+            continue
+        try:
+            year = path.parent.parent.name
+            month = path.parent.name
+            day = path.stem
+            label = f"{year}-{month}-{day}"
+        except Exception:
+            continue
+        entries.append((label, str(path.relative_to(settings.project_root))))
+        if len(entries) >= limit:
+            break
+    return entries
+
+
 def _render_kol_list(kol_list: list[str]) -> str:
     return "\n".join(f"- [@{handle}](https://x.com/{handle})" for handle in kol_list)
 
@@ -137,6 +168,17 @@ def _render_history(history: list[tuple[str, str]]) -> str:
     if not history:
         return "暂无历史归档。"
     return "\n".join(f"- [{label}]({path})" for label, path in history)
+
+
+def _render_recent_digests(recent: list[tuple[str, str]]) -> str:
+    if not recent:
+        return "暂无最近日报。"
+    return "\n".join(f"- [{label}]({path})" for label, path in recent)
+
+
+def _digest_rel_path(date: str) -> str:
+    year, month, day = date.split("-")
+    return f"digests/{year}/{month}/{day}.md"
 
 
 def _render_layer2(layer2_kols: list[dict]) -> str:

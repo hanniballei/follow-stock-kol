@@ -5,6 +5,7 @@
 - 设计：[DESIGN.md](DESIGN.md)
 - 注意事项：[../AGENTS.md](../AGENTS.md)
 - 测试策略：[TESTING.md](TESTING.md)
+- 运维说明：[OPERATIONS.md](OPERATIONS.md)
 
 整体顺序按依赖关系：**骨架 → 配置 → DB → 6551 客户端 → 抓取 → 媒体 → 总结 → 发布 → CLI / 调度 → 测试 → 首跑**。每步标 `输入 / 输出 / 验证`，绝不跳步。
 

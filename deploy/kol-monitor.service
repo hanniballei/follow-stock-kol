@@ -1,0 +1,15 @@
+[Unit]
+Description=KOL Monitor Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/trading/us-stock/kol-monitor
+EnvironmentFile=/root/trading/us-stock/kol-monitor/.env
+ExecStart=/root/trading/us-stock/kol-monitor/.venv/bin/kol-monitor daemon
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

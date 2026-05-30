@@ -6,6 +6,7 @@
 - 设计：[docs/DESIGN.md](docs/DESIGN.md)
 - 实施：[docs/IMPLEMENTATION.md](docs/IMPLEMENTATION.md)
 - 测试：[docs/TESTING.md](docs/TESTING.md)
+- 运维：[docs/OPERATIONS.md](docs/OPERATIONS.md)
 
 > 这份文档面向接手或扩展本项目的 AI 助手 / 工程师，记录"光看代码看不出来"的决策和坑。请在重大改动前先读完，并在踩坑后回来更新"已知问题与教训"区。
 
@@ -34,6 +35,8 @@ OPENTWITTER_BASE_URL=https://ai.6551.io   # 一般不改
 ANTHROPIC_API_KEY=          # 必填
 ANTHROPIC_BASE_URL=         # 走代理时填，走官方留空
 # ANTHROPIC_MODEL=          # 可选覆盖；默认从 settings.yaml.ai.model 读
+ANTHROPIC_FALLBACK_API_KEY= # 可选备用 Claude key
+ANTHROPIC_FALLBACK_BASE_URL= # 可选备用 Claude base URL；为空则复用 ANTHROPIC_BASE_URL
 # KOL_MONITOR_DB=           # 可选覆盖 SQLite 路径
 # KOL_MONITOR_MEDIA_DIR=    # 可选覆盖媒体目录
 ```
