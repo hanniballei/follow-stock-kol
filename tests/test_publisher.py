@@ -30,6 +30,9 @@ def test_render_readme_contains_required_sections():
         history_dirs=[("2026-05", "digests/2026/05/"), ("2026-04", "digests/2026/04/")],
     )
 
+    assert md.startswith("# 美股KOL每日摘要")
+    assert "X 上 2 位美股相关 KOL 的发言" in md
+    assert "美股 X/KOL 每日摘要" not in md
     assert "## 你会看到什么" in md
     assert "## 自己运行" in md
     assert "KOL_MONITOR_ALLOW_PUSH=true" in md

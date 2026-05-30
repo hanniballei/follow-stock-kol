@@ -20,11 +20,11 @@ def render_readme(
     today_digest_path = _digest_rel_path(date)
     kol_count = len(kol_list)
     parts = [
-        "# 美股 X/KOL 每日摘要",
+        "# 美股KOL每日摘要",
         "",
         f"最后更新：{date}",
         "",
-        f"这个仓库每天北京时间 20:30 自动抓取 {kol_count} 位美股相关 X/KOL 的发言，整理成一页当天市场摘要。你可以先看今日完整报告，再看下面的当日总结和各 KOL 细节。",
+        f"这个仓库每天北京时间 20:30 自动抓取 X 上 {kol_count} 位美股相关 KOL 的发言，整理成一页当天市场摘要。你可以先看今日完整报告，再看下面的当日总结和各 KOL 细节。",
         "",
         f"[阅读今日完整报告]({today_digest_path})",
         "",
