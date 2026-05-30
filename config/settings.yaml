@@ -1,0 +1,49 @@
+# 全局可调参数
+# 修改后重启 daemon 生效；CLI 单次命令读最新值
+
+schedule:
+  timezone: Asia/Shanghai          # 固定北京时间，不随美股 DST 调整
+  hour: 20                          # 20:30 = 美股夏令时开盘前 1h
+  minute: 30
+  misfire_grace_seconds: 3600       # 错过触发时刻后 1h 内重启会补跑
+
+fetcher:
+  per_kol_sleep_min: 2              # 每个 KOL 之间随机 sleep 秒数下限
+  per_kol_sleep_max: 5
+  initial_pull_size: 50             # 首次接入某 KOL 时拉多少条
+  max_rounds: 5                     # 增量翻页最多几轮（每轮翻倍直到 100）
+  max_results_per_request: 100      # 6551 单次上限
+  search_backfill_days: 2           # 兜底 search 倒回几天
+  request_timeout: 30               # httpx 单请求超时（秒）
+  retry_attempts: 3                 # 仅对网络错误重试，4xx 不重试
+
+media:
+  download_photos: true
+  download_gif: true
+  download_videos: false            # 视频只存 URL，不下载
+  max_photos_per_kol_for_ai: 8      # 单个 KOL 喂给 AI 的最大图片数
+  download_retry: 2
+  download_timeout: 30
+  download_concurrency: 8           # asyncio.Semaphore 并发上限
+
+ai:
+  model: claude-sonnet-4-6          # 用户提供的代理若用别的 ID 在此覆盖
+  max_tokens_layer2: 1500           # 每个 KOL 单独总结
+  max_tokens_layer1: 4000           # 综合总结
+  temperature: 0.3
+  retry_attempts: 3
+  layer2_concurrency: 4             # 同时给几个 KOL 跑 Layer 2
+
+publish:
+  git_push: true
+  push_retry: 3
+  history_index_months: 12          # README 底部展示最近几个月链接
+  monthly_index: true               # 每月最后一天自动生成月度回顾
+
+retention:
+  raw_json_keep_days: 90            # 90 天后清理 tweets.raw_json，结构化字段保留
+
+logging:
+  level: INFO                       # DEBUG / INFO / WARNING / ERROR
+  file: kol_monitor.log
+  rich_console: true                # 彩色终端输出

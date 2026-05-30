@@ -1,0 +1,61 @@
+# 监控的 KOL 列表（54 位）
+# - 纯 Twitter / X handle，不带 @
+# - 大小写按 X 实际显示
+# - 按字母序排列（不区分大小写），方便后续增补不重复
+# - 增加新 KOL：直接 append 一行，重启 daemon 或运行 `kol-monitor add-kol <handle>`
+# - 移除：删除该行；DB 里的历史推文保留，daemon 不再抓取
+kols:
+  - 10kdiver
+  - 3ethtomoon
+  - aleabitoreddit
+  - alphatrends
+  - AnnaEconomist
+  - Areskapitalon
+  - ArtofSpecuycky
+  - artinmemes
+  - awealthofcs
+  - biancoresearch
+  - BrianFeroldi
+  - ByrneHobart
+  - caizhenghai
+  - charliebilello
+  - cnfinancewatch
+  - cyrilxuq
+  - elerianm
+  - fi56622380
+  - FluentInFinance
+  - hanking66
+  - insane_analyst
+  - josephwang
+  - jukan05
+  - labubu_trader
+  - leopoldasch
+  - LinQingV
+  - LizAnnSonders
+  - LucyBuilding
+  - LynAldenContact
+  - morganhousel
+  - Mr_Derivatives
+  - nbblock
+  - nft_hu
+  - NickTimiraos
+  - octopusycc
+  - qinbafrank
+  - raycat2021
+  - relly_eth
+  - Remzztrades
+  - ripster47
+  - Ritholtz
+  - rwang07
+  - Scottrades
+  - ShanghaoJin
+  - shufen46250836
+  - SpermCapital
+  - sssjeffpu
+  - starzq
+  - SV_Nomad
+  - TJ_Research
+  - tychozzz
+  - WallStreet0Name
+  - xiaomustock
+  - zephyr_z9
