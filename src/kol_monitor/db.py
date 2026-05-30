@@ -122,6 +122,7 @@ def init_db(path: str | Path | None = None) -> None:
     _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with _connect(_DB_PATH) as conn:
         conn.executescript(SCHEMA)
+        _normalize_existing_tweet_dates(conn)
 
 
 def upsert_kol(
@@ -218,10 +219,36 @@ def _as_iso(value: Any) -> str:
         return _utcnow()
     if isinstance(value, datetime):
         return value.isoformat()
-    text = str(value)
+    text = str(value).strip()
     if text.endswith("Z"):
-        return text[:-1] + "+00:00"
+        text = text[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(text).isoformat()
+    except ValueError:
+        pass
+    try:
+        return datetime.strptime(text, "%a %b %d %H:%M:%S %z %Y").isoformat()
+    except ValueError:
+        pass
     return text
+
+
+def _normalize_existing_tweet_dates(conn: sqlite3.Connection) -> None:
+    rows = conn.execute(
+        """
+        SELECT tweet_id, created_at
+        FROM tweets
+        WHERE created_at IS NOT NULL
+          AND created_at NOT LIKE '____-__-__T%'
+        """
+    ).fetchall()
+    for row in rows:
+        normalized = _as_iso(row["created_at"])
+        if normalized != row["created_at"]:
+            conn.execute(
+                "UPDATE tweets SET created_at = ? WHERE tweet_id = ?",
+                (normalized, row["tweet_id"]),
+            )
 
 
 def _bool(value: Any) -> int:
