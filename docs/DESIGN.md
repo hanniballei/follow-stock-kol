@@ -1,6 +1,6 @@
 # 美股 KOL 推特监控系统 · 设计文档
 
-最后更新：2026-05-29
+最后更新：2026-05-30
 
 ## 1. 项目目标
 
@@ -88,7 +88,7 @@ src/kol_monitor/
 ├── summarizer.py    # Claude 调用：Layer 1 综合 + Layer 2 各 KOL
 ├── publisher.py     # Markdown 渲染 + README 更新 + git ops
 ├── scheduler.py     # apscheduler 入口
-├── cli.py           # python -m kol_monitor [run-once|daemon|fetch-only|backfill|regen-digest]
+├── cli.py           # kol-monitor [run-once|daemon|fetch-only|backfill|regen-digest|validate-handles|add-kol]
 └── logging_setup.py # rich + file handler 双输出
 ```
 
@@ -144,7 +144,7 @@ src/kol_monitor/
     pull 20 条 → INSERT OR IGNORE → 更新 last_seen_tweet_id
 
   情况 B：last_id 存在（增量）
-    page_size = 50；overlap = False
+    page_size = 20；overlap = False
     for round in 1..5：
       batch = pull(maxResults=page_size)
       if 任意 t.id == last_id 或 min(batch.id) < last_id：
@@ -176,7 +176,8 @@ src/kol_monitor/
 - 6551 REST 没有 `cursor` 参数，"翻页"靠扩大 maxResults，最大 100
 - KOL 一天发超过 100 条（罕见，meme 账号偶发）— search 兜底
 - KOL handle 错（拼写、改名、注销）— `twitter_user_info` 校验失败时 active=False，写入 `fetch_runs.error_log`
-- 网络错误 / 4xx / 5xx — tenacity 指数退避重试 3 次
+- 连接错误 / 读取超时 — tenacity 指数退避重试 3 次；HTTP 4xx/5xx 不对同一请求重试
+- 真实账号的 400 `no tweet` —— 走 `/open/twitter_search fromUser=<handle>` 兜底一次，不把账号直接判坏
 
 ## 9. AI 总结策略（两层）
 
@@ -283,12 +284,14 @@ sched.start()
 ## 13. CLI
 
 ```
-python -m kol_monitor run-once                # 立即跑完整流程（开发用）
-python -m kol_monitor daemon                  # 启动定时守护
-python -m kol_monitor fetch-only              # 只抓取，不总结不发布
-python -m kol_monitor backfill --days 7       # 回填最近 N 天
-python -m kol_monitor regen-digest --date YYYY-MM-DD  # 重新生成某天 digest
-python -m kol_monitor add-kol <handle>        # 增加 KOL（去重 + 校验）
+kol-monitor run-once                          # 立即跑完整流程（开发用）
+kol-monitor run-once --no-publish             # 只验证到本地输出，不 push GitHub
+kol-monitor daemon                            # 启动定时守护
+kol-monitor fetch-only                        # 只抓取，不总结不发布
+kol-monitor backfill                          # 回填 incomplete KOL
+kol-monitor regen-digest --date YYYY-MM-DD    # 重新生成某天 digest
+kol-monitor validate-handles                  # 逐个校验所有 handle
+kol-monitor add-kol <handle> --validate       # 增加 KOL（去重 + 校验）
 ```
 
 ## 14. 风险与应对

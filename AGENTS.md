@@ -1,6 +1,6 @@
 # AGENTS.md · 给后续协作开发的注意事项
 
-最后更新：2026-05-29
+最后更新：2026-05-30
 项目：美股 KOL 推特监控
 配套文档：
 - 设计：[docs/DESIGN.md](docs/DESIGN.md)
@@ -99,7 +99,7 @@ new_tweets = [t for t in batch if tweet_id_sort_value(t["tweet_id"]) > last_id_i
 
 ```python
 if last_id is None:           # 首次
-    pull(50)                  # 不翻页，按用户要求只拉当天
+    pull(20)                  # 不翻页，按用户要求只拉当天
 else:                         # 增量
     while round <= 5: ...     # 翻页直到重叠
 ```
@@ -277,7 +277,7 @@ After=network-online.target
 Type=simple
 WorkingDirectory=/root/trading/us-stock/kol-monitor
 EnvironmentFile=/root/trading/us-stock/kol-monitor/.env
-ExecStart=/path/to/venv/bin/python -m kol_monitor daemon
+ExecStart=/root/trading/us-stock/kol-monitor/.venv/bin/kol-monitor daemon
 Restart=on-failure
 RestartSec=30
 
@@ -285,25 +285,37 @@ RestartSec=30
 WantedBy=multi-user.target
 ```
 
+当前机器已安装并启用 `kol-monitor.service`。改 `.env` / `config/*.yaml` / 代码后，使用 `systemctl restart kol-monitor.service` 让新配置或新代码生效。
+
 ---
 
 ## 9. 调试 / 运维命令
 
 ```bash
 # 立即跑一次完整流程（不动调度）
-python -m kol_monitor run-once
+kol-monitor run-once
+
+# 真实跑完整流程但不 push GitHub；会在本地生成 README.md 和 digests/
+kol-monitor run-once --no-publish
 
 # 只抓不总结不发布
-python -m kol_monitor fetch-only
+kol-monitor fetch-only
 
-# 重新生成某天 digest（不改 DB 数据，只改 markdown 和 push）
-python -m kol_monitor regen-digest --date 2026-05-29
+# 重新生成某天 digest
+kol-monitor regen-digest --date 2026-05-29
 
-# 回填某 KOL 最近 7 天
-python -m kol_monitor backfill --kol qinbafrank --days 7
+# 回填 incomplete KOL
+kol-monitor backfill
 
 # 校验所有 KOL handle
-python -m kol_monitor validate-handles
+kol-monitor validate-handles
+
+# systemd 持久化运行控制
+systemctl status kol-monitor.service --no-pager
+systemctl restart kol-monitor.service
+systemctl stop kol-monitor.service
+systemctl start kol-monitor.service
+journalctl -u kol-monitor.service -f
 
 # 看日志（rich 彩色输出 + 文件副本）
 tail -f kol_monitor.log
@@ -323,6 +335,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-05-30：`realDonaldTrump` 的 6551 返回 ID 可能是 `truth_数字`，不能直接 `int(tweet_id)`。已在 fetcher 里改为用数字后缀比较，仍保存完整原始 ID，避免 Trump 账号首拉和增量都失败。
 - 2026-05-30：`SV_Nomad` 是真实 X 用户，但 6551 的 `twitter_user_tweets` 可能返回 400 `no tweet`；`twitter_search fromUser=SV_Nomad` 可正常返回内容。已保留该账号，并在 fetcher 中对 `user_tweets` 400 增加 search 兜底。
 - 2026-05-30：日报展示里所有具体股票代码统一用 `$代码`，例如 `$NVDA`。Layer 2 JSON 的 `tickers` 字段可继续存 `NVDA`，发布渲染时会补 `$`。
+- 2026-05-30：仓库已经落地 systemd 持久化运行，服务名 `kol-monitor.service`，`ExecStart` 指向 `.venv/bin/kol-monitor daemon`。查看/重启/停止都用 `systemctl`，不要再依赖 `nohup` 作为主方案。
 
 ---
 

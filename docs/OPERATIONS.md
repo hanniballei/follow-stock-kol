@@ -32,7 +32,12 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 sudo systemctl enable --now kol-monitor.service
 sudo systemctl status kol-monitor.service
+journalctl -u kol-monitor.service -n 100 --no-pager
 journalctl -u kol-monitor.service -f
+sudo systemctl restart kol-monitor.service
+sudo systemctl stop kol-monitor.service
+sudo systemctl start kol-monitor.service
+sudo systemctl disable kol-monitor.service
 ```
 
 如果当前环境没有 systemd，可以临时用：
@@ -42,6 +47,16 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 ```
 
 但长期建议 systemd，因为 nohup 进程更难管理重启、状态和日志。
+
+当前这台机器已经按 systemd 持久化运行，服务文件位于 `/etc/systemd/system/kol-monitor.service`，`ExecStart` 指向仓库里的 `.venv/bin/kol-monitor daemon`。
+
+如果只是临时验证某次改动，建议使用：
+
+```bash
+.venv/bin/kol-monitor run-once --no-publish
+```
+
+这会生成本地 `README.md` 和 `digests/`，但不会推 GitHub。验证结束如果不想保留这些产物，直接删除即可。
 
 ## 2. 每次为一个推特博主拉取多少条
 

@@ -1,6 +1,6 @@
 # 实施计划（按文件粒度的 todo）
 
-最后更新：2026-05-29
+最后更新：2026-05-30
 配套文档：
 - 设计：[DESIGN.md](DESIGN.md)
 - 注意事项：[../AGENTS.md](../AGENTS.md)
@@ -212,7 +212,7 @@ async def validate_handle(client, handle: str) -> dict | None: ...
 - 每个 KOL 之间 `await asyncio.sleep(uniform(2, 5))`
 - 单个 KOL 内的 round 之间不再额外 sleep
 - INSERT OR IGNORE，不靠程序去重，靠 DB 主键
-- last_seen_tweet_id 比较用字符串还是 int？— **用 int**，因为 X tweet_id 是 64-bit 数字，字符串比较在长度不同时会错（虽然同时间段长度一样，但跨年可能不同）
+- last_seen_tweet_id 比较不要直接用原始字符串排序，要先转成数值排序键；遇到 `truth_数字` 这类兼容 ID 时取数字后缀比较，但数据库仍保存原始值
 
 **输入**：client + db + settings
 **输出**：当日新推数 + 各 KOL 状态
@@ -312,11 +312,13 @@ def git_publish(date, files: list[Path]) -> bool: ...
 CLI 入口：
 ```
 kol-monitor run-once
+kol-monitor run-once --no-publish
 kol-monitor daemon
 kol-monitor fetch-only
-kol-monitor backfill --days 7 [--kol handle]
+kol-monitor backfill
 kol-monitor regen-digest --date 2026-05-29
-kol-monitor add-kol <handle>
+kol-monitor validate-handles
+kol-monitor add-kol <handle> --validate
 kol-monitor list-kols
 ```
 
@@ -335,7 +337,7 @@ def main():
 
 **输入**：之前所有模块
 **输出**：可运行的 CLI 和 daemon
-**验证**：`kol-monitor run-once --dry-run` 走通整个流程（不真调 API，靠环境变量切到 mock 模式）
+**验证**：`kol-monitor run-once --dry-run` 走通命令 wiring；`run-once --no-publish` 适合真实首跑但不 push GitHub
 
 ---
 
@@ -367,14 +369,14 @@ freezegun>=1.4
 
 按顺序：
 
-1. 用户填好 `.env`（3 个变量）
+1. 用户填好 `.env`（6551、三层 LLM、可选路径覆盖等环境变量）
 2. 用户配好 git remote（`git remote add origin git@github.com:...`）
 3. `kol-monitor list-kols` 校验 55 个 handle 都被加载
-4. `kol-monitor add-kol --validate-all` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
-5. `kol-monitor run-once` 跑一次完整流程（冷启动只拉当天）
-6. 检查 `digests/2026/05/29.md` 和 `README.md` 输出
-7. 检查 git commit 和 push
-8. 启动守护：`nohup kol-monitor daemon > kol_monitor.log 2>&1 &`，或写 systemd unit
+4. `kol-monitor validate-handles` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
+5. `kol-monitor run-once --no-publish` 跑一次真实完整流程（首跑建议先不 push）
+6. 检查 `README.md` 和 `digests/2026/05/29.md` 输出
+7. 检查 `git status` 和 GitHub push（若启用 publish）
+8. 启动守护：`systemctl enable --now kol-monitor.service`，或根据模板写 systemd unit
 
 ---
 

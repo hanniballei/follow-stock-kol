@@ -1,6 +1,6 @@
 # 测试策略与示例
 
-最后更新：2026-05-29
+最后更新：2026-05-30
 
 > 本项目所有测试**严禁依赖网络**。6551 / Anthropic / Git 远端调用一律 mock。
 > 运行方式：`pytest tests/ -v`
@@ -183,6 +183,11 @@ async def test_network_error_retries():
 
 用一个 `FakeClient` 替代真客户端（不走 respx，因为 fetcher 调的是 `OpenTwitterClient` 实例方法）：
 
+当前还额外覆盖：
+- `truth_数字` 这类 prefixed tweet id 仍可做数值排序键比较
+- `twitter_user_tweets` 对真实账号返回 400 `no tweet` 时，会走 `twitter_search fromUser=<handle>` 兜底
+- 鉴权类 4xx 不会走 search 兜底，也不会重试同一请求
+
 ```python
 from datetime import datetime, timezone
 import pytest
@@ -328,6 +333,8 @@ async def test_summarize_one_kol_builds_correct_message(monkeypatch):
     fake.messages.create.assert_called_once()
 ```
 
+还需要覆盖 prompt 约束：凡是总结文本涉及具体股票代码，应提示模型使用 `$代码` 格式，例如 `$NVDA`；Layer 1 的特朗普相关提示也遵守同一规则。
+
 ---
 
 ## 7. `tests/test_publisher.py` — markdown snapshot
@@ -353,10 +360,12 @@ def test_render_readme_contains_required_sections():
     )
     assert "## 监控的 KOL" in md
     assert "[@qinbafrank](https://x.com/qinbafrank)" in md
+    assert "$AMAT" in md
     assert "<details>" in md
     assert "## 历史归档" in md
     assert "https://x.com/qinbafrank/status/1" in md
     assert "2026-05-29" in md
+    assert "$AMAT" in md
 
 def test_digest_md_no_collapse():
     md = render_digest_md(
