@@ -101,14 +101,24 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 ## 5. 数据和归档放在哪里
 
-- 原始和结构化数据：`kol_monitor.db`
+- 原始和结构化数据：`kol_monitor.db`，只保存在本地，不推送 GitHub
 - 图片和 GIF：`media/YYYY-MM-DD/<handle>/<tweet_id>_<idx>.<ext>`
-- 每日完整总结：`digests/YYYY/MM/DD.md`
-- README 首页：仓库根目录 `README.md`
-- 每月索引：`digests/YYYY/MM/README.md`（由后续月度回顾功能生成）
+- 每日完整总结：`digests/YYYY/MM/DD.md`，会随发布流程推送 GitHub
+- README 首页：仓库根目录 `README.md`，会随发布流程推送 GitHub
+- 每月索引：`digests/YYYY/MM/README.md`（由后续月度回顾功能生成），会随发布流程推送 GitHub
 
 这套结构的好处是：
 
 1. 原始数据和总结分离，避免主页越跑越长。
 2. 日报文件按年月日分层，方便 GitHub 目录页直接浏览。
 3. 媒体不进 git，但本地路径稳定，后续可以重建摘要。
+
+## 6. LLM 备用机制
+
+Claude 调用按三层顺序尝试：
+
+1. 主凭据：`ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`，模型用 `config/settings.yaml` 的 `ai.model`
+2. 第二层备用：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同主配置
+3. 第三层备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
+
+只有上一层调用抛错或无结果时，才会尝试下一层。当前第三层模型名配置为 `anthropic/claude-sonnet-4.6`。

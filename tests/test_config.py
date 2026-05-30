@@ -28,6 +28,9 @@ def test_anthropic_fallback_env(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://primary.example")
     monkeypatch.setenv("ANTHROPIC_FALLBACK_API_KEY", "fallback")
     monkeypatch.setenv("ANTHROPIC_FALLBACK_BASE_URL", "https://fallback.example")
+    monkeypatch.setenv("ANTHROPIC_THIRD_API_KEY", "third")
+    monkeypatch.setenv("ANTHROPIC_THIRD_BASE_URL", "https://third.example")
+    monkeypatch.setenv("ANTHROPIC_THIRD_MODEL", "anthropic/claude-sonnet-4.6")
 
     settings = load_settings()
 
@@ -35,3 +38,6 @@ def test_anthropic_fallback_env(monkeypatch):
     assert settings.anthropic_base_url == "https://primary.example"
     assert settings.anthropic_fallback_api_key == "fallback"
     assert settings.anthropic_fallback_base_url == "https://fallback.example"
+    assert settings.anthropic_third_api_key == "third"
+    assert settings.anthropic_third_base_url == "https://third.example"
+    assert settings.anthropic_third_model == "anthropic/claude-sonnet-4.6"

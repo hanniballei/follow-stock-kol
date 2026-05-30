@@ -37,6 +37,9 @@ ANTHROPIC_BASE_URL=         # 走代理时填，走官方留空
 # ANTHROPIC_MODEL=          # 可选覆盖；默认从 settings.yaml.ai.model 读
 ANTHROPIC_FALLBACK_API_KEY= # 可选备用 Claude key
 ANTHROPIC_FALLBACK_BASE_URL= # 可选备用 Claude base URL；为空则复用 ANTHROPIC_BASE_URL
+ANTHROPIC_THIRD_API_KEY=    # 可选第三层 Claude 兼容后端 key
+ANTHROPIC_THIRD_BASE_URL=   # 可选第三层 Claude 兼容后端 base URL
+ANTHROPIC_THIRD_MODEL=      # 可选第三层模型名；默认同 settings.yaml.ai.model
 # KOL_MONITOR_DB=           # 可选覆盖 SQLite 路径
 # KOL_MONITOR_MEDIA_DIR=    # 可选覆盖媒体目录
 ```

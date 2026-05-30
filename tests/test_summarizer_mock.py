@@ -89,6 +89,45 @@ async def test_call_claude_uses_fallback_client(monkeypatch):
     assert response.content[0].text == "ok"
 
 
+@pytest.mark.asyncio
+async def test_call_claude_falls_through_to_third_client(monkeypatch):
+    events = []
+
+    class FakeClient:
+        def __init__(self, api_key, base_url):
+            self.api_key = api_key
+            self.base_url = base_url
+            self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
+
+        async def _create(self, **kwargs):
+            events.append((self.api_key, self.base_url, kwargs["model"]))
+            if self.api_key != "third":
+                raise RuntimeError(f"{self.api_key} failed")
+            return SimpleNamespace(content=[SimpleNamespace(text="ok-third")])
+
+    monkeypatch.setattr("kol_monitor.summarizer._client", None)
+    monkeypatch.setattr("kol_monitor.summarizer.AsyncAnthropic", FakeClient)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_api_key", "primary")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_base_url", "https://primary.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", "fallback")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_base_url", "https://fallback.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", "third")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_base_url", "https://third.example/v1")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_model", "anthropic/claude-sonnet-4.6")
+
+    response = await call_claude_with_retry(
+        messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
+        max_tokens=10,
+    )
+
+    assert response.content[0].text == "ok-third"
+    assert [event[0] for event in events] == ["primary", "fallback", "third"]
+    assert events[0][2] == "claude-sonnet-4-6"
+    assert events[1][2] == "claude-sonnet-4-6"
+    assert events[2][1] == "https://third.example"
+    assert events[2][2] == "anthropic/claude-sonnet-4.6"
+
+
 def test_build_layer1_prompt_includes_trump_section():
     from kol_monitor.summarizer import build_layer1_prompt
 

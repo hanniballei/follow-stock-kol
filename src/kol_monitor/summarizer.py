@@ -5,6 +5,7 @@ import json
 import logging
 import re
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,14 @@ from kol_monitor.config import settings
 
 _client: Any = None
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class ClaudeBackend:
+    label: str
+    api_key: str
+    base_url: str | None
+    model: str
 
 
 def parse_layer2(text: str) -> dict[str, Any] | None:
@@ -62,46 +71,66 @@ async def call_claude_with_retry(messages: list[dict[str, Any]], max_tokens: int
         )
 
     last_error: Exception | None = None
-    for label, client in _anthropic_clients():
+    for backend in _anthropic_backends():
+        client = AsyncAnthropic(
+            api_key=backend.api_key,
+            base_url=_anthropic_sdk_base_url(backend.base_url),
+        )
         try:
             return await client.messages.create(
-                model=settings.ai.model,
+                model=backend.model,
                 max_tokens=max_tokens,
                 temperature=settings.ai.temperature,
                 messages=messages,
             )
         except Exception as exc:
             last_error = exc
-            logger.warning("Claude request failed via %s credentials: %s", label, exc)
+            logger.warning("Claude request failed via %s credentials: %s", backend.label, exc)
     if last_error:
         raise last_error
     raise RuntimeError("ANTHROPIC_API_KEY is required")
 
 
-def _anthropic_clients() -> list[tuple[str, Any]]:
-    clients = []
+def _anthropic_backends() -> list[ClaudeBackend]:
+    backends: list[ClaudeBackend] = []
     if settings.anthropic_api_key:
-        clients.append(
-            (
-                "primary",
-                AsyncAnthropic(
-                    api_key=settings.anthropic_api_key,
-                    base_url=settings.anthropic_base_url,
-                ),
+        backends.append(
+            ClaudeBackend(
+                label="primary",
+                api_key=settings.anthropic_api_key,
+                base_url=settings.anthropic_base_url,
+                model=settings.ai.model,
             )
         )
     if getattr(settings, "anthropic_fallback_api_key", None):
-        clients.append(
-            (
-                "fallback",
-                AsyncAnthropic(
-                    api_key=settings.anthropic_fallback_api_key,
-                    base_url=getattr(settings, "anthropic_fallback_base_url", None)
-                    or settings.anthropic_base_url,
-                ),
+        backends.append(
+            ClaudeBackend(
+                label="fallback",
+                api_key=settings.anthropic_fallback_api_key,
+                base_url=getattr(settings, "anthropic_fallback_base_url", None)
+                or settings.anthropic_base_url,
+                model=settings.ai.model,
             )
         )
-    return clients
+    if getattr(settings, "anthropic_third_api_key", None):
+        backends.append(
+            ClaudeBackend(
+                label="third",
+                api_key=settings.anthropic_third_api_key,
+                base_url=getattr(settings, "anthropic_third_base_url", None),
+                model=getattr(settings, "anthropic_third_model", None) or settings.ai.model,
+            )
+        )
+    return backends
+
+
+def _anthropic_sdk_base_url(base_url: str | None) -> str | None:
+    if base_url is None:
+        return None
+    stripped = base_url.rstrip("/")
+    if stripped.endswith("/v1"):
+        return stripped[:-3]
+    return stripped
 
 
 async def summarize_one_kol(

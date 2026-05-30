@@ -60,6 +60,11 @@ def load_settings(root: str | Path | None = None) -> SimpleNamespace:
     settings.anthropic_fallback_base_url = (
         os.getenv("ANTHROPIC_FALLBACK_BASE_URL") or settings.anthropic_base_url
     )
+    settings.anthropic_third_api_key = os.getenv("ANTHROPIC_THIRD_API_KEY")
+    settings.anthropic_third_base_url = os.getenv("ANTHROPIC_THIRD_BASE_URL") or None
+    settings.anthropic_third_model = (
+        os.getenv("ANTHROPIC_THIRD_MODEL") or settings.ai.model
+    )
     return settings
 
 
