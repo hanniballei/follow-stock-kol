@@ -30,6 +30,35 @@ def test_parse_text_with_prelude():
     assert parse_layer2(raw)["sentiment"] == "bearish"
 
 
+def test_parse_layer2_repairs_unescaped_quotes_in_point():
+    raw = '''```json
+{
+  "core_view": "特朗普聚焦政策争议",
+  "bullets": [
+    {
+      "point": "法院要求撤除"TRUMP"冠名，特朗普批评项目被阻挠",
+      "tickers": [],
+      "tweet_url": "https://x.com/realDonaldTrump/status/truth_1"
+    },
+    {
+      "point": "强调"小费免税"政策不会被废除",
+      "tickers": [],
+      "tweet_url": "https://x.com/realDonaldTrump/status/truth_2"
+    }
+  ],
+  "sentiment": "neutral"
+}
+```'''
+
+    parsed = parse_layer2(raw)
+
+    assert parsed is not None
+    assert parsed["core_view"] == "特朗普聚焦政策争议"
+    assert parsed["sentiment"] == "neutral"
+    assert parsed["bullets"][0]["point"] == '法院要求撤除"TRUMP"冠名，特朗普批评项目被阻挠'
+    assert parsed["bullets"][1]["tweet_url"].endswith("truth_2")
+
+
 def test_parse_invalid_returns_none():
     assert parse_layer2("totally not json") is None
 

@@ -46,7 +46,71 @@ def parse_layer2(text: str) -> dict[str, Any] | None:
             return json.loads(text[start : end + 1])
         except Exception:
             pass
-    return None
+    return _parse_layer2_relaxed(text)
+
+
+def _parse_layer2_relaxed(text: str) -> dict[str, Any] | None:
+    body = _json_like_body(text)
+    core_view = _extract_jsonish_string(body, "core_view")
+    sentiment = _extract_jsonish_string(body, "sentiment") or "unclear"
+    bullets = _extract_jsonish_bullets(body)
+    if core_view is None and not bullets:
+        return None
+    return {"core_view": core_view or "", "bullets": bullets, "sentiment": sentiment}
+
+
+def _json_like_body(text: str) -> str:
+    match = re.search(r"```(?:json)?\s*(.+?)```", text, re.DOTALL)
+    if match:
+        return match.group(1)
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end > start:
+        return text[start : end + 1]
+    return text
+
+
+def _extract_jsonish_string(body: str, key: str) -> str | None:
+    match = re.search(
+        rf'"{re.escape(key)}"\s*:\s*"(.*?)"\s*(?:,|\n\s*[\}}\]])',
+        body,
+        re.DOTALL,
+    )
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
+def _extract_jsonish_bullets(body: str) -> list[dict[str, Any]]:
+    match = re.search(r'"bullets"\s*:\s*\[(.*?)]\s*,\s*"sentiment"', body, re.DOTALL)
+    if not match:
+        return []
+    bullets_text = match.group(1)
+    bullets = []
+    for item in re.finditer(
+        r'\{\s*"point"\s*:\s*"(.*?)"\s*,\s*"tickers"\s*:\s*(\[.*?])\s*,\s*"tweet_url"\s*:\s*"(.*?)"\s*\}',
+        bullets_text,
+        re.DOTALL,
+    ):
+        tickers = _parse_jsonish_tickers(item.group(2))
+        bullets.append(
+            {
+                "point": item.group(1).strip(),
+                "tickers": tickers,
+                "tweet_url": item.group(3).strip(),
+            }
+        )
+    return bullets
+
+
+def _parse_jsonish_tickers(text: str) -> list[str]:
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, list):
+            return [str(item) for item in parsed]
+    except Exception:
+        pass
+    return re.findall(r'"([^"]+)"', text)
 
 
 def _get_client() -> Any:
