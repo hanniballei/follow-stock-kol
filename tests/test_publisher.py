@@ -27,9 +27,11 @@ def test_render_readme_contains_required_sections():
         history_dirs=[("2026-05", "digests/2026/05/"), ("2026-04", "digests/2026/04/")],
     )
 
+    assert "## 你会看到什么" in md
     assert "## 监控的 KOL" in md
     assert "[阅读今日完整报告](digests/2026/05/29.md)" in md
     assert "## 最近 7 天" in md
+    assert "这个仓库每天北京时间 20:30 自动抓取" in md
     assert md.index("### 今日关键词") < md.index("## 监控的 KOL")
     assert "[@qinbafrank](https://x.com/qinbafrank)" in md
     assert "<details>" in md
