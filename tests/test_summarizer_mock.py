@@ -87,3 +87,22 @@ async def test_call_claude_uses_fallback_client(monkeypatch):
     )
 
     assert response.content[0].text == "ok"
+
+
+def test_build_layer1_prompt_includes_trump_section():
+    from kol_monitor.summarizer import build_layer1_prompt
+
+    prompt = build_layer1_prompt(
+        [{"screen_name": "qinbafrank", "tweet_count": 1, "core_view": "x", "bullets": [], "sentiment": "neutral"}],
+        trump_summary={
+            "screen_name": "realDonaldTrump",
+            "tweet_count": 2,
+            "core_view": "tariff talk",
+            "bullets": [],
+            "sentiment": "neutral",
+        },
+    )
+
+    text = prompt[0]["content"][0]["text"]
+    assert "特朗普相关" in text
+    assert "realDonaldTrump" in text

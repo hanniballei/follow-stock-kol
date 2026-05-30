@@ -10,7 +10,7 @@ schedule:
 fetcher:
   per_kol_sleep_min: 2              # 每个 KOL 之间随机 sleep 秒数下限
   per_kol_sleep_max: 5
-  initial_pull_size: 50             # 首次接入某 KOL 时拉多少条
+  initial_pull_size: 20             # 首次接入某 KOL 时拉多少条
   max_rounds: 5                     # 增量翻页最多几轮（每轮翻倍直到 100）
   max_results_per_request: 100      # 6551 单次上限
   search_backfill_days: 2           # 兜底 search 倒回几天

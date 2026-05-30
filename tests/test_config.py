@@ -6,7 +6,7 @@ from kol_monitor.config import load_settings
 def test_load_settings_reads_existing_yaml():
     settings = load_settings()
 
-    assert len(settings.kols) == 54
+    assert len(settings.kols) == 55
     assert settings.schedule.hour == 20
     assert settings.schedule.timezone == "Asia/Shanghai"
 

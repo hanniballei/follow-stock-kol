@@ -173,12 +173,24 @@ def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media:
     return "\n".join(lines)
 
 
-def build_layer1_prompt(layer2_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    text = (
-        "请基于以下 KOL JSON 总结生成中文 markdown。按六个维度输出：今日关键词、重要新闻、"
-        "宏观判断、产业/个股焦点、交易信号、投资理念。每条要点尽量附原推链接。\n\n"
-        + json.dumps(layer2_results, ensure_ascii=False)
+def build_layer1_prompt(
+    layer2_results: list[dict[str, Any]],
+    trump_summary: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    intro = (
+        "请基于以下 KOL JSON 总结生成中文 markdown。"
+        "请按七个维度输出，并将“特朗普相关”单独作为一级小节放在最前面："
+        "特朗普相关、今日关键词、重要新闻、宏观判断、产业/个股焦点、交易信号、投资理念。"
+        "“特朗普相关”小节必须总结 realDonaldTrump 当天发言可能影响的美股标的、行业、事件线索，"
+        "若只是推测也要明确写出推测依据。每条要点尽量附原推链接。"
     )
+    parts = [intro]
+    if trump_summary is not None:
+        parts.append("### 特朗普相关数据")
+        parts.append(json.dumps(trump_summary, ensure_ascii=False))
+    parts.append("### 其他 KOL 数据")
+    parts.append(json.dumps(layer2_results, ensure_ascii=False))
+    text = "\n\n".join(parts)
     return [{"role": "user", "content": [{"type": "text", "text": text}]}]
 
 
@@ -193,8 +205,13 @@ async def summarize_day(date: str) -> dict[str, Any]:
         kol = {"screen_name": screen_name, "id": kol_tweets[0]["kol_id"]}
         layer2_results.append(await summarize_one_kol(kol, kol_tweets, media_files=[]))
 
+    trump_summary = next(
+        (item for item in layer2_results if item["screen_name"].lower() == "realdonaldtrump"),
+        None,
+    )
+
     layer1_response = await call_claude_with_retry(
-        messages=build_layer1_prompt(layer2_results),
+        messages=build_layer1_prompt(layer2_results, trump_summary=trump_summary),
         max_tokens=settings.ai.max_tokens_layer1,
     )
     summary_md = layer1_response.content[0].text

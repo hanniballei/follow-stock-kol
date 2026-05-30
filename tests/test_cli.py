@@ -11,11 +11,11 @@ def test_parser_accepts_list_kols():
     assert args.command == "list-kols"
 
 
-def test_list_kols_outputs_54_handles(capsys):
+def test_list_kols_outputs_55_handles(capsys):
     main(["list-kols"])
 
     out = capsys.readouterr().out
-    assert "54 KOL" in out
+    assert "55 KOL" in out
     assert "qinbafrank" in out
 
 

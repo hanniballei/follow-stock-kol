@@ -30,6 +30,7 @@ def test_render_readme_contains_required_sections():
     assert "## 监控的 KOL" in md
     assert "[阅读今日完整报告](digests/2026/05/29.md)" in md
     assert "## 最近 7 天" in md
+    assert md.index("### 今日关键词") < md.index("## 监控的 KOL")
     assert "[@qinbafrank](https://x.com/qinbafrank)" in md
     assert "<details>" in md
     assert "## 历史归档" in md

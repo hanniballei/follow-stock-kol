@@ -47,17 +47,17 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 配置在 `config/settings.yaml`：
 
-- 首次接入：`fetcher.initial_pull_size = 50`
-- 增量抓取第一轮：`50`
-- 增量抓取后续轮次：`50 -> 100 -> 100 -> 100 -> 100`
+- 首次接入：`fetcher.initial_pull_size = 20`
+- 增量抓取第一轮：`20`
+- 增量抓取后续轮次：`20 -> 40 -> 80 -> 100 -> 100`
 - 单次请求上限：`fetcher.max_results_per_request = 100`
 - 最大轮数：`fetcher.max_rounds = 5`
 
 也就是说：
 
-- 首次接入某个 KOL，只拉最新 50 条。
-- 正常每天增量时，通常只调用一次，拉最新 50 条。
-- 如果 50 条里没有遇到数据库锚点，会扩大到 100 条继续查重。
+- 首次接入某个 KOL，只拉最新 20 条。
+- 正常每天增量时，通常只调用一次，拉最新 20 条。
+- 如果 20 条里没有遇到数据库锚点，会依次扩大到 40、80、100 条继续查重。
 - 因为 6551 的 `twitter_user_tweets` 没有 cursor，超过 100 条的深度不能靠分页解决，只能靠 search 兜底。
 
 ## 3. 防漏拉机制
@@ -67,7 +67,7 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 每个 KOL 的增量抓取流程：
 
 1. 读取数据库里该 KOL 的 `last_seen_tweet_id`。
-2. 调 6551 `twitter_user_tweets` 拉最新 50 条。
+2. 调 6551 `twitter_user_tweets` 拉最新 20 条。
 3. 把返回的 tweet_id 全部转成 `int` 比较，避免字符串比较出错。
 4. 如果这批推文里出现了上次锚点，或者最小 tweet_id 已经小于上次锚点，说明和历史数据发生重叠。
 5. 只保留 `tweet_id > last_seen_tweet_id` 的推文入库。
@@ -83,27 +83,32 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 注意：4xx 不重试，避免 token 无效、欠费、权限问题时反复烧调用量。只对连接错误和读取超时重试。
 
-## 4. 归档策略与 BuilderPulse 借鉴
+## 4. 归档策略
 
-参考仓库：`https://github.com/BuilderPulse/BuilderPulse/tree/main#chinese`
+当前主方向是：
 
-可学习的点：
-
-1. 首页只放“今日摘要”和“最近 7 天记录”，完整日报放归档文件。这样 README 会更像一个入口页，而不是越来越长的全文集合。
-2. 今日报告用醒目的按钮或链接跳到完整日报，用户一眼能找到当天全文。
-3. 归档按语言和年份分区，例如 `zh/2026/2026-05-28.md`；文件名含完整日期，GitHub 列表里天然可排序。
-4. 最近 7 天每一天都有一句话摘要，适合作为“track record”，让读者快速判断这个日报是否持续有价值。
-5. 单篇日报内部层次很清楚：开头先给编辑判断，再给 Top signals、白话简报、机会拆解、行动建议。
-
-本项目不完全照搬：
-
-- 我们目前只有中文日报，不需要 `en/zh` 双语目录。
-- 我们保留 `digests/YYYY/MM/DD.md` 的年月日分层，因为长期运行多年时目录不会过大。
-- README 仍保留 KOL 列表和当日总结，但后续可以把首页改得更像 BuilderPulse：顶部只展示今日市场一句话、核心主题、完整日报链接和最近 7 天链接；各 KOL 明细继续放到完整 digest 文件里。
+1. 首页只放“简要描述 + 今日完整报告入口 + 当日总结 + 最近 7 天入口”，让 README 成为清晰的入口页。
+2. 完整日报放 `digests/YYYY/MM/DD.md`，首页只展示最有用的那一层。
+3. 仍保留年月日分层，因为长期运行多年时目录不会过大，且 GitHub 目录页天然可浏览。
+4. 最近 7 天保留一句话入口，方便一眼看出这个日报是否持续有价值。
 
 建议后续优化：
 
 1. 在 `digests` 表增加 `headline` 或 `one_line` 字段，用于 README 的最近 7 天 track record。
-2. README 顶部增加“今日完整报告”链接，指向当天 `digests/YYYY/MM/DD.md`。
+2. README 顶部保持“今日完整报告”链接，指向当天 `digests/YYYY/MM/DD.md`。
 3. 历史归档保留最近 7 天日报链接 + 最近 12 个月目录链接。
-4. 单篇 digest 开头增加“编辑摘要 / 今日 Top 3 / 白话简报”，再展开 6 个内容维度和 KOL 明细。
+4. 单篇 digest 继续保留“特朗普相关”独立分类，再展开其余 6 个内容维度和 KOL 明细。
+
+## 5. 数据和归档放在哪里
+
+- 原始和结构化数据：`kol_monitor.db`
+- 图片和 GIF：`media/YYYY-MM-DD/<handle>/<tweet_id>_<idx>.<ext>`
+- 每日完整总结：`digests/YYYY/MM/DD.md`
+- README 首页：仓库根目录 `README.md`
+- 每月索引：`digests/YYYY/MM/README.md`（由后续月度回顾功能生成）
+
+这套结构的好处是：
+
+1. 原始数据和总结分离，避免主页越跑越长。
+2. 日报文件按年月日分层，方便 GitHub 目录页直接浏览。
+3. 媒体不进 git，但本地路径稳定，后续可以重建摘要。
