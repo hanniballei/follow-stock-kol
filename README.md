@@ -9,6 +9,12 @@
 - **KOL 明细**：每位账号当天具体说了什么
 - **历史归档**：按月查看以前的日报
 
+## 自己运行
+
+- 默认不会执行远端 `git push`；只有 `publish.git_push=true` 且 `KOL_MONITOR_ALLOW_PUSH=true` 同时满足时才会推送。
+- 如果你从 GitHub clone 后直接运行，它不会自动推送到原仓库；要发布到自己的仓库，请先把 `origin` 改成自己的 fork。
+- 只想本地验证流程，可以运行 `kol-monitor run-once --no-publish`。
+
 ## 手动操作
 
 ```bash

@@ -58,6 +58,15 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 这会生成本地 `README.md` 和 `digests/`，但不会推 GitHub。验证结束如果不想保留这些产物，直接删除即可。
 
+### GitHub 发布安全开关
+
+公开 clone 后直接运行不会自动推送到原仓库。远端 push 需要同时满足两个条件：
+
+1. `config/settings.yaml` 里 `publish.git_push=true`
+2. 环境变量 `KOL_MONITOR_ALLOW_PUSH=true`
+
+当前这台机器使用被 git 忽略的 `.env.local` 开启 `KOL_MONITOR_ALLOW_PUSH=true`，因此每日任务仍会更新 GitHub 主页。其他用户 fork/clone 后如果想发布到自己的仓库，需要先确认 `origin` 指向自己的 fork，再打开这个开关。
+
 ## 2. 每次为一个推特博主拉取多少条
 
 配置在 `config/settings.yaml`：
@@ -119,9 +128,9 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 - 原始和结构化数据：`kol_monitor.db`，只保存在本地，不推送 GitHub
 - 图片和 GIF：`media/YYYY-MM-DD/<handle>/<tweet_id>_<idx>.<ext>`
-- 每日完整总结：`digests/YYYY/MM/DD.md`，会随发布流程推送 GitHub
-- README 首页：仓库根目录 `README.md`，会随发布流程推送 GitHub
-- 每月索引：`digests/YYYY/MM/README.md`（由后续月度回顾功能生成），会随发布流程推送 GitHub
+- 每日完整总结：`digests/YYYY/MM/DD.md`，开启发布后会随发布流程推送 GitHub
+- README 首页：仓库根目录 `README.md`，开启发布后会随发布流程推送 GitHub
+- 每月索引：`digests/YYYY/MM/README.md`（由后续月度回顾功能生成），开启发布后会随发布流程推送 GitHub
 
 这套结构的好处是：
 

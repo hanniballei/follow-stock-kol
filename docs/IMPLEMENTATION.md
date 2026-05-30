@@ -296,9 +296,10 @@ def git_publish(date, files: list[Path]) -> bool: ...
 - Layer 2 的 `tickers` 渲染为 `$代码`，即使模型返回不带 `$` 的 `NVDA` 也要显示为 `$NVDA`
 - 推文链接：`https://x.com/{handle}/status/{tweet_id}`
 - 历史归档区：列出 `digests/` 下最近 12 个月的目录链接
+- 远端 push 必须同时满足 `publish.git_push=true` 和 `KOL_MONITOR_ALLOW_PUSH=true`，公开 clone 默认不 push 原仓库
 
 **输入**：当日 digest 数据
-**输出**：`README.md` 覆写 + `digests/2026/05/29.md` 新增；git commit + push
+**输出**：`README.md` 覆写 + `digests/2026/05/29.md` 新增；git commit；显式允许时再 push
 **验证**：`tests/test_publisher.py` 检查渲染结果（snapshot test）
 
 ---
@@ -371,12 +372,13 @@ freezegun>=1.4
 
 1. 用户填好 `.env`（6551、三层 LLM、可选路径覆盖等环境变量）
 2. 用户配好 git remote（`git remote add origin git@github.com:...`）
-3. `kol-monitor list-kols` 校验 55 个 handle 都被加载
-4. `kol-monitor validate-handles` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
-5. `kol-monitor run-once --no-publish` 跑一次真实完整流程（首跑建议先不 push）
-6. 检查 `README.md` 和 `digests/2026/05/29.md` 输出
-7. 检查 `git status` 和 GitHub push（若启用 publish）
-8. 启动守护：`systemctl enable --now kol-monitor.service`，或根据模板写 systemd unit
+3. 若确认要自动发布到该 remote，在 `.env.local` 设置 `KOL_MONITOR_ALLOW_PUSH=true`
+4. `kol-monitor list-kols` 校验 55 个 handle 都被加载
+5. `kol-monitor validate-handles` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
+6. `kol-monitor run-once --no-publish` 跑一次真实完整流程（首跑建议先不 push）
+7. 检查 `README.md` 和 `digests/2026/05/29.md` 输出
+8. 检查 `git status` 和 GitHub push（若启用 publish）
+9. 启动守护：`systemctl enable --now kol-monitor.service`，或根据模板写 systemd unit
 
 ---
 

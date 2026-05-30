@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import subprocess
+
+from kol_monitor import publisher
 from kol_monitor.publisher import render_digest_md, render_readme
 
 
@@ -28,6 +31,8 @@ def test_render_readme_contains_required_sections():
     )
 
     assert "## 你会看到什么" in md
+    assert "## 自己运行" in md
+    assert "KOL_MONITOR_ALLOW_PUSH=true" in md
     assert "## 监控的 KOL" in md
     assert "[阅读今日完整报告](digests/2026/05/29.md)" in md
     assert "## 最近 7 天" in md
@@ -50,3 +55,47 @@ def test_digest_md_no_collapse():
 
     assert "<details>" not in md
     assert "2026-05-29" in md
+
+
+def test_git_publish_does_not_push_without_explicit_allow(monkeypatch, tmp_path):
+    readme = tmp_path / "README.md"
+    readme.write_text("# test\n", encoding="utf-8")
+    calls = []
+    published = []
+
+    monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
+    monkeypatch.setattr(publisher.settings.publish, "git_push", True)
+    monkeypatch.setattr(publisher.settings, "allow_git_push", False, raising=False)
+    monkeypatch.setattr(
+        publisher.subprocess,
+        "run",
+        lambda cmd, **_kwargs: calls.append(cmd) or subprocess.CompletedProcess(cmd, 0),
+    )
+    monkeypatch.setattr(publisher.db, "mark_digest_published", published.append)
+
+    assert publisher.git_publish("2026-05-30", [readme]) is True
+
+    assert ["git", "add", "README.md"] in calls
+    assert ["git", "commit", "-m", "digest: 2026-05-30"] in calls
+    assert ["git", "push", "origin", "main"] not in calls
+    assert published == ["2026-05-30"]
+
+
+def test_git_publish_pushes_when_explicitly_allowed(monkeypatch, tmp_path):
+    readme = tmp_path / "README.md"
+    readme.write_text("# test\n", encoding="utf-8")
+    calls = []
+
+    monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
+    monkeypatch.setattr(publisher.settings.publish, "git_push", True)
+    monkeypatch.setattr(publisher.settings, "allow_git_push", True, raising=False)
+    monkeypatch.setattr(
+        publisher.subprocess,
+        "run",
+        lambda cmd, **_kwargs: calls.append(cmd) or subprocess.CompletedProcess(cmd, 0),
+    )
+    monkeypatch.setattr(publisher.db, "mark_digest_published", lambda _date: None)
+
+    publisher.git_publish("2026-05-30", [readme])
+
+    assert ["git", "push", "origin", "main"] in calls

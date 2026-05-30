@@ -24,6 +24,13 @@ def _namespace(value: Any) -> Any:
     return value
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         raise ConfigError(f"missing config file: {path}")
@@ -37,6 +44,7 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 def load_settings(root: str | Path | None = None) -> SimpleNamespace:
     project_root = Path(root).resolve() if root else PROJECT_ROOT
     load_dotenv(project_root / ".env")
+    load_dotenv(project_root / ".env.local", override=True)
 
     settings_data = _load_yaml(project_root / "config" / "settings.yaml")
     kols_data = _load_yaml(project_root / "config" / "kols.yaml")
@@ -65,6 +73,7 @@ def load_settings(root: str | Path | None = None) -> SimpleNamespace:
     settings.anthropic_third_model = (
         os.getenv("ANTHROPIC_THIRD_MODEL") or settings.ai.model
     )
+    settings.allow_git_push = _env_bool("KOL_MONITOR_ALLOW_PUSH")
     return settings
 
 

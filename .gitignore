@@ -1,4 +1,5 @@
 .env
+.env.local
 .git-data/
 *.db
 *.db-journal

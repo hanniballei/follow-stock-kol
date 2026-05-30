@@ -35,6 +35,12 @@ def render_readme(
         "- **KOL 明细**：每位账号当天具体说了什么",
         "- **历史归档**：按月查看以前的日报",
         "",
+        "## 自己运行",
+        "",
+        "- 默认不会执行远端 `git push`；只有 `publish.git_push=true` 且 `KOL_MONITOR_ALLOW_PUSH=true` 同时满足时才会推送。",
+        "- 如果你从 GitHub clone 后直接运行，它不会自动推送到原仓库；要发布到自己的仓库，请先把 `origin` 改成自己的 fork。",
+        "- 只想本地验证流程，可以运行 `kol-monitor run-once --no-publish`。",
+        "",
         f"## {date} 当日总结",
         "",
         layer1_md.strip(),
@@ -117,7 +123,7 @@ def git_publish(date: str, files: list[Path]) -> bool:
     subprocess.run(["git", "add", *rel_files], cwd=settings.project_root, env=env, check=True)
     message = f"digest: {date}"
     subprocess.run(["git", "commit", "-m", message], cwd=settings.project_root, env=env, check=True)
-    if settings.publish.git_push:
+    if settings.publish.git_push and getattr(settings, "allow_git_push", False):
         subprocess.run(["git", "push", "origin", "main"], cwd=settings.project_root, env=env, check=True)
     db.mark_digest_published(date)
     return True

@@ -23,7 +23,7 @@ def run_daemon() -> None:
     scheduler = BlockingScheduler(timezone=ZoneInfo(settings.schedule.timezone))
     scheduler.add_job(
         daily_job_sync_wrapper,
-        CronTrigger(hour=settings.schedule.hour, minute=settings.schedule.minute),
+        _daily_trigger(),
         misfire_grace_time=settings.schedule.misfire_grace_seconds,
         coalesce=True,
     )
@@ -34,3 +34,11 @@ def _today() -> str:
     from datetime import datetime
 
     return datetime.now(ZoneInfo(settings.schedule.timezone)).date().isoformat()
+
+
+def _daily_trigger() -> CronTrigger:
+    return CronTrigger(
+        hour=settings.schedule.hour,
+        minute=settings.schedule.minute,
+        timezone=ZoneInfo(settings.schedule.timezone),
+    )

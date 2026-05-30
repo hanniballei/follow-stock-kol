@@ -266,6 +266,8 @@ git commit -m "digest: 2026-05-29 (28 KOLs · 184 tweets)"
 git push origin main
 ```
 
+实际执行远端 push 还需要环境变量 `KOL_MONITOR_ALLOW_PUSH=true`。公开 clone 默认没有该变量，所以只会本地生成/提交，不会自动推送到原仓库；当前部署通过被 git 忽略的 `.env.local` 显式开启。
+
 push 失败时：重试 3 次（指数退避），仍失败仅本地落盘，下一次 daemon 唤醒时检测未推送的 commit 重新 push。
 
 ## 12. 调度

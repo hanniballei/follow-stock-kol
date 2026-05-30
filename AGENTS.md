@@ -18,8 +18,8 @@
 
 - `config/kols.yaml` — 55 位 KOL，按字母序，handle 大小写如 X 实际显示
 - `config/settings.yaml` — 全部可调参数（调度、抓取、媒体、AI、发布、保留、日志）
-- `.env.example` — 环境变量模板，复制为 `.env` 填值
-- `.gitignore` — 已正确忽略 `.env / *.db / *.log / media/` 等
+- `.env.example` — 环境变量模板，复制为 `.env` 填值；本机覆盖可放 `.env.local`
+- `.gitignore` — 已正确忽略 `.env / .env.local / *.db / *.log / media/` 等
 
 ---
 
@@ -42,11 +42,12 @@ ANTHROPIC_THIRD_BASE_URL=   # 可选第三层 Claude 兼容后端 base URL
 ANTHROPIC_THIRD_MODEL=      # 可选第三层模型名；默认同 settings.yaml.ai.model
 # KOL_MONITOR_DB=           # 可选覆盖 SQLite 路径
 # KOL_MONITOR_MEDIA_DIR=    # 可选覆盖媒体目录
+KOL_MONITOR_ALLOW_PUSH=false # 可选；默认不执行远端 git push
 ```
 
 ### 1.2 凭据安全
 
-- `.env` 必须在 `.gitignore` 里。如果不小心 commit 了，**立即** rotate token。
+- `.env` 和 `.env.local` 必须在 `.gitignore` 里。如果不小心 commit 了，**立即** rotate token。
 - `kol_monitor.log` 也要在 .gitignore，因为 rich 日志可能在 stack trace 里 echo 请求 header。
 - 任何对外发的报告都不能包含 token；anthropic SDK 出错时它会在 traceback 里打印 base_url，base_url 里如果带了鉴权也敏感。
 
@@ -237,18 +238,24 @@ commit message 里加 emoji 不影响 GitHub，但终端日志可能乱码。建
 
 ## 7. Git 操作
 
-### 7.1 push 失败兜底
+### 7.1 远端 push 双开关
+
+`publisher.py` 只有在 `config/settings.yaml` 的 `publish.git_push=true` 且环境变量 `KOL_MONITOR_ALLOW_PUSH=true` 时才会执行 `git push origin main`。公开 clone 默认没有这个环境变量，即使运行 `kol-monitor run-once` 也不会自动推送到原仓库。
+
+当前机器为了保持每日 GitHub 首页更新，在被 `.gitignore` 忽略的 `.env.local` 里设置了 `KOL_MONITOR_ALLOW_PUSH=true`。后续换机器部署时也用这个方式开启；用户 fork 后想发布到自己的仓库，必须先把 `origin` 指向自己的 fork，再开启该变量。
+
+### 7.2 push 失败兜底
 
 `publisher.py` 里 push 失败重试 3 次（指数退避）。仍失败：
 1. 本地 commit 已经成功（不要 reset）
 2. 日志记 ERROR
 3. 下次跑批前先 `git status` 检查未推送 commit，先 push 旧的再生成新的
 
-### 7.2 不要 force push
+### 7.3 不要 force push
 
 任何情况下都不 `git push -f`。哪怕历史顺序不对，宁可补一个 fix commit。
 
-### 7.3 媒体不进 git
+### 7.4 媒体不进 git
 
 `.gitignore` 里 `media/` 必须在。哪怕用户问"为什么 git status 没看到 media"，也别提示加进去。仓库膨胀是不可逆的。
 
@@ -285,7 +292,7 @@ RestartSec=30
 WantedBy=multi-user.target
 ```
 
-当前机器已安装并启用 `kol-monitor.service`。改 `.env` / `config/*.yaml` / 代码后，使用 `systemctl restart kol-monitor.service` 让新配置或新代码生效。
+当前机器已安装并启用 `kol-monitor.service`。改 `.env` / `.env.local` / `config/*.yaml` / 代码后，使用 `systemctl restart kol-monitor.service` 让新配置或新代码生效。
 
 ---
 
