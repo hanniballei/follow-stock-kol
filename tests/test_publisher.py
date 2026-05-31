@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 import subprocess
 
 from kol_monitor import publisher
@@ -102,3 +103,27 @@ def test_git_publish_pushes_when_explicitly_allowed(monkeypatch, tmp_path):
     publisher.git_publish("2026-05-30", [readme])
 
     assert ["git", "push", "origin", "main"] in calls
+
+
+def test_git_publish_sets_home_for_systemd_environment(monkeypatch, tmp_path):
+    readme = tmp_path / "README.md"
+    readme.write_text("# test\n", encoding="utf-8")
+    (tmp_path / ".git-data").mkdir()
+    child_envs = []
+
+    monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
+    monkeypatch.setattr(publisher.settings.publish, "git_push", True)
+    monkeypatch.setattr(publisher.settings, "allow_git_push", True, raising=False)
+    monkeypatch.delenv("HOME", raising=False)
+
+    def fake_run(cmd, **kwargs):
+        child_envs.append(kwargs["env"])
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(publisher.subprocess, "run", fake_run)
+    monkeypatch.setattr(publisher.db, "mark_digest_published", lambda _date: None)
+
+    publisher.git_publish("2026-05-30", [readme])
+
+    assert child_envs
+    assert all(env["HOME"] == str(Path.home()) for env in child_envs)

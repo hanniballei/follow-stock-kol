@@ -134,6 +134,7 @@ def _git_env() -> dict[str, str] | None:
     if not alt_git_dir.exists():
         return None
     env = os.environ.copy()
+    env.setdefault("HOME", str(Path.home()))
     env["GIT_DIR"] = str(alt_git_dir)
     env["GIT_WORK_TREE"] = str(settings.project_root)
     return env
