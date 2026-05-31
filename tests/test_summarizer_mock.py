@@ -99,6 +99,56 @@ async def test_summarize_one_kol_builds_message(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_summarize_one_kol_uses_next_backend_when_json_parse_fails(monkeypatch):
+    events = []
+
+    class FakeClient:
+        def __init__(self, api_key, base_url):
+            self.api_key = api_key
+            self.base_url = base_url
+            self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
+
+        async def _create(self, **kwargs):
+            events.append(self.api_key)
+            if self.api_key == "primary":
+                return SimpleNamespace(content=[SimpleNamespace(text="not json")])
+            return SimpleNamespace(
+                content=[
+                    SimpleNamespace(
+                        text='{"core_view":"fallback ok","bullets":[],"sentiment":"neutral"}'
+                    )
+                ],
+                usage=SimpleNamespace(input_tokens=10, output_tokens=5),
+            )
+
+    monkeypatch.setattr("kol_monitor.summarizer._client", None)
+    monkeypatch.setattr("kol_monitor.summarizer.AsyncAnthropic", FakeClient)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_api_key", "primary")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_base_url", "https://primary.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", "fallback")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_base_url", "https://fallback.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", None)
+
+    res = await summarize_one_kol(
+        kol={"screen_name": "realDonaldTrump", "id": 1},
+        tweets=[
+            {
+                "tweet_id": "truth_1",
+                "text": "Policy comments",
+                "url": "https://x.com/realDonaldTrump/status/truth_1",
+                "favorite_count": 1,
+                "retweet_count": 0,
+            }
+        ],
+        media_files=[],
+    )
+
+    assert events == ["primary", "primary", "fallback"]
+    assert res["core_view"] == "fallback ok"
+    assert res["input_tokens"] == 10
+
+
+@pytest.mark.asyncio
 async def test_call_claude_uses_fallback_client(monkeypatch):
     class FakeClient:
         def __init__(self, api_key, base_url):

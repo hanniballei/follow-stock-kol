@@ -159,23 +159,31 @@ async def call_claude_with_retry(messages: list[dict[str, Any]], max_tokens: int
 
     last_error: Exception | None = None
     for backend in _anthropic_backends():
-        client = AsyncAnthropic(
-            api_key=backend.api_key,
-            base_url=_anthropic_sdk_base_url(backend.base_url),
-        )
         try:
-            return await client.messages.create(
-                model=backend.model,
-                max_tokens=max_tokens,
-                temperature=settings.ai.temperature,
-                messages=messages,
-            )
+            return await _call_claude_backend(backend, messages, max_tokens)
         except Exception as exc:
             last_error = exc
             logger.warning("Claude request failed via %s credentials: %s", backend.label, exc)
     if last_error:
         raise last_error
     raise RuntimeError("ANTHROPIC_API_KEY is required")
+
+
+async def _call_claude_backend(
+    backend: ClaudeBackend,
+    messages: list[dict[str, Any]],
+    max_tokens: int,
+) -> Any:
+    client = AsyncAnthropic(
+        api_key=backend.api_key,
+        base_url=_anthropic_sdk_base_url(backend.base_url),
+    )
+    return await client.messages.create(
+        model=backend.model,
+        max_tokens=max_tokens,
+        temperature=settings.ai.temperature,
+        messages=messages,
+    )
 
 
 def _anthropic_backends() -> list[ClaudeBackend]:
@@ -230,23 +238,16 @@ async def summarize_one_kol(
         if path.exists():
             content.append(_image_block(path))
     content.append({"type": "text", "text": _layer2_prompt(kol, tweets, bool(media_files))})
-    response = await call_claude_with_retry(
-        messages=[{"role": "user", "content": content}],
-        max_tokens=settings.ai.max_tokens_layer2,
+    messages = [{"role": "user", "content": content}]
+    retry_text = "请严格输出 JSON，不要包含 markdown 或解释。\n\n" + _layer2_prompt(
+        kol, tweets, bool(media_files)
     )
-    text = response.content[0].text
-    parsed = parse_layer2(text)
-    if parsed is None:
-        retry_text = "请严格输出 JSON，不要包含 markdown 或解释。\n\n" + _layer2_prompt(kol, tweets, bool(media_files))
-        response = await call_claude_with_retry(
-            messages=[{"role": "user", "content": [{"type": "text", "text": retry_text}]}],
-            max_tokens=settings.ai.max_tokens_layer2,
-        )
-        parsed = parse_layer2(response.content[0].text)
+    retry_messages = [{"role": "user", "content": [{"type": "text", "text": retry_text}]}]
+    parsed, response = await _call_layer2_until_parsed(messages, retry_messages)
     if parsed is None:
         parsed = {"core_view": "summary_failed", "bullets": [], "sentiment": "unclear"}
 
-    usage = getattr(response, "usage", None)
+    usage = getattr(response, "usage", None) if response else None
     parsed.update(
         {
             "screen_name": kol["screen_name"],
@@ -256,6 +257,57 @@ async def summarize_one_kol(
         }
     )
     return parsed
+
+
+async def _call_layer2_until_parsed(
+    messages: list[dict[str, Any]],
+    retry_messages: list[dict[str, Any]],
+) -> tuple[dict[str, Any] | None, Any | None]:
+    if _client is not None:
+        response = await _client.messages.create(
+            model=settings.ai.model,
+            max_tokens=settings.ai.max_tokens_layer2,
+            temperature=settings.ai.temperature,
+            messages=messages,
+        )
+        parsed = parse_layer2(response.content[0].text)
+        if parsed is not None:
+            return parsed, response
+        response = await _client.messages.create(
+            model=settings.ai.model,
+            max_tokens=settings.ai.max_tokens_layer2,
+            temperature=settings.ai.temperature,
+            messages=retry_messages,
+        )
+        return parse_layer2(response.content[0].text), response
+
+    last_error: Exception | None = None
+    last_response: Any | None = None
+    saw_response = False
+    for backend in _anthropic_backends():
+        for attempt_messages in (messages, retry_messages):
+            try:
+                response = await _call_claude_backend(
+                    backend,
+                    attempt_messages,
+                    settings.ai.max_tokens_layer2,
+                )
+            except Exception as exc:
+                last_error = exc
+                logger.warning("Claude request failed via %s credentials: %s", backend.label, exc)
+                break
+            saw_response = True
+            last_response = response
+            parsed = parse_layer2(response.content[0].text)
+            if parsed is not None:
+                return parsed, response
+        logger.warning(
+            "Claude response via %s credentials was not valid layer2 JSON; trying next backend",
+            backend.label,
+        )
+    if not saw_response and last_error:
+        raise last_error
+    return None, last_response
 
 
 def _image_block(path: Path) -> dict[str, Any]:
