@@ -4,7 +4,7 @@
 
 ## 1. 项目目标
 
-每天美股开盘前一小时（**北京时间 20:30**，固定不随夏令时调整），自动抓取 55 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
+每天**北京时间 20:00**（固定不随夏令时调整），自动抓取 56 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
 
 ## 2. 技术栈
 
@@ -13,7 +13,7 @@
 | 抓取 | 6551.io REST API（`https://ai.6551.io`） | 直接 httpx 调，不走 MCP 协议 |
 | 数据库 | SQLite（项目根 `kol_monitor.db`） | 单文件零维护 |
 | AI 总结 | Claude Sonnet 4.6（用户提供 base URL + key） | 走 anthropic SDK |
-| 调度 | apscheduler `BlockingScheduler`，timezone `Asia/Shanghai` | 固定 cron `30 20 * * *` |
+| 调度 | apscheduler `BlockingScheduler`，timezone `Asia/Shanghai` | 固定 cron `0 20 * * *` |
 | 发布 | git commit + push 到 GitHub 主仓库 | 仅 markdown，媒体不进 git |
 | 日志 | rich + Python logging | 控制台彩色 + 文件落盘 |
 | 语言 | Python 3.10+ | 项目机器已是 3.10.12 |
@@ -97,7 +97,7 @@ src/kol_monitor/
 ```
                  ┌─── config/kols.yaml ────┐
                  │                          │
-[scheduler 20:30]┼─► fetcher ─► 6551 REST ──┴──► tweets[]
+[scheduler 20:00]┼─► fetcher ─► 6551 REST ──┴──► tweets[]
                  │                          ┌──► media[]
                  │      ▼                   │
                  │   db (SQLite)  ◄─────────┘
@@ -239,7 +239,7 @@ README / digest 里展示的图片直接用 X 原 URL，**不引用本地路径*
 2. 当日完整报告入口（当天 digest 链接）
 3. 当日总结（Layer 1 全文，含“特朗普相关”独立分类）
 4. 最近 7 天入口
-5. 监控的 55 位 KOL 列表（一行一行 handle，链接到 X 主页；新增 KOL 时自动同步）
+5. 监控的 56 位 KOL 列表（一行一行 handle，链接到 X 主页；新增 KOL 时自动同步）
 6. Layer 2 各 KOL 明细折叠区
 7. 历史归档索引（最近 12 个月的链接）
 
@@ -275,13 +275,13 @@ push 失败时：重试 3 次（指数退避），仍失败仅本地落盘，下
 ```python
 # scheduler.py
 sched = BlockingScheduler(timezone=ZoneInfo("Asia/Shanghai"))
-sched.add_job(daily_job, CronTrigger(hour=20, minute=30),
+sched.add_job(daily_job, CronTrigger(hour=20, minute=0),
               misfire_grace_time=3600,  # 错过 1h 内仍补跑
               coalesce=True)
 sched.start()
 ```
 
-按用户要求**固定北京时间 20:30**，不随美股 DST 调整。冬令时实际等于美股开盘前 30 分钟，可接受。
+按用户要求**固定北京时间 20:00**，不随美股 DST 调整。
 
 ## 13. CLI
 

@@ -9,8 +9,9 @@ def test_load_settings_reads_existing_yaml(monkeypatch):
 
     settings = load_settings()
 
-    assert len(settings.kols) == 55
+    assert len(settings.kols) == 56
     assert settings.schedule.hour == 20
+    assert settings.schedule.minute == 0
     assert settings.schedule.timezone == "Asia/Shanghai"
     assert settings.allow_git_push is False
 
