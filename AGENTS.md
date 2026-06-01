@@ -16,7 +16,7 @@
 
 不要重新创建以下文件，直接复用 / 增量编辑：
 
-- `config/kols.yaml` — 56 位 KOL，按字母序，handle 大小写如 X 实际显示
+- `config/kols.yaml` — 57 位 KOL，按字母序，handle 大小写如 X 实际显示
 - `config/settings.yaml` — 全部可调参数（调度、抓取、媒体、AI、发布、保留、日志）
 - `.env.example` — 环境变量模板，复制为 `.env` 填值；本机覆盖可放 `.env.local`
 - `.gitignore` — 已正确忽略 `.env / .env.local / *.db / *.log / media/` 等
@@ -57,7 +57,7 @@ KOL_MONITOR_ALLOW_PUSH=false # 可选；默认不执行远端 git push
 
 ### 2.1 速率与计费
 
-- 文档没有公开的速率限制数字，**实测前先小心**：56 个 KOL 一轮抓取期间 KOL 之间 sleep 2-5 秒，整个 batch 约 5-10 分钟。
+- 文档没有公开的速率限制数字，**实测前先小心**：57 个 KOL 一轮抓取期间 KOL 之间 sleep 2-5 秒，整个 batch 约 5-10 分钟。
 - 计费按调用量，跑批前看一眼 [6551.io 控制台](https://6551.io/mcp) 余额。
 - token 用尽时 API 一般返回 4xx，**千万不要重试 4xx**（tenacity 装饰器只对 ConnectError / ReadTimeout 重试，不要扩到 HTTPStatusError）。
 
@@ -369,4 +369,4 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 4. **情绪时序** — 把每位 KOL 每日 sentiment 存进 `kol_sentiment_daily`，画图
 5. **Telegram 机器人** — `/today` 推送当日 digest 到 channel
 
-不要在初版就尝试以上任何一项 —— 先把 55 个 KOL 每天总结这件事跑稳一个月。
+不要在初版就尝试以上任何一项 —— 先把 57 个 KOL 每天总结这件事跑稳一个月。
