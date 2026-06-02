@@ -221,7 +221,7 @@ def _anthropic_backends() -> list[ClaudeBackend]:
                 api_key=settings.anthropic_third_api_key,
                 base_url=getattr(settings, "anthropic_third_base_url", None),
                 model=getattr(settings, "anthropic_third_model", None) or settings.ai.model,
-                temperature=settings.ai.temperature,
+                temperature=1,
                 thinking={"type": "disabled"},
             )
         )

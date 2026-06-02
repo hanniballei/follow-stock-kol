@@ -374,7 +374,7 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     assert events[1][3] == 0.3
     assert events[2][1] == "https://third.example"
     assert events[2][2] == "anthropic/claude-sonnet-4.6"
-    assert events[2][3] == 0.3
+    assert events[2][3] == 1
     assert events[2][4] == {"type": "disabled"}
 
 
