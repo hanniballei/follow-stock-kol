@@ -338,7 +338,15 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
             self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
 
         async def _create(self, **kwargs):
-            events.append((self.api_key, self.base_url, kwargs["model"], kwargs["temperature"]))
+            events.append(
+                (
+                    self.api_key,
+                    self.base_url,
+                    kwargs["model"],
+                    kwargs["temperature"],
+                    kwargs.get("thinking"),
+                )
+            )
             if self.api_key != "third":
                 raise RuntimeError(f"{self.api_key} failed")
             return SimpleNamespace(content=[SimpleNamespace(text="ok-third")])
@@ -366,7 +374,8 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     assert events[1][3] == 0.3
     assert events[2][1] == "https://third.example"
     assert events[2][2] == "anthropic/claude-sonnet-4.6"
-    assert events[2][3] == 1
+    assert events[2][3] == 0.3
+    assert events[2][4] == {"type": "disabled"}
 
 
 def test_anthropic_sdk_base_url_keeps_clean_provider_root():

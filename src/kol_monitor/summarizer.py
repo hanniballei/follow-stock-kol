@@ -27,6 +27,7 @@ class ClaudeBackend:
     base_url: str | None
     model: str
     temperature: float
+    thinking: dict[str, Any] | None = None
 
 
 def parse_layer2(text: str) -> dict[str, Any] | None:
@@ -179,12 +180,15 @@ async def _call_claude_backend(
         api_key=backend.api_key,
         base_url=_anthropic_sdk_base_url(backend.base_url),
     )
-    return await client.messages.create(
-        model=backend.model,
-        max_tokens=max_tokens,
-        temperature=backend.temperature,
-        messages=messages,
-    )
+    request = {
+        "model": backend.model,
+        "max_tokens": max_tokens,
+        "temperature": backend.temperature,
+        "messages": messages,
+    }
+    if backend.thinking is not None:
+        request["thinking"] = backend.thinking
+    return await client.messages.create(**request)
 
 
 def _anthropic_backends() -> list[ClaudeBackend]:
@@ -217,7 +221,8 @@ def _anthropic_backends() -> list[ClaudeBackend]:
                 api_key=settings.anthropic_third_api_key,
                 base_url=getattr(settings, "anthropic_third_base_url", None),
                 model=getattr(settings, "anthropic_third_model", None) or settings.ai.model,
-                temperature=1,
+                temperature=settings.ai.temperature,
+                thinking={"type": "disabled"},
             )
         )
     return backends
