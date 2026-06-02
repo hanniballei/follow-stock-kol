@@ -26,6 +26,7 @@ class ClaudeBackend:
     api_key: str
     base_url: str | None
     model: str
+    temperature: float
 
 
 def parse_layer2(text: str) -> dict[str, Any] | None:
@@ -181,7 +182,7 @@ async def _call_claude_backend(
     return await client.messages.create(
         model=backend.model,
         max_tokens=max_tokens,
-        temperature=settings.ai.temperature,
+        temperature=backend.temperature,
         messages=messages,
     )
 
@@ -195,6 +196,7 @@ def _anthropic_backends() -> list[ClaudeBackend]:
                 api_key=settings.anthropic_api_key,
                 base_url=settings.anthropic_base_url,
                 model=settings.ai.model,
+                temperature=settings.ai.temperature,
             )
         )
     if getattr(settings, "anthropic_fallback_api_key", None):
@@ -205,6 +207,7 @@ def _anthropic_backends() -> list[ClaudeBackend]:
                 base_url=getattr(settings, "anthropic_fallback_base_url", None)
                 or settings.anthropic_base_url,
                 model=settings.ai.model,
+                temperature=settings.ai.temperature,
             )
         )
     if getattr(settings, "anthropic_third_api_key", None):
@@ -214,6 +217,7 @@ def _anthropic_backends() -> list[ClaudeBackend]:
                 api_key=settings.anthropic_third_api_key,
                 base_url=getattr(settings, "anthropic_third_base_url", None),
                 model=getattr(settings, "anthropic_third_model", None) or settings.ai.model,
+                temperature=1,
             )
         )
     return backends
@@ -368,6 +372,219 @@ def build_layer1_prompt(
     return [{"role": "user", "content": [{"type": "text", "text": text}]}]
 
 
+def _fallback_layer1_markdown(
+    layer2_results: list[dict[str, Any]],
+    trump_summary: dict[str, Any] | None = None,
+) -> str:
+    bullets = _layer2_bullets_with_sources(layer2_results)
+    tickers = sorted({ticker for bullet in bullets for ticker in bullet["tickers"]})
+    active_kols = sorted(layer2_results, key=lambda item: item.get("tweet_count", 0), reverse=True)
+
+    parts = [
+        "> 提示：今日总摘要由本地兜底模板根据各 KOL 结构化摘要生成。",
+        "",
+        "## 特朗普相关",
+        "",
+        _render_trump_fallback(trump_summary),
+        "",
+        "## 今日关键词",
+        "",
+        f"- 重点标的：{', '.join(tickers[:20]) if tickers else '暂无明确股票代码。'}",
+        "- 活跃账号："
+        + "、".join(
+            f"@{item.get('screen_name')}（{item.get('tweet_count', 0)} 条）"
+            for item in active_kols[:8]
+        ),
+        "",
+        "## 重要新闻",
+        "",
+        _render_fallback_bullets(bullets[:8]),
+        "",
+        "## 宏观判断",
+        "",
+        _render_fallback_bullets(_filter_macro_bullets(bullets)[:8], empty="暂无明确宏观判断。"),
+        "",
+        "## 产业/个股焦点",
+        "",
+        _render_ticker_focus(bullets),
+        "",
+        "## 交易信号",
+        "",
+        _render_trade_table(bullets),
+        "",
+        "## 投资理念",
+        "",
+        _render_core_views(layer2_results),
+    ]
+    return "\n".join(parts)
+
+
+def _layer2_bullets_with_sources(layer2_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in layer2_results:
+        handle = str(item.get("screen_name") or "")
+        for bullet in item.get("bullets") or []:
+            rows.append(
+                {
+                    "handle": handle,
+                    "point": str(bullet.get("point") or "").strip(),
+                    "tickers": [_format_markdown_ticker(t) for t in bullet.get("tickers") or []],
+                    "tweet_url": bullet.get("tweet_url"),
+                }
+            )
+    return rows
+
+
+def _render_trump_fallback(trump_summary: dict[str, Any] | None) -> str:
+    if trump_summary is None:
+        return "- 今日未抓到 @realDonaldTrump 的可用摘要。"
+    lines = [
+        f"- @realDonaldTrump 今日 {trump_summary.get('tweet_count', 0)} 条：{trump_summary.get('core_view', '')}"
+    ]
+    for bullet in trump_summary.get("bullets") or []:
+        lines.append(
+            "- "
+            + _bullet_text(
+                {
+                    "handle": "realDonaldTrump",
+                    "point": str(bullet.get("point") or "").strip(),
+                    "tickers": [_format_markdown_ticker(t) for t in bullet.get("tickers") or []],
+                    "tweet_url": bullet.get("tweet_url"),
+                },
+                trump=True,
+            )
+        )
+    return "\n".join(lines)
+
+
+def _render_fallback_bullets(bullets: list[dict[str, Any]], empty: str = "暂无明确要点。") -> str:
+    if not bullets:
+        return f"- {empty}"
+    return "\n".join(f"- {_bullet_text(bullet)}" for bullet in bullets)
+
+
+def _render_ticker_focus(bullets: list[dict[str, Any]]) -> str:
+    lines = []
+    seen: set[tuple[str, str]] = set()
+    for bullet in bullets:
+        for ticker in bullet["tickers"]:
+            key = (ticker, bullet["point"])
+            if key in seen:
+                continue
+            seen.add(key)
+            lines.append(f"- {ticker}：{_bullet_text(bullet, include_tickers=False)}")
+            if len(lines) >= 12:
+                return "\n".join(lines)
+    return "\n".join(lines) if lines else "- 暂无明确个股焦点。"
+
+
+def _render_trade_table(bullets: list[dict[str, Any]]) -> str:
+    rows = ["| 标的 | 线索 | 来源 |", "|---|---|---|"]
+    for bullet in bullets:
+        if not bullet["tickers"]:
+            continue
+        rows.append(
+            "| "
+            + ", ".join(bullet["tickers"])
+            + " | "
+            + _escape_table_cell(bullet["point"])
+            + " | "
+            + _source_link(bullet)
+            + " |"
+        )
+        if len(rows) >= 12:
+            break
+    if len(rows) == 2:
+        return "暂无明确交易信号。"
+    return "\n".join(rows)
+
+
+def _render_core_views(layer2_results: list[dict[str, Any]]) -> str:
+    lines = []
+    for item in sorted(layer2_results, key=lambda row: row.get("tweet_count", 0), reverse=True):
+        core_view = str(item.get("core_view") or "").strip()
+        if not core_view or core_view == "summary_failed":
+            continue
+        lines.append(f"- @{item.get('screen_name')}：{core_view}")
+        if len(lines) >= 8:
+            break
+    return "\n".join(lines) if lines else "- 暂无明确投资理念。"
+
+
+def _filter_macro_bullets(bullets: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    pattern = re.compile(
+        r"利率|通胀|CPI|PCE|非农|就业|失业|GDP|PMI|FOMC|Fed|美联储|收益率|美元|国债|宏观|关税|tariff|inflation|rates|yield",
+        re.IGNORECASE,
+    )
+    return [bullet for bullet in bullets if pattern.search(bullet["point"])]
+
+
+def _bullet_text(
+    bullet: dict[str, Any],
+    include_tickers: bool = True,
+    trump: bool = False,
+) -> str:
+    tickers = [ticker for ticker in bullet["tickers"] if ticker]
+    ticker_text = f"（{', '.join(tickers)}）" if include_tickers and tickers else ""
+    return f"{bullet['point']}{ticker_text} {_source_link(bullet, trump=trump)}".strip()
+
+
+def _source_link(bullet: dict[str, Any], trump: bool = False) -> str:
+    handle = str(bullet.get("handle") or "").strip()
+    url = bullet.get("tweet_url")
+    if not handle:
+        return ""
+    label = f"@{handle} 原文" if trump or handle.lower() == "realdonaldtrump" else f"@{handle}"
+    return f"[{label}]({url})" if url else label
+
+
+def _format_markdown_ticker(ticker: object) -> str:
+    code = str(ticker).strip().lstrip("$").upper()
+    return f"${code}" if code else ""
+
+
+def _escape_table_cell(text: str) -> str:
+    return text.replace("|", "\\|").replace("\n", " ")
+
+
+def _fallback_layer2_summary(kol: dict[str, Any], tweets: list[dict[str, Any]]) -> dict[str, Any]:
+    bullets = []
+    for tweet in tweets[:5]:
+        text = _compact_tweet_text(tweet.get("text", ""))
+        bullets.append(
+            {
+                "point": _truncate_text(text, 120) or "原推文本为空。",
+                "tickers": _extract_tickers_from_text(text),
+                "tweet_url": tweet.get("url"),
+            }
+        )
+    core_view = _truncate_text(bullets[0]["point"], 30) if bullets else "summary_failed"
+    return {
+        "screen_name": kol["screen_name"],
+        "tweet_count": len(tweets),
+        "core_view": core_view,
+        "bullets": bullets,
+        "sentiment": "unclear",
+        "input_tokens": 0,
+        "output_tokens": 0,
+    }
+
+
+def _extract_tickers_from_text(text: str) -> list[str]:
+    matches = re.findall(r"(?<![A-Za-z0-9_$])\$?([A-Z]{1,6})(?![A-Za-z0-9_])", text)
+    return sorted({match.upper() for match in matches})
+
+
+def _compact_tweet_text(text: object) -> str:
+    return " ".join(str(text or "").split())
+
+
+def _truncate_text(text: str, max_chars: int) -> str:
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "…"
+
+
 async def summarize_day(date: str) -> dict[str, Any]:
     tweets = db.tweets_on_date(date)
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -377,21 +594,34 @@ async def summarize_day(date: str) -> dict[str, Any]:
     layer2_results = []
     for screen_name, kol_tweets in grouped.items():
         kol = {"screen_name": screen_name, "id": kol_tweets[0]["kol_id"]}
-        layer2_results.append(await summarize_one_kol(kol, kol_tweets, media_files=[]))
+        try:
+            layer2_results.append(await summarize_one_kol(kol, kol_tweets, media_files=[]))
+        except Exception as exc:
+            logger.warning(
+                "Layer2 Claude summary failed for @%s; using raw tweet fallback: %s",
+                screen_name,
+                exc,
+            )
+            layer2_results.append(_fallback_layer2_summary(kol, kol_tweets))
 
     trump_summary = next(
         (item for item in layer2_results if item["screen_name"].lower() == "realdonaldtrump"),
         None,
     )
 
-    layer1_response = await call_claude_with_retry(
-        messages=build_layer1_prompt(layer2_results, trump_summary=trump_summary),
-        max_tokens=settings.ai.max_tokens_layer1,
-    )
-    summary_md = normalize_layer1_source_links(layer1_response.content[0].text)
+    layer1_response = None
+    try:
+        layer1_response = await call_claude_with_retry(
+            messages=build_layer1_prompt(layer2_results, trump_summary=trump_summary),
+            max_tokens=settings.ai.max_tokens_layer1,
+        )
+        summary_md = normalize_layer1_source_links(layer1_response.content[0].text)
+    except Exception as exc:
+        logger.warning("Layer1 Claude summary failed; using local fallback: %s", exc)
+        summary_md = _fallback_layer1_markdown(layer2_results, trump_summary=trump_summary)
     input_tokens = sum(item.get("input_tokens", 0) for item in layer2_results)
     output_tokens = sum(item.get("output_tokens", 0) for item in layer2_results)
-    usage = getattr(layer1_response, "usage", None)
+    usage = getattr(layer1_response, "usage", None) if layer1_response else None
     if usage:
         input_tokens += getattr(usage, "input_tokens", 0)
         output_tokens += getattr(usage, "output_tokens", 0)

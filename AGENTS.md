@@ -343,6 +343,8 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-05-30：`SV_Nomad` 是真实 X 用户，但 6551 的 `twitter_user_tweets` 可能返回 400 `no tweet`；`twitter_search fromUser=SV_Nomad` 可正常返回内容。已保留该账号，并在 fetcher 中对 `user_tweets` 400 增加 search 兜底。
 - 2026-05-30：日报展示里所有具体股票代码统一用 `$代码`，例如 `$NVDA`。Layer 2 JSON 的 `tickers` 字段可继续存 `NVDA`，发布渲染时会补 `$`。
 - 2026-05-30：仓库已经落地 systemd 持久化运行，服务名 `kol-monitor.service`，`ExecStart` 指向 `.venv/bin/kol-monitor daemon`。查看/重启/停止都用 `systemctl`，不要再依赖 `nohup` 作为主方案。
+- 2026-06-02：第三层 `anthropic/claude-sonnet-4.6` 后端拒绝 `temperature=0.3`，报错要求 thinking/adaptive 模式下 temperature 只能为 1。已改为主/备继续用 `settings.ai.temperature`，第三层固定 `temperature=1`。
+- 2026-06-02：Layer 1 总摘要可能因主/备 504、第三层 429 等外部 LLM 问题全失败。已增加本地兜底摘要：Layer 1 全失败时仍发布日报；单个 KOL Layer 2 全失败时从原始推文生成最小明细。
 
 ---
 

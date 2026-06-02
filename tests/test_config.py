@@ -64,6 +64,7 @@ def test_env_overrides_paths(monkeypatch, tmp_path):
 
 
 def test_anthropic_fallback_env(monkeypatch):
+    monkeypatch.setattr("kol_monitor.config.load_dotenv", lambda *_args, **_kwargs: None)
     monkeypatch.setenv("ANTHROPIC_API_KEY", "primary")
     monkeypatch.setenv("ANTHROPIC_BASE_URL", "https://primary.example")
     monkeypatch.setenv("ANTHROPIC_FALLBACK_API_KEY", "fallback")
