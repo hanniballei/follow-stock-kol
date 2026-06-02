@@ -21,92 +21,126 @@
 
 ## 2026-06-02 当日总结
 
-> 提示：今日总摘要由本地兜底模板根据各 KOL 结构化摘要生成。
+# 美股KOL日报
 
 ## 特朗普相关
 
-- @realDonaldTrump 今日 51 条：特朗普主导中东外交斡旋，推动以黎停火并持续与伊朗谈判，同时密集背书共和党候选人备战6月2日选举
-- 特朗普致电以色列总理内塔尼亚胡，成功劝阻以军对贝鲁特的大规模突袭行动，以色列已调头撤军 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780350476961223449)
-- 特朗普通过中间人与真主党达成停火协议，双方同意停止相互射击，称期望和平"永久持续" [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780334992892087674)
-- 与伊朗伊斯兰共和国的谈判"正在快速推进"，特朗普表示乐观 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780335807299987052)
-- 转发纽特·金里奇分析：特朗普正以联盟领导人身份（联合以色列、海湾国家）逼近对伊朗的历史性胜利 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363102130269246)
-- 嘲讽媒体：即便伊朗完全投降，《纽约时报》和CNN也会报道成伊朗的"辉煌胜利"，批评"假新闻媒体" [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363792305033377)
-- 猛烈抨击曼哈顿检察官Alvin Bragg对其提起的刑事指控，称系针对"唐纳德·特朗普"量身定制的新罪名，法官女儿曾为哈里斯和拜登筹款 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363771942593397)
-- 称关键证人Michael Cohen承认受Tish James和Alvin Bragg胁迫作证，要求纽约相关案件立即撤销 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780373302282325412)
-- 分享加拿大陷入技术性衰退的彭博报道，配文"第51个州！"，暗指加拿大经济困境 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363626332445735)
-- 密集为6月2日选举的共和党候选人背书，涵盖爱荷华、南达科他、蒙大拿、新泽西、加利福尼亚、新墨西哥、佛罗里达等多州候选人 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780364156210842019)
-- EPA宣布推进农民"自行维修设备"权利政策，降低农业维修成本，特朗普转发表示支持 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363441784716577)
+特朗普主导中东外交斡旋取得进展，成功劝阻以色列对贝鲁特的大规模突袭行动，[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780350476961223449)显示以军已调头撤军。此外，特朗普通过中间人与真主党达成[停火协议](https://x.com/realDonaldTrump/status/truth_1780334992892087674)，双方同意停止相互射击，称期望和平"永久持续"。与伊朗伊斯兰共和国的谈判也在[快速推进](https://x.com/realDonaldTrump/status/truth_1780335807299987052)。
+
+**对美股的潜在影响：**中东局势缓和将直接利好能源板块（$XLE）、国防承包商（如$LMT、$RTX），并降低全球供应链风险溢价，间接利好科技股与全球化制造企业。地缘政治风险下降可能推动资金回流成长型资产。
+
+特朗普密集为共和党候选人背书，备战6月2日选举，政治日程密集可能在短期内增加政策不确定性。
+
+---
 
 ## 今日关键词
 
-- 重点标的：$AAOI, $ALAB, $AMC, $AMD, $AMKR, $AMZN, $APLD, $ARM, $ASYS, $AVGO, $BE, $BITF, $BRUN, $BTC, $CIFR, $CLSK, $COHR, $CRBS, $CRDO, $CRM
-- 活跃账号：@realDonaldTrump（51 条）、@cnfinancewatch（21 条）、@jukan05（17 条）、@LizAnnSonders（10 条）、@nft_hu（8 条）、@hanking66（7 条）、@ShanghaoJin（6 条）、@SpermCapital（5 条）
+**AI基础设施军备竞赛、先进封装供应链、光互连标准化、内存短缺、资本开支外部融资化**
+
+黄仁勋在Computex 2026上公开表示 $MRVL 将成为下一家万亿美元公司（[@tychozzz](https://x.com/tychozzz/status/2061663402414727234)），$MRVL 夜盘飙升20%。这一背书标志着AI硬件供应链从GPU向网络互连、定制芯片的纵深扩展。$GOOG 宣布[800亿美元股权融资](https://x.com/LinQingV/status/2061618467011461239)（包括300亿公开发行、400亿ATM增发、100亿伯克希尔定增），表明AI资本开支已超越内部现金流承载能力，向外部资本市场寻求支撑——这对上游供应链构成800亿美元级别的需求承诺，但也暗示管理层认为当前股价偏贵，盘后跌1.5%。
+
+---
 
 ## 重要新闻
 
-- 特朗普致电以色列总理内塔尼亚胡，成功劝阻以军对贝鲁特的大规模突袭行动，以色列已调头撤军 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780350476961223449)
-- 特朗普通过中间人与真主党达成停火协议，双方同意停止相互射击，称期望和平"永久持续" [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780334992892087674)
-- 与伊朗伊斯兰共和国的谈判"正在快速推进"，特朗普表示乐观 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780335807299987052)
-- 转发纽特·金里奇分析：特朗普正以联盟领导人身份（联合以色列、海湾国家）逼近对伊朗的历史性胜利 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363102130269246)
-- 嘲讽媒体：即便伊朗完全投降，《纽约时报》和CNN也会报道成伊朗的"辉煌胜利"，批评"假新闻媒体" [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363792305033377)
-- 猛烈抨击曼哈顿检察官Alvin Bragg对其提起的刑事指控，称系针对"唐纳德·特朗普"量身定制的新罪名，法官女儿曾为哈里斯和拜登筹款 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363771942593397)
-- 称关键证人Michael Cohen承认受Tish James和Alvin Bragg胁迫作证，要求纽约相关案件立即撤销 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780373302282325412)
-- 分享加拿大陷入技术性衰退的彭博报道，配文"第51个州！"，暗指加拿大经济困境 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780363626332445735)
+- **$NVDA 发布DSX平台与ARM CPU**：在Computex上发布AI Factory DSX平台（[@hanking66](https://x.com/hanking66/status/2061671990864621857)称为"史诗级利好"），并宣布进入CPU市场，推出RTX Spark/NEX系列ARM芯片，直接冲击 $INTC 和 $QCOM 的AI PC市场份额，$ARM 作为架构授权方受益。[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2061633917585850518)
+
+- **$MRVL CEO强调连接瓶颈**：在Computex强调AI数据中心下一瓶颈是连接性，铜缆墙正向机架内移动，CPO是唯一出路。[@jukan05](https://x.com/jukan05/status/2061728423656210652)
+
+- **光子学标准化突破**：某光子学公司成为CPO、可插拔光模块和SiPh的功能性标准激光器，直接受益于 $NVDA、$AVGO、$AMD、$MRVL 等巨头。[@aleabitoreddit](https://x.com/aleabitoreddit/status/2061704502076747781)
+
+- **内存供应链持续紧张**：Kioxia预计NAND供需缺口将延续至2027年Q4，正与超大规模数据中心洽谈2029年及以后的长期供货协议。[@jukan05](https://x.com/jukan05/status/2061729660116041942)
+
+- **$INTC EMIB-T封装项目变化**：MediaTek在高盛台湾日确认下一代项目仅采用EMIB-T，2026年Q4流片、2027年Q4量产，与此前CoWoS并行的叙事明显不同。[@jukan05](https://x.com/jukan05/status/2061706018971906198)
+
+- **SEC指控Citron欺诈**：指控其创始人Andrew Left存在"诱导转向"欺诈，公开荐股后反向交易套利，违反多项证券法。[@TJ_Research](https://x.com/TJ_Research/status/2061629371543158828)
+
+- **老虎证券暂停境内新开仓**：自6月12日起，暂停存量投资者账户在中国境内所有品种的新开仓、加仓交易。[@WallStreet0Name](https://x.com/WallStreet0Name/status/2061768639116984473)
+
+---
 
 ## 宏观判断
 
-- 欧元区通胀持续走高，服务业与能源均为推手，德国2.7%、法国2.8%、马耳他2.1%为最低水平 [@LynAldenContact](https://x.com/LynAldenContact/status/2061775677490188768)
-- $ASYS Q2 收入+31%、毛利率48%创历史最高，Backlog 连续两季超收入，市值~$2.5亿仍被当传统设备股定价，财报弹性大（$ASYS） [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931)
-- 美股科技（$QQQ）韧性不受利率、油价、美债影响，科技经济已反向主导宏观而非被动承压，建议 ALL IN 美股科技方向（$QQQ） [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061653771659436211)
-- 美元购买力预计再跌25%，非美资产及大宗商品或是最优方向；中国token成本仅为美国十分之一，未来有望成为全球token第一出口国 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061634309304537102)
-- 中国E玻纤布6月1日起涨价10%-15%，上游原材料通胀向产业链传导 [@zephyr_z9](https://x.com/zephyr_z9/status/2061740447626891619)
-- $MRVL CEO在Computex 2026强调AI数据中心下一瓶颈是连接性，铜缆墙正向机架内移动，CPO是唯一出路；Jensen Huang称$MRVL为"下一个万亿美元公司"（$MRVL） [@jukan05](https://x.com/jukan05/status/2061728423656210652)
-- 韩国股市总市值突破5万亿美元，超越印度成为全球第六大股市 [@jukan05](https://x.com/jukan05/status/2061607373492584852)
-- Seeking Alpha最新推荐$SNDK：EPS增速预计282%远超行业均值，Forward PEG较行业折价93%，叠加60亿美元无期限回购计划，估值仍具吸引力（$SNDK） [@artinmemes](https://x.com/artinmemes/status/2061685796609155117)
+[@LizAnnSonders](https://x.com/LizAnnSonders/status/2061763360715100249) 数据显示，美国大盘ETF连续多周录得最大净流入（截至5/29），全球ETF则领跑资金外流，资金持续向美股集中。科技板块5月不仅驱动了 $SPX 整体回报，也是唯一跑赢指数的板块。4月建筑支出环比+0.4%，超预期+0.2%；私人住宅建筑+0.8%。
+
+标普500连续5个交易日创历史新高（[@charliebilello](https://x.com/charliebilello/status/2061623012441428091)），2026年已累计创下23次新高，首次突破7600点。但市场极度分化：[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2061633917585850518) 指出仅4%成分股同步创新高，超60%成分股较历史高点跌逾20%。
+
+[@LynAldenContact](https://x.com/LynAldenContact/status/2061775677490188768) 警告欧元区通胀持续走高，服务业与能源均为推手，德国2.7%、法国2.8%为最低水平。
+
+[@nft_hu](https://x.com/nft_hu/status/2061620092740456509) 梳理6月关键风险节点：6/5非农、6/10 CPI、6/16-17 FOMC首次更新利率路径、6/18四巫日、6/24 $MU 财报，整体持满仓且偏乐观。
+
+---
 
 ## 产业/个股焦点
 
-- $AMC：$AMC 院线5月观影人次创近7年同期最高纪录 [@LynAldenContact](https://x.com/LynAldenContact/status/2061615259907973587)
-- $NVDA：$NVDA 发布DSX平台是史诗级利好，找不到第二个能接近这种程度的利好 [@hanking66](https://x.com/hanking66/status/2061671990864621857)
-- $NVDA：$NVDA DSX平台发布会未提及$GEV导致其股价下跌，但3月Vera Rubin DSX参考设计已点名GE Vernova，DSX实质上是对GEV的最大背书，存在巨大信息差，预感技术面即将止跌 [@hanking66](https://x.com/hanking66/status/2061714013613105258)
-- $GEV：$NVDA DSX平台发布会未提及$GEV导致其股价下跌，但3月Vera Rubin DSX参考设计已点名GE Vernova，DSX实质上是对GEV的最大背书，存在巨大信息差，预感技术面即将止跌 [@hanking66](https://x.com/hanking66/status/2061714013613105258)
-- $NVDA：谷歌增发是AI真实需求驱动，但大科技正经历推倒重建阶段，增发将收紧流动性短期承压，股价走势将呈碗形而非V型，建议没有耐心的投资者换仓$NVDA [@hanking66](https://x.com/hanking66/status/2061677673299255772)
-- $MRVL：$MRVL 此前曾推荐买入，近期涨幅显著 [@hanking66](https://x.com/hanking66/status/2061729278023422190)
-- $KLN：$KLN 是 CoWoS/HBM 热压键合设备三大供应商之一，市值仅$24亿却承接同等需求冲击，市场仍按周期股定价，财报验证窗口在8月前后，收入 YoY +40% 是合理预期 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931)
-- $INTT：$INTT Q1 2026 EPS beats 77.8%、收入+27%，AI SoC 芯片测试设备需求真实，但股价已从底部涨3x，部分定价，建议0.5-1%观察仓 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931)
-- $ASYS：$ASYS Q2 收入+31%、毛利率48%创历史最高，Backlog 连续两季超收入，市值~$2.5亿仍被当传统设备股定价，财报弹性大 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931)
-- $NVDA：Fluence Energy、西门子与 $NVDA 联合发布136MW级数据中心基础设施参考设计，AI电力基建协同落地 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061736655900533157)
-- $QQQ：美股科技（$QQQ）韧性不受利率、油价、美债影响，科技经济已反向主导宏观而非被动承压，建议 ALL IN 美股科技方向 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061653771659436211)
-- $MRVL：Marvell创始人为华人，上海戴氏兄妹（戴伟民、戴伟进、戴伟立）均毕业于伯克利电子工程专业，芯片圈背景深厚 [@SpermCapital](https://x.com/SpermCapital/status/2061750024241811777)
+### AI硬件供应链
+
+**先进封装设备：** [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931) 深度分析：
+- $KLN：CoWoS/HBM热压键合设备三大供应商之一，市值仅24亿美元却承接同等需求冲击，市场仍按周期股定价，财报验证窗口在8月前后，收入YoY +40%是合理预期
+- $INTT：Q1 2026 EPS beats 77.8%、收入+27%，AI SoC芯片测试设备需求真实，但股价已从底部涨3x，建议0.5-1%观察仓
+- $ASYS：Q2收入+31%、毛利率48%创历史最高，Backlog连续两季超收入，市值约2.5亿美元仍被当传统设备股定价
+
+**光模块与互连：**
+- $AAOI 日内全面达成日交易、波段、投资三重目标（[@ripster47](https://x.com/ripster47/status/2061656603074441315)）
+- $COHR vs $AAOI：[@shufen46250836](https://x.com/shufen46250836/status/2061693765937672413) 偏好 $COHR 而非 $AAOI
+
+**电力与铜材料：**
+- $GEV：[@hanking66](https://x.com/hanking66/status/2061714013613105258) 指出 $NVDA DSX发布会未提及 $GEV 导致股价下跌，但3月Vera Rubin DSX参考设计已点名GE Vernova，DSX实质上是对 $GEV 的最大背书，存在巨大信息差
+- Lotte Energy Materials本月起向 $NVDA 量产供应AI电路铜箔，原计划下半年、应 $NVDA 要求提前（[@LinQingV](https://x.com/LinQingV/status/2061620715766608276)）
+
+**MLCC与上游材料：**
+[@zephyr_z9](https://x.com/zephyr_z9/status/2061718315891048659) 深度拆解：AI服务器MLCC以80%+ CAGR增长，高端品交期超20周，现货价涨20%-40%；预计MLCC设备与原材料供应商将跑赢整机生产商。中国E玻纤布6月1日起涨价10%-15%，上游原材料通胀向产业链传导。
+
+### 其他焦点
+
+- $HPE 财报超预期大涨（[@nft_hu](https://x.com/nft_hu/status/2061617039744352600)）
+- $ORCL 星际之门密歇根项目动工
+- $NBIS 在法国建数据中心，预计2028年营收达207亿美元（[@ripster47](https://x.com/ripster47/status/2061659530014990611)）
+- $AMC 院线5月观影人次创近7年同期最高纪录（[@LynAldenContact](https://x.com/LynAldenContact/status/2061615259907973587)）
+- $DRAM ETF自4月2日上市以来AUM已接近140亿美元，成为史上最快突破100亿美元的ETF（[@charliebilello](https://x.com/charliebilello/status/2061622940286800121)）
+
+---
 
 ## 交易信号
 
-| 标的 | 线索 | 来源 |
-|---|---|---|
-| $AMC | $AMC 院线5月观影人次创近7年同期最高纪录 | [@LynAldenContact](https://x.com/LynAldenContact/status/2061615259907973587) |
-| $NVDA | $NVDA 发布DSX平台是史诗级利好，找不到第二个能接近这种程度的利好 | [@hanking66](https://x.com/hanking66/status/2061671990864621857) |
-| $NVDA, $GEV | $NVDA DSX平台发布会未提及$GEV导致其股价下跌，但3月Vera Rubin DSX参考设计已点名GE Vernova，DSX实质上是对GEV的最大背书，存在巨大信息差，预感技术面即将止跌 | [@hanking66](https://x.com/hanking66/status/2061714013613105258) |
-| $NVDA | 谷歌增发是AI真实需求驱动，但大科技正经历推倒重建阶段，增发将收紧流动性短期承压，股价走势将呈碗形而非V型，建议没有耐心的投资者换仓$NVDA | [@hanking66](https://x.com/hanking66/status/2061677673299255772) |
-| $MRVL | $MRVL 此前曾推荐买入，近期涨幅显著 | [@hanking66](https://x.com/hanking66/status/2061729278023422190) |
-| $KLN | $KLN 是 CoWoS/HBM 热压键合设备三大供应商之一，市值仅$24亿却承接同等需求冲击，市场仍按周期股定价，财报验证窗口在8月前后，收入 YoY +40% 是合理预期 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931) |
-| $INTT | $INTT Q1 2026 EPS beats 77.8%、收入+27%，AI SoC 芯片测试设备需求真实，但股价已从底部涨3x，部分定价，建议0.5-1%观察仓 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931) |
-| $ASYS | $ASYS Q2 收入+31%、毛利率48%创历史最高，Backlog 连续两季超收入，市值~$2.5亿仍被当传统设备股定价，财报弹性大 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931) |
-| $NVDA | Fluence Energy、西门子与 $NVDA 联合发布136MW级数据中心基础设施参考设计，AI电力基建协同落地 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061736655900533157) |
-| $QQQ | 美股科技（$QQQ）韧性不受利率、油价、美债影响，科技经济已反向主导宏观而非被动承压，建议 ALL IN 美股科技方向 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061653771659436211) |
+| 标的 | 方向 | 逻辑 | 来源 |
+|------|------|------|------|
+| $MRVL | 强烈看多 | Jensen Huang公开背书万亿市值，光互连与定制芯片双引擎，当前市值191B，目标5000B+ | [@tychozzz](https://x.com/tychozzz/status/2061663402414727234), [@aleabitoreddit](https://x.com/aleabitoreddit/status/2061671824388403368) |
+| $KLN | 看多 | 先进封装设备小市值标的，市值24亿承接巨头级需求，8月财报验证窗口 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931) |
+| $ASYS | 看多 | Q2毛利率48%创新高，Backlog超收入，市值2.5亿被低估 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2061763811863105931) |
+| $GEV | 看多（信息差） | DSX实质背书但市场误读，技术面即将止跌 | [@hanking66](https://x.com/hanking66/status/2061714013613105258) |
+| $AAOI | 看多 | 光模块龙头，日内多时间框架信号有效 | [@ripster47](https://x.com/ripster47/status/2061656603074441315) |
+| $GOOG | 谨慎/中性 | 800亿融资暗示股价偏贵且将暂停回购，但长期AI Capex承诺仍在 | [@TJ_Research](https://x.com/TJ_Research/status/2061618132897165457), [@nbblock](https://x.com/nbblock/status/2061628356182020334) |
+| $SNDK | 看多 | EPS增速预计282%，Forward PEG较行业折价93%，60亿回购计划 | [@artinmemes](https://x.com/artinmemes/status/2061685796609155117) |
+| $NVDA | 持续看多 | DSX平台发布+ARM CPU进入，生态扩张加速 | [@hanking66](https://x.com/hanking66/status/2061671990864621857) |
+| $WOK | 警惕 | 处于shelf registration状态，散户拉盘反被老板收割风险 | [@nbblock](https://x.com/nbblock/status/2061637001791844592) |
+| $SIVE | 警惕 | 遭亚洲机器人农场虚假信息攻击，SEC举报中 | [@aleabitoreddit](https://x.com/aleabitoreddit/status/2061624122560692587) |
+
+**6月季节性机会：** 过去10年6月上涨概率最高的标普股包括 $DXCM、$RMD、$LLY（90%）、$NVDA（平均月涨幅9%）、$NOW、$OXY（80%），科技医药因6月大会催化居多。[@artinmemes](https://x.com/artinmemes/status/2061714817480855845)
+
+---
 
 ## 投资理念
 
-- @realDonaldTrump：特朗普主导中东外交斡旋，推动以黎停火并持续与伊朗谈判，同时密集背书共和党候选人备战6月2日选举
-- @cnfinancewatch：AI算力军备竞赛驱动先进封装设备需求爆发，小市值标的弹性更大
-- @jukan05：AI基础设施供应链全面扩张，内存短缺持续，光互连与先进封装成核心主题
-- @LizAnnSonders：制造业与科技板块走强，美股大盘ETF持续吸金，市场情绪偏乐观
-- @nft_hu：AI资本开支进入股权融资阶段，看好AI长期，关注6月多项宏观风险节点
-- @hanking66：整体极度看多美股，NVDA DSX是史诗级利好，GEV存在信息差机会，谷歌增发短期承压但长期仍是优质资产
-- @ShanghaoJin：AI低PE泡沫坚韧但命门在模型收入预期，需清醒看多同时防范崩塌风险
-- @SpermCapital：AI PC产业链与英伟达AI Factory生态合作伙伴是当前核心投资机会
+[@ShanghaoJin](https://x.com/ShanghaoJin/status/2061747648764530968) 发布长文深度复盘与反思：
+
+**AI"低PE泡沫"的命门：** 半导体基本面扎实、流动性泛滥、杠杆高企，但命门在于Anthropic与OpenAI模型收入增速能否持续支撑Hyperscaler的Capex逻辑。一旦动摇将引发连锁崩塌。算力瓶颈导致模型降智、token质量下滑，担忧模型商品化预期一旦被市场质疑，所有半导体的周期性将被重新定价。
+
+坦承赚钱靠市场牛而非选股牛，呼吁此刻保持清醒。从2024年清仓BTC换入 $AVGO $NVDA，到 $AAOI $PLTR $TSLA $INTC，再到 $GOOG $AMD $NOK $ORCL $LITE $MRVL $MDB 等，经历多轮换手。
+
+[@hanking66](https://x.com/hanking66/status/2061705743812997487) 保持极度乐观：美股短期波动不改长期上涨趋势，SpaceX上市不是利空，对美股、降息、财报等一切因素保持乐观，坚持buy the dip长期持有。
+
+[@xiaomustock](https://x.com/xiaomustock/status/2061736897391518178) 分享跨市场策略：在A股买境外QDII ETF/LOF可同时吃到美韩股涨幅及A股溢价，且零税费，实现资金分区管理降低集中风险。
+
+[@shufen46250836](https://x.com/shufen46250836/status/2061693765937672413) 选股心得：铲子即黄金，通过大科技财报定位资金流向、产业瓶颈与趋势是核心方法论。
+
+[@cyrilxuq](https://x.com/cyrilxuq/status/2061721973424812366) 警告：meme车头策略在美股无效——缺少散户流动性池子公式支撑，美股节奏更慢，需跟机构主力。
+
+[@raycat2021](https://x.com/raycat2021/status/2061605506461184077) 推测：$MSTR 或正从纯HODLer转向比特币银行/数字资本平台角色，未来股价驱动力可能不再是BTC涨幅，而是BTC金融化的深度与质量。（**推测**）
 
 ## 最近 7 天
 
+- [2026-06-02](digests/2026/06/02.md)
 - [2026-06-01](digests/2026/06/01.md)
 - [2026-05-31](digests/2026/05/31.md)
 - [2026-05-30](digests/2026/05/30.md)
