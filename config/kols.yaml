@@ -1,4 +1,4 @@
-# 监控的 KOL 列表（57 位）
+# 监控的 KOL 列表（58 位）
 # - 纯 Twitter / X handle，不带 @
 # - 大小写按 X 实际显示
 # - 按字母序排列（不区分大小写），方便后续增补不重复
@@ -6,13 +6,14 @@
 # - 移除：删除该行；DB 里的历史推文保留，daemon 不再抓取
 kols:
   - 10kdiver
+  - 168X_Fortune
   - 3ethtomoon
   - aleabitoreddit
   - alphatrends
   - AnnaEconomist
   - Areskapitalon
-  - ArtofSpecuycky
   - artinmemes
+  - ArtofSpecuycky
   - awealthofcs
   - biancoresearch
   - BrianFeroldi

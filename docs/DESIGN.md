@@ -4,7 +4,7 @@
 
 ## 1. 项目目标
 
-每天**北京时间 20:00**（固定不随夏令时调整），自动抓取 57 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
+每天**北京时间 20:00**（固定不随夏令时调整），自动抓取 58 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
 
 ## 2. 技术栈
 
@@ -239,7 +239,7 @@ README / digest 里展示的图片直接用 X 原 URL，**不引用本地路径*
 2. 当日完整报告入口（当天 digest 链接）
 3. 当日总结（Layer 1 全文，含“特朗普相关”独立分类）
 4. 最近 7 天入口
-5. 监控的 57 位 KOL 列表（一行一行 handle，链接到 X 主页；新增 KOL 时自动同步）
+5. 监控的 58 位 KOL 列表（一行一行 handle，链接到 X 主页；新增 KOL 时自动同步）
 6. Layer 2 各 KOL 明细折叠区
 7. 历史归档索引（最近 12 个月的链接）
 

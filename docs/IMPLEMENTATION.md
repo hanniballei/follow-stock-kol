@@ -43,7 +43,7 @@
 ## 步骤 2 · 配置文件（已预先创建，仅需写加载器）
 
 文件：
-- [x] `config/kols.yaml` — 57 个 handle，已存在
+- [x] `config/kols.yaml` — 58 个 handle，已存在
 - [x] `config/settings.yaml` — 全部参数，已存在
 - [x] `src/kol_monitor/config.py` — 加载 yaml + dotenv，提供单例 `settings`
 
@@ -56,7 +56,7 @@
 **验证**：
 ```bash
 python -c "from kol_monitor.config import settings; print(len(settings.kols), settings.schedule.hour)"
-# 期望输出：57 20
+# 期望输出：58 20
 ```
 
 ---
@@ -373,7 +373,7 @@ freezegun>=1.4
 1. 用户填好 `.env`（6551、四层 LLM、可选路径覆盖等环境变量）
 2. 用户配好 git remote（`git remote add origin git@github.com:...`）
 3. 若确认要自动发布到该 remote，在 `.env.local` 设置 `KOL_MONITOR_ALLOW_PUSH=true`
-4. `kol-monitor list-kols` 校验 57 个 handle 都被加载
+4. `kol-monitor list-kols` 校验 58 个 handle 都被加载
 5. `kol-monitor validate-handles` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
 6. `kol-monitor run-once --no-publish` 跑一次真实完整流程（首跑建议先不 push）
 7. 检查 `README.md` 和 `digests/2026/05/29.md` 输出
