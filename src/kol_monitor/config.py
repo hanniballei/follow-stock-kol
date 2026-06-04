@@ -73,6 +73,11 @@ def load_settings(root: str | Path | None = None) -> SimpleNamespace:
     settings.anthropic_third_model = (
         os.getenv("ANTHROPIC_THIRD_MODEL") or settings.ai.model
     )
+    settings.anthropic_fourth_api_key = os.getenv("ANTHROPIC_FOURTH_API_KEY")
+    settings.anthropic_fourth_base_url = os.getenv("ANTHROPIC_FOURTH_BASE_URL") or None
+    settings.anthropic_fourth_model = (
+        os.getenv("ANTHROPIC_FOURTH_MODEL") or settings.ai.model
+    )
     settings.allow_git_push = _env_bool("KOL_MONITOR_ALLOW_PUSH")
     return settings
 

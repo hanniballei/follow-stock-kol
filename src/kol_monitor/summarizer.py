@@ -225,6 +225,16 @@ def _anthropic_backends() -> list[ClaudeBackend]:
                 thinking={"type": "disabled"},
             )
         )
+    if getattr(settings, "anthropic_fourth_api_key", None):
+        backends.append(
+            ClaudeBackend(
+                label="fourth",
+                api_key=settings.anthropic_fourth_api_key,
+                base_url=getattr(settings, "anthropic_fourth_base_url", None),
+                model=getattr(settings, "anthropic_fourth_model", None) or settings.ai.model,
+                temperature=settings.ai.temperature,
+            )
+        )
     return backends
 
 

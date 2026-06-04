@@ -40,6 +40,9 @@ ANTHROPIC_FALLBACK_BASE_URL= # 可选备用 Claude base URL；为空则复用 AN
 ANTHROPIC_THIRD_API_KEY=    # 可选第三层 Claude 兼容后端 key
 ANTHROPIC_THIRD_BASE_URL=   # 可选第三层 Claude 兼容后端 base URL
 ANTHROPIC_THIRD_MODEL=      # 可选第三层模型名；默认同 settings.yaml.ai.model
+ANTHROPIC_FOURTH_API_KEY=   # 可选第四层 Claude 兼容后端 key
+ANTHROPIC_FOURTH_BASE_URL=  # 可选第四层 Claude 兼容后端 base URL
+ANTHROPIC_FOURTH_MODEL=     # 可选第四层模型名；默认同 settings.yaml.ai.model
 # KOL_MONITOR_DB=           # 可选覆盖 SQLite 路径
 # KOL_MONITOR_MEDIA_DIR=    # 可选覆盖媒体目录
 KOL_MONITOR_ALLOW_PUSH=false # 可选；默认不执行远端 git push
@@ -345,6 +348,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-05-30：仓库已经落地 systemd 持久化运行，服务名 `kol-monitor.service`，`ExecStart` 指向 `.venv/bin/kol-monitor daemon`。查看/重启/停止都用 `systemctl`，不要再依赖 `nohup` 作为主方案。
 - 2026-06-02：第三层 `anthropic/claude-sonnet-4.6` 后端拒绝 `temperature=0.3`，报错要求 thinking/adaptive 模式下 temperature 只能为 1。已改为主/备继续用 `settings.ai.temperature`，第三层固定 `temperature=1`。
 - 2026-06-02：Layer 1 总摘要可能因主/备 504、第三层 429 等外部 LLM 问题全失败。已增加本地兜底摘要：Layer 1 全失败时仍发布日报；单个 KOL Layer 2 全失败时从原始推文生成最小明细。
+- 2026-06-04：LLM 备用链路已扩展为四层，第四层使用 `ANTHROPIC_FOURTH_*` 环境变量，当前模型名为 `claude-sonnet-4-6`，base URL 填服务根地址即可。
 
 ---
 

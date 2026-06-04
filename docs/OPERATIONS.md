@@ -140,14 +140,17 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 ## 6. LLM 备用机制
 
-Claude 调用按三层顺序尝试：
+Claude 调用按四层顺序尝试：
 
 1. 主凭据：`ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`，模型用 `config/settings.yaml` 的 `ai.model`
 2. 第二层备用：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同主配置
 3. 第三层备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
+4. 第四层备用：`ANTHROPIC_FOURTH_API_KEY` + `ANTHROPIC_FOURTH_BASE_URL` + `ANTHROPIC_FOURTH_MODEL`
 
-三层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第三层模型名配置为 `anthropic/claude-sonnet-4.6`。
+四层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第三层模型名配置为 `anthropic/claude-sonnet-4.6`，第四层模型名配置为 `claude-sonnet-4-6`。
 
 第三层 Claude 4.6 兼容后端使用 `temperature=1`，主凭据和第二层备用仍使用 `config/settings.yaml` 的 `ai.temperature`。这是为了兼容部分 Claude 4.6 后端对 extended thinking/adaptive mode 的限制：当模型启用或走 thinking/adaptive 模式时，非 `1` 的 temperature 会被拒绝。
 
-如果 Layer 1 总摘要三层 LLM 都失败，程序会用已生成的各 KOL 结构化摘要拼出本地兜底日报，并在正文开头标注“本地兜底模板”。如果单个 KOL 的 Layer 2 摘要也失败，会从原始推文生成最小明细，避免当天 README 因单点 LLM 故障完全不更新。
+第四层按普通 Claude 兼容后端处理，使用 `config/settings.yaml` 的 `ai.temperature`，不额外发送 `thinking` 参数。
+
+如果 Layer 1 总摘要四层 LLM 都失败，程序会用已生成的各 KOL 结构化摘要拼出本地兜底日报，并在正文开头标注“本地兜底模板”。如果单个 KOL 的 Layer 2 摘要也失败，会从原始推文生成最小明细，避免当天 README 因单点 LLM 故障完全不更新。

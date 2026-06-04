@@ -279,6 +279,7 @@ async def test_summarize_one_kol_uses_next_backend_when_json_parse_fails(monkeyp
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", "fallback")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_base_url", "https://fallback.example")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", None)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
 
     res = await summarize_one_kol(
         kol={"screen_name": "realDonaldTrump", "id": 1},
@@ -318,6 +319,8 @@ async def test_call_claude_uses_fallback_client(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_base_url", "https://same.example")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", "fallback")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_base_url", "https://same.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", None)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
 
     response = await call_claude_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
@@ -360,6 +363,7 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", "third")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_base_url", "https://third.example")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_model", "anthropic/claude-sonnet-4.6")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
 
     response = await call_claude_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
@@ -376,6 +380,58 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     assert events[2][2] == "anthropic/claude-sonnet-4.6"
     assert events[2][3] == 1
     assert events[2][4] == {"type": "disabled"}
+
+
+@pytest.mark.asyncio
+async def test_call_claude_falls_through_to_fourth_client(monkeypatch):
+    events = []
+
+    class FakeClient:
+        def __init__(self, api_key, base_url):
+            self.api_key = api_key
+            self.base_url = base_url
+            self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
+
+        async def _create(self, **kwargs):
+            events.append(
+                (
+                    self.api_key,
+                    self.base_url,
+                    kwargs["model"],
+                    kwargs["temperature"],
+                    kwargs.get("thinking"),
+                )
+            )
+            if self.api_key != "fourth":
+                raise RuntimeError(f"{self.api_key} failed")
+            return SimpleNamespace(content=[SimpleNamespace(text="ok-fourth")])
+
+    monkeypatch.setattr("kol_monitor.summarizer._client", None)
+    monkeypatch.setattr("kol_monitor.summarizer.AsyncAnthropic", FakeClient)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_api_key", "primary")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_base_url", "https://primary.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", "fallback")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_base_url", "https://fallback.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", "third")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_base_url", "https://third.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_model", "anthropic/claude-sonnet-4.6")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", "fourth", raising=False)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_base_url", "https://fourth.example", raising=False)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_model", "claude-sonnet-4-6", raising=False)
+
+    response = await call_claude_with_retry(
+        messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
+        max_tokens=10,
+    )
+
+    assert response.content[0].text == "ok-fourth"
+    assert [event[0] for event in events] == ["primary", "fallback", "third", "fourth"]
+    assert events[2][3] == 1
+    assert events[2][4] == {"type": "disabled"}
+    assert events[3][1] == "https://fourth.example"
+    assert events[3][2] == "claude-sonnet-4-6"
+    assert events[3][3] == 0.3
+    assert events[3][4] is None
 
 
 def test_anthropic_sdk_base_url_keeps_clean_provider_root():

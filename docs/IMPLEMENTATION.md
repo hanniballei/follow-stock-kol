@@ -370,7 +370,7 @@ freezegun>=1.4
 
 按顺序：
 
-1. 用户填好 `.env`（6551、三层 LLM、可选路径覆盖等环境变量）
+1. 用户填好 `.env`（6551、四层 LLM、可选路径覆盖等环境变量）
 2. 用户配好 git remote（`git remote add origin git@github.com:...`）
 3. 若确认要自动发布到该 remote，在 `.env.local` 设置 `KOL_MONITOR_ALLOW_PUSH=true`
 4. `kol-monitor list-kols` 校验 57 个 handle 都被加载
