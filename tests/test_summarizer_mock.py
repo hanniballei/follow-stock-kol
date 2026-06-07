@@ -7,6 +7,7 @@ import pytest
 
 from kol_monitor.summarizer import (
     _anthropic_sdk_base_url,
+    _clean_layer1_markdown,
     _fallback_layer1_markdown,
     _layer2_prompt,
     call_claude_with_retry,
@@ -489,3 +490,20 @@ def test_normalize_layer1_source_links_uses_handles():
     assert "[阅读今日完整报告](digests/2026/05/30.md)" in normalized
     assert "[来源]" not in normalized
     assert "[链接]" not in normalized
+
+
+def test_clean_layer1_markdown_removes_internal_artifacts_and_unlinked_sources():
+    md = (
+        "- 有效来源保留 [@qinbafrank](https://x.com/qinbafrank/status/1)\n"
+        "- **调查先于行动**：读代码再下判断，确认系统行为后再做决策 [@investigate_before_answering 原则]\n"
+        "- 没有 URL 的伪来源应删除 [@fake_source]\n"
+        "普通正文提到 @realDonaldTrump 但不是来源标签"
+    )
+
+    cleaned = _clean_layer1_markdown(md)
+
+    assert "有效来源保留" in cleaned
+    assert "https://x.com/qinbafrank/status/1" in cleaned
+    assert "investigate_before_answering" not in cleaned
+    assert "@fake_source" not in cleaned
+    assert "普通正文提到 @realDonaldTrump" in cleaned

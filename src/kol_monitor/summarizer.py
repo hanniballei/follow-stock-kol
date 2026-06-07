@@ -18,6 +18,16 @@ _client: Any = None
 logger = logging.getLogger(__name__)
 GENERIC_SOURCE_LABEL_RE = re.compile(r"^(来源|链接|原文|原推)\s*(\d*)$")
 TWEET_URL_RE = re.compile(r"https?://(?:www\.)?(?:x|twitter)\.com/([^/]+)/status/[^)\s]+")
+UNLINKED_SOURCE_LABEL_RE = re.compile(r"\[@[^\]]+\](?!\()")
+INTERNAL_ARTIFACT_MARKERS = (
+    "investigate_before_answering",
+    "读代码",
+    "系统行为",
+    "AGENTS.md",
+    "Codex",
+    "提示词",
+    "工作原则",
+)
 
 
 @dataclass(frozen=True)
@@ -136,6 +146,19 @@ def normalize_layer1_source_links(markdown: str) -> str:
         return f"[{new_label}]({url})"
 
     return re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", replace, markdown)
+
+
+def _clean_layer1_markdown(markdown: str) -> str:
+    cleaned = []
+    for line in markdown.splitlines():
+        stripped = line.strip()
+        is_bullet = stripped.startswith(("- ", "* "))
+        if is_bullet and any(marker in line for marker in INTERNAL_ARTIFACT_MARKERS):
+            continue
+        if is_bullet and UNLINKED_SOURCE_LABEL_RE.search(line):
+            continue
+        cleaned.append(line)
+    return "\n".join(cleaned)
 
 
 def _get_client() -> Any:
@@ -630,7 +653,9 @@ async def summarize_day(date: str) -> dict[str, Any]:
             messages=build_layer1_prompt(layer2_results, trump_summary=trump_summary),
             max_tokens=settings.ai.max_tokens_layer1,
         )
-        summary_md = normalize_layer1_source_links(layer1_response.content[0].text)
+        summary_md = _clean_layer1_markdown(
+            normalize_layer1_source_links(layer1_response.content[0].text)
+        )
     except Exception as exc:
         logger.warning("Layer1 Claude summary failed; using local fallback: %s", exc)
         summary_md = _fallback_layer1_markdown(layer2_results, trump_summary=trump_summary)
