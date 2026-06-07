@@ -78,7 +78,7 @@
 
 ### 市场结构
 - **拥挤交易再平衡**：纳指大跌更像拥挤交易仓位再平衡加宏观情绪短期冲击叠加放大波动，周四 $SPX 成分股 68% 在涨，医疗金融接资金，周五非农后才全面抛售 [@LinQingV](https://x.com/LinQingV/status/2063075090301161550)
-- **半导体杠杆爆仓**：半导体散户杠杆过高导致爆仓，$RDDT 期权交易者两天红盘就亏 99% [@aleabitoreddit](https://x.com/aleabitoreddit/status/2063118835105014006) [@cyrilxuq](https://x.com/cyrilxuq/status/2063137736681558386)
+- **半导体杠杆爆仓**：半导体散户杠杆过高导致爆仓，$RDDT 期权交易者两天下跌行情亏损 99% [@aleabitoreddit](https://x.com/aleabitoreddit/status/2063118835105014006) [@cyrilxuq](https://x.com/cyrilxuq/status/2063137736681558386)
 - **SpaceX IPO 抽水效应**：6 月 12 日上市前机构提前 7 天调仓吸血，市销率 93 倍，散户过多时 IPO 需谨慎 [@cyrilxuq](https://x.com/cyrilxuq/status/2063137736681558386) [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063049351879069849)
 
 ### 泡沫与转折
@@ -140,7 +140,7 @@
 
 ### 风险管理
 - **敬畏杠杆**: 少年心气是不可再生之物，要敬畏杠杆 [@octopusycc](https://x.com/octopusycc/status/2063182100610850844)
-- **避免短期期权**: 批评期权交易者两天红盘就亏 99%，方向对但短期择时错一周或一月影响巨大 [@aleabitoreddit](https://x.com/aleabitoreddit/status/2063118835105014006)
+- **避免短期期权**: 批评短期期权交易者两天下跌行情亏损 99%，方向对但短期择时错一周或一月影响巨大 [@aleabitoreddit](https://x.com/aleabitoreddit/status/2063118835105014006)
 - **账户分离**: 账户分为交易账户（短线期权）和价值账户（持股半年以上逢低买入）[@nft_hu](https://x.com/nft_hu/status/2063199566003097694)
 
 ### 择时与策略
@@ -321,7 +321,7 @@
 **情绪**：unclear
 
 - $XFAB市值14亿美元，可能成为下一个$TSEM，跳过当前世代直接竞争2027年H2 CPO规模化拐点 ($XFAB, $TSEM, $ASX) [原推](https://x.com/aleabitoreddit/status/2063178421497221604)
-- 批评$RDDT期权交易者两天红盘就亏99%，建议持有$AAOI或$MRVL等高贝塔个股，方向对但短期择时错一周或一月影响巨大 ($RDDT, $AAOI, $MRVL) [原推](https://x.com/aleabitoreddit/status/2063118835105014006)
+- 批评 $RDDT 期权交易者两天下跌行情亏损 99%，建议持有 $AAOI 或 $MRVL 等高贝塔个股，方向对但短期择时错一周或一月影响巨大 ($RDDT, $AAOI, $MRVL) [原推](https://x.com/aleabitoreddit/status/2063118835105014006)
 - 发布LeaderDrive(688017)人形机器人供应链研报后，中国机器人板块上涨，688017涨停20%，被中国新闻称为"海外大神" [原推](https://x.com/aleabitoreddit/status/2063211040989733012)
 
 ### @qinbafrank · 4 条
@@ -447,7 +447,7 @@
 
 **情绪**：bearish
 
-- 提前2天清仓 $MU，结合S1择时信号判断大盘见顶，转持防守股，回撤2.1% ($MU) [原推](https://x.com/cyrilxuq/status/2063137736681558386)
+- 提前2天清仓 $MU，结合 S1 择时信号判断大盘见顶，转持防守股，回撤2.1% ($MU) [原推](https://x.com/cyrilxuq/status/2063137736681558386)
 - 市场下跌原因：非农数据显示经济过热累积加息预期、半导体杠杆散户爆仓、$SPACEX 6.12上市前机构提前7天调仓吸血 [原推](https://x.com/cyrilxuq/status/2063137736681558386)
 
 ### @ArtofSpecuycky · 1 条
