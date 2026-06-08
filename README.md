@@ -21,161 +21,167 @@
 
 ## 2026-06-08 当日总结
 
-# 美股 KOL 观点总结
+# KOL 每日总结
 
 ## 特朗普相关
 
-**暂无直接相关内容**
+特朗普当日发言主要聚焦中东局势和国内政治议题。其呼吁以色列和伊朗立即停火的表态可能对地缘政治风险资产产生影响：
 
-本次 KOL 推文中未出现 @realDonaldTrump 本人发言。虽有个别 KOL 提及"总统救市"等表述，但未提供具体政策细节或明确的美股标的影响分析。
+**可能影响的美股标的与行业（推测）：**
+
+- **能源板块**：若停火实现，原油价格可能回落，$XOM、$CVX 等传统能源股将承压；反之，冲突升级将推高油价利好能源股。[@realDonaldTrump 原文 · 1](https://x.com/realDonaldTrump/status/truth_1780914850845167301)、[@realDonaldTrump 原文 · 2](https://x.com/realDonaldTrump/status/truth_1780911399542841331)
+
+- **防务军工**：地缘冲突降温可能削弱防务股短期情绪，但长期影响有限。推测依据：历史上中东停火谈判通常伴随防务股回调。
+
+- **避险资产**：停火预期可能导致黄金（$GLD）、美债等避险资产承压。
+
+- **国内政治议题**（选举舞弊指控）：对市场直接影响有限，但持续的政治不确定性可能影响投资者情绪。[@realDonaldTrump 原文 · 3](https://x.com/realDonaldTrump/status/truth_1780913710270837674)、[@realDonaldTrump 原文 · 4](https://x.com/realDonaldTrump/status/truth_1780909247201405800)、[@realDonaldTrump 原文 · 5](https://x.com/realDonaldTrump/status/truth_1780887768836941558)
 
 ---
 
 ## 今日关键词
 
-**去杠杆暴跌、韩国熔断、AI算力能源化、电感涨价、硅光生态、CPI前夕**
-
-- 纳斯达克100指数周五暴跌近5%，创2025年4月以来最大单日跌幅 [@LizAnnSonders](https://x.com/LizAnnSonders/status/2063946234830766497)
-- 韩国KOSPI指数开盘暴跌8%触发熔断，三星、SK海力士领跌 [@WallStreet0Name](https://x.com/WallStreet0Name/status/2063774407387144681) · [@SpermCapital](https://x.com/SpermCapital/status/2063778818939294164)
-- 村田电感器7月1日起出厂价涨50%,太阳诱电紧缺型号现货价涨150% [@jukan05](https://x.com/jukan05/status/2063915423175987654)
-- $NVDA 黄仁勋锁定SK海力士长期供应,硅光生态全景曝光($TSMC 制程+$LITE $COHR 激光器+$GLW 光纤+$FN 集成) [@nft_hu](https://x.com/nft_hu/status/2063834795633963423)
-- 2025年全球数据中心投资5800亿美元超石油供应链,AIDC储能锂电池出货量将从15GWh飙升至2030年300GWh [@SpermCapital](https://x.com/SpermCapital/status/2063939715578109959)
+**AI建设周期、存储扩产、功率电感涨价、硅光生态、SiC成本革命、地缘冲突、去杠杆企稳、CPI预期、科技股估值泡沫、PDT规则废除**
 
 ---
 
 ## 重要新闻
 
-**监管政策**
-- SEC和FINRA正式废除PDT规则(日内交易5天4次限制),自2026年6月4日起取消$2.5万最低账户金额门槛和次数限制 [@caizhenghai](https://x.com/caizhenghai/status/2063815241801367672)
+### 地缘政治
 
-**企业动态**
-- $LLY 减肥药Retatrutide三期试验80周减重28.3%超预期,盘前大涨 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $AMD 英国投资20亿英镑扩展AI基础设施,盘前涨2% [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $INTC 爆量扩产:Intel 3产能至2028年增80%,18A翻倍,14A强劲爬坡,主要驱动力为服务器CPU需求和18A良率改善 [@nft_hu](https://x.com/nft_hu/status/2063943905411002498) · [@sssjeffpu](https://x.com/sssjeffpu/status/2063931662757503352)
-- SK海力士计划2030年DRAM产能翻倍至月产100万片晶圆,龙仁厂提前至2027年2月装机 [@nft_hu](https://x.com/nft_hu/status/2063895007015133230)
-- 三星电子半导体负责人称正与$NVDA讨论下一代LPU LP40,否认生产转移至台积电传闻 [@jukan05](https://x.com/jukan05/status/2063943345123237972)
-- 优必选开售仿生机器人U1,定位情感陪伴,搭配养成情感大模型,男女款分别183cm/168cm [@xiaomustock](https://x.com/xiaomustock/status/2063822541286785098)
+- 以色列国防军确认伊朗向以色列发射导弹，特朗普呼吁双方立即停火，封锁持续直至最终协议达成。[@biancoresearch](https://x.com/biancoresearch/status/2063837890828722656)、[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780914850845167301)
 
-**地缘政治**
-- 以色列国防军确认伊朗向以色列发射导弹 [@biancoresearch](https://x.com/biancoresearch/status/2063837890828722656)
-- 以色列袭击伊朗能源设施,原油涨超3%,地缘风险推高$XOM $CVX等能源股 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
+- 以色列袭击伊朗能源设施，原油涨超3%，$XOM、$CVX 受益地缘溢价。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
+
+### 市场波动
+
+- 纳斯达克100指数周五暴跌近5%，为2025年4月以来最大单日跌幅；韩国KOSPI指数开盘跳水8%触发熔断，三星、SK海力士领跌。[@LizAnnSonders](https://x.com/LizAnnSonders/status/2063946234830766497)、[@nft_hu](https://x.com/nft_hu/status/2063782770716061974)
+
+- VIX单日暴涨39.68%突破21.5，历史数据显示95%概率周一周二出现技术反弹，但非趋势反转。[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+
+### 监管与政策
+
+- SEC和FINRA已废除PDT规则，2026年6月4日起美股日内交易取消$2.5万门槛和次数限制。[@caizhenghai](https://x.com/caizhenghai/status/2063815241801367672)
+
+- 白宫经济顾问Hassett呼吁美联储降息，称有充足空间。[@charliebilello](https://x.com/charliebilello/status/2063944997947203593)
 
 ---
 
 ## 宏观判断
 
-**通胀与货币政策**
-- 核心PCE 3.3%,核心CPI 2.9%,通胀压力不大,即使加息25个基点也不影响大局 [@TJ_Research](https://x.com/TJ_Research/status/2063803286767989089)
-- 周三CPI数据是最大风险点,预期突破4.0%甚至4.2%,建议数据前保持现金 [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 周三CPI数据符合预期概率偏大,提醒做好风险管理和退路 [@hanking66](https://x.com/hanking66/status/2063821123658322020)
-- 白宫经济顾问Hassett暗示美联储新领导层可能推动降息 [@charliebilello](https://x.com/charliebilello/status/2063944997947203593)
+### 通胀预期
 
-**市场技术面**
-- VIX单日暴涨39.68%突破21.5,历史数据显示95%概率出现技术性反弹,但无底部背离信号 [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 周一开盘预计惯性下杀1-1.5%,$SPY关键支撑位730-732及723-724,阻力位740-751 [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 反弹上限748-750美元形成头肩顶右肩,此区间为减仓窗口 [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- $SPX不跌破7375可短线做多,预期超跌反弹至7500以下(CPI前),新高需等FOMC后 [@Franktradinglog](https://x.com/Franktradinglog/status/2063802119174709660)
+- 5月CPI预测显示headline因战争影响再次走高，但核心通胀预计较为温和；核心PCE 3.3%，核心CPI 2.9%，通胀压力不大。[@NickTimiraos](https://x.com/NickTimiraos/status/2063949342793183522)、[@TJ_Research](https://x.com/TJ_Research/status/2063803286767989089)
 
-**估值水平**
-- $SPY股息率跌破1%,逼近2000年0.94%历史最低水平 [@charliebilello](https://x.com/charliebilello/status/2063815648484917583)
-- $AAPL市销率超10倍,创公司历史新高 [@charliebilello](https://x.com/charliebilello/status/2063815634358620504)
-- 标普500今年EPS预期增长25%,除衰退后反弹外从未见过,大型科技股推动史无前例的盈利繁荣 [@charliebilello](https://x.com/charliebilello/status/2063815626435461352)
-- $XLK科技板块9周暴涨47%,创历史最大涨幅,超越1999年末抛物线式上涨 [@charliebilello](https://x.com/charliebilello/status/2063815615551361252)
-- 标普便宜,纳指便宜,芯片6月3日时估值偏高,周五跌后已回归中性 [@TJ_Research](https://x.com/TJ_Research/status/2063793768407474371)
+- 周三CPI符合预期概率偏大，但若破4.0%甚至4.2%将是最危险事件，数据前建议保持现金。[@hanking66](https://x.com/hanking66/status/2063821123658322020)、[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+
+### 市场情绪
+
+- $SPY 股息率跌破1%，接近2000年历史低点0.94%；$XLK 科技板块9周暴涨47%创历史最大涨幅，超越1999年末抛物线式上涨，泡沫风险隐现。[@charliebilello · 1](https://x.com/charliebilello/status/2063815648484917583)、[@charliebilello · 2](https://x.com/charliebilello/status/2063815615551361252)
+
+- 张忆东警告6月10-18日变盘点临近，建议控制仓位，猝不及防暴跌后不要急于抄底。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063935630737059847)
+
+### 技术面
+
+- 周一开盘预计惯性下杀1-1.5%，$SPY关键位735.5→730-732→723-724地板，反弹阻力740→745→751天花板；反弹至748-750形成头肩顶右肩则确立更大跌幅。[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+
+- $IWM 小盘股出现三重看跌背离，反弹极限284美元后或跌至270→265补跌。[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
 
 ---
 
 ## 产业/个股焦点
 
-**半导体存储**
-- $MU回调至高点下20%,可在20%-30%区间分批买入,去年存储行情最大回调30% [@WallStreet0Name](https://x.com/WallStreet0Name/status/2063888488861450599)
-- Bernstein预计2027年HBM4价格将涨至$53/GB,看多HBM4定价 [@jukan05](https://x.com/jukan05/status/2063831248955736118)
-- $NVDA黄仁勋:今年从SK海力士采购数十亿美元芯片且大幅增长,交易将持续超两年并可延长 [@nft_hu](https://x.com/nft_hu/status/2063791557338337403)
+### AI与半导体
 
-**AI芯片与云服务**
-- $NVDA黄仁勋称AI建设刚开始,全球科技股下跌是买入良机 [@WallStreet0Name](https://x.com/WallStreet0Name/status/2063886468435906999)
-- $NVDA CEO黄仁勋表示AI相关股票目前非常便宜 [@jukan05](https://x.com/jukan05/status/2063783610558407010)
-- $NBIS AI云服务反弹12%,公布1.7亿英镑英国扩张计划,12个月涨幅333% [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
+- **$NVDA 黄仁勋**：AI相关股票目前非常便宜，AI建设刚开始，全球科技股下跌是买入良机；今年从SK海力士采购将大幅增长，交易将持续超过两年。[@jukan05 · 1](https://x.com/jukan05/status/2063783610558407010)、[@nft_hu](https://x.com/nft_hu/status/2063791557338337403)
 
-**生物医药**
-- $LLY减肥药进展重大,80周减重28.3%超预期
+- **$NVDA 硅光生态全景**：$TSMC 制程、$LITE、$COHR 激光器、$GLW 光纤、$FN 组装，已向Lumentum/Coherent投资约20亿美元锁定产能。[@nft_hu](https://x.com/nft_hu/status/2063834795633963423)
 
-**能源与大宗商品**
-- $GLD黄金暴跌3%创3月最大跌幅,支撑位$3000,策略师看好买入 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $GLD首次跌破200日均线,若接近4000美元是绝佳加仓区域 [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2063817824284672256)
+- **$INTC 大幅扩产**：Intel 3产能提升80%、18A产能翻倍，主要由服务器CPU需求驱动。[@jukan05](https://x.com/jukan05/status/2063932238706925823)、[@sssjeffpu](https://x.com/sssjeffpu/status/2063931662757503352)
 
-**电感器涨价链**
-- TLVR电感严重缺货涨价潮,A股顺络电子、麦捷科技或复制MLCC去年行情 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063785952804471199)
+- **$AMD** 英国投资20亿英镑扩展AI基础设施盘前涨2%；$NBIS AI云服务扩张涨12%，AI算力需求持续强劲。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
 
-**碳化硅产业链**
-- $ON捷克厂再裁300人聚焦SiC衬底,西方成本1200美元/片 vs 中国400美元形成3倍差距,IDM被迫放弃衬底自制转向外购,中国SICC+天岳市占合计超40% [@nft_hu](https://x.com/nft_hu/status/2063819943574172157) · [@LinQingV](https://x.com/LinQingV/status/2063805651856634132)
+- **$AAPL** 市销率突破10倍，创公司历史最高估值。[@charliebilello](https://x.com/charliebilello/status/2063815634358620504)
 
-**电动车与新能源**
-- $RIVN称AI可能使CarPlay/Android Auto过时,Momentum Score飙升 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
+### 存储产业
 
-**加密货币相关**
-- $MSTR Saylor暗示继续增持比特币,盘前上涨 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $KWEB与$BTC在2025年10月同时见顶后同步下跌,相关性超预期 [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2063829622580744240)
+- **$MU** 存储行情回调20%，可在20%-30%区间分批买入。[@WallStreet0Name](https://x.com/WallStreet0Name/status/2063888488861450599)
 
-**800V直流电概念**
-- 白毛股神推荐800V直流电概念股:$IFNNY $ON $VICR $LFUS $VSH $ENPH $NVTS $POWI $BDC $EOSE $SEDG $AEHR $WOLF $AMSC $AOSL $HYLN $FCEL $ASYS $RELL $IPWR及A股易事特 [@SpermCapital](https://x.com/SpermCapital/status/2063905813429961097)
+- **SK海力士** 计划2030年前DRAM产能翻倍至月产100万片晶圆，首个龙仁fab设备安装提前至2027年2月；从底部反弹10%。[@nft_hu · 1](https://x.com/nft_hu/status/2063895007015133230)、[@jukan05](https://x.com/jukan05/status/2063818521143042178)
+
+- **Bernstein** 看涨2027年HBM4价格至$53/GB，Vera Rubin将大量出货。[@jukan05](https://x.com/jukan05/status/2063831248955736118)
+
+### 功率电感涨价潮
+
+- 村田7月1日功率电感涨价50%，太阳诱电紧缺型号涨150%；TLVR电感缺货引爆涨价潮，功率电感赛道复刻MLCC行情，$顺络电子、$麦捷科技、$风华高科 受益，订单排期已至Q4。[@jukan05](https://x.com/jukan05/status/2063915423175987654)、[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063785952804471199)
+
+### 医药
+
+- **$LLY** 减肥药Retatrutide三期试验80周减重28.3%超预期，减肥药赛道火热。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063945296921682079)
+
+### SiC产业链
+
+- **$ON** 捷克工厂再裁300人聚焦SiC衬底，中国厂商成本$400/片 vs 西方$1200/片，3倍成本差迫使IDM放弃衬底自制转外购，SiC衬底产能正向中国集中。[@nft_hu](https://x.com/nft_hu/status/2063819943574172157)、[@LinQingV](https://x.com/LinQingV/status/2063805651856634132)
+
+### A股焦点
+
+- **物理AI+电感涨价+半导体国产替代三线共振**：$盛视科技、$居然智家、$光洋股份（签下2万台特种机器人海外大单）、$顺络电子、$麦捷科技、$风华高科、$中新集团（国产首台光芯片光刻机唯一间接参股方）受益。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063785952804471199)
+
+- **$锐新科技** 收购德恒装备51%股权，业绩翻倍逻辑清晰，归母净利润备考+118%，五星建仓评级。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063950710597947633)
+
+- **$沃格光电** TGV封装技术+商业航天+玻璃基板多重叠加，AI数据中心散热需求井喷，五星建仓评级。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063950710597947633)
+
+- **$诺唯赞** 控股股东计划增持1.15-2.25亿元，用银行贷款真金白银背书，6月9日起正式增持。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2063950710597947633)
+
+### AI能源与储能
+
+- 2025年全球数据中心投资5800亿美元超石油供应链，AIDC储能锂电池出货量将从15GWh飙升至2030年300GWh，CAGR超80%。[@SpermCapital](https://x.com/SpermCapital/status/2063939715578109959)
+
+- **800V直流电概念股**：$IFNNY、$ON、$VICR、$LFUS、$VSH、$ENPH、$NVTS、$POWI、$BDC、$EOSE、$SEDG、$AEHR、$WOLF、$AMSC、$AOSL、$HYLN、$FCEL、$ASYS、$RELL、$IPWR 及A股易事特。[@SpermCapital](https://x.com/SpermCapital/status/2063905813429961097)
 
 ---
 
 ## 交易信号
 
-| 标的 | 方向 | 关键位/目标位 | 来源 |
-|------|------|--------------|------|
-| $MU | 多 | 回调20%-30%区间分批买入 | [@WallStreet0Name](https://x.com/WallStreet0Name/status/2063888488861450599) |
-| $SPY | 多(短线) | 支撑730-732/723-724,阻力740-751,反弹上限748-750为减仓窗口 | [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994) |
-| $SPX | 多(短线) | 不跌破7375做多,目标7500以下 | [@Franktradinglog](https://x.com/Franktradinglog/status/2063802119174709660) |
-| $IWM | 空 | 三重看跌背离,反弹极限284美元后补跌至270-265美元 | [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994) |
-| $GLD | 多 | 跌破200日均线,接近4000美元是加仓区域 | [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2063817824284672256) |
-| 科技股 | 多(长期) | 下跌是买入良机,AI建设刚开始 | [@WallStreet0Name](https://x.com/WallStreet0Name/status/2063886468435906999) |
-| VIX | - | 突破21.5,95%概率技术性反弹 | [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994) |
-
-**本周财报关注**
-- 周三盘后:$ORCL(AI云业务)、$CHWY(宠物电商) [@artinmemes](https://x.com/artinmemes/status/2063924041208242515)
-- 周四盘后:$ADBE(AI工具)、$RH、$LEN(地产消费) [@artinmemes](https://x.com/artinmemes/status/2063924041208242515)
-- 周一:$FCEL、$VFS等网红股 [@artinmemes](https://x.com/artinmemes/status/2063924041208242515)
-
-**明日关注列表**
-$OSCR $UNH $JPM $NBIS $MRVL $ASML $AAOI $HNGE $TRV $LLY,多数在关键位附近,若市场配合可能有交易机会 [@Remzztrades](https://x.com/Remzztrades/status/2063778593847521510)
+| 操作方向 | 标的 | 理由/催化剂 | 来源 |
+|---------|------|-----------|------|
+| 买入 | $MU | 存储行情回调20%，可在20%-30%区间分批买入 | [@WallStreet0Name](https://x.com/WallStreet0Name/status/2063888488861450599) |
+| 做多 | $SPX | 不跌破7375可短线做多，预计超跌反弹至7500以下 | [@Franktradinglog](https://x.com/Franktradinglog/status/2063802119174709660) |
+| 观察 | $ORCL | 周三盘后财报，AI云业务关键节点 | [@artinmemes](https://x.com/artinmemes/status/2063924041208242515) |
+| 观察 | $ADBE | 周四盘后财报，看AI工具进展 | [@artinmemes](https://x.com/artinmemes/status/2063924041208242515) |
+| 关注 | $OSCR、$UNH、$JPM、$NBIS、$MRVL、$ASML、$AAOI、$HNGE、$TRV、$LLY | 多数在关键技术位附近 | [@Remzztrades](https://x.com/Remzztrades/status/2063778593847521510) |
+| 减仓避险 | 全市场 | 周三CPI前保持现金，CPI若破4.0%将是最危险事件 | [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994) |
+| 控制仓位 | 全市场 | 6月10-18日变盘点临近，暴跌后不要急于抄底 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063935630737059847) |
+| 建仓 | $锐新科技、$沃格光电 | 五星建仓评级，业绩翻倍+技术叠加逻辑 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063950710597947633) |
+| 加仓 | $GLD | 若接近$4000将是很好的加仓区域 | [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2063817824284672256) |
 
 ---
 
 ## 投资理念
 
-**逢低买入与长期持有**
-- 不怕跌只怕买不到,强调逢低买入长期持有策略 [@hanking66](https://x.com/hanking66/status/2063941536774279390)
-- 深入研究CPI数据后越来越兴奋和乐观 [@hanking66](https://x.com/hanking66/status/2063908922260648316)
+- **不怕跌只怕买不到，以后会懂这句话含义。** [@hanking66](https://x.com/hanking66/status/2063941536774279390)
 
-**风险管理**
-- 周三CPI数据是最大风险点,建议数据前保持现金 [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 反弹是减仓窗口非底部,748-750美元为减仓区间 [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 若本周收复周五全部跌幅将令人震惊,市场无所不能但高度不可能 [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2063775216480989691)
+- **当前市场走势与公司/行业基本面关系不大，建议少看基本面避免冲动交易。** [@LinQingV](https://x.com/LinQingV/status/2063896614826349022)
 
-**基本面与技术面背离**
-- 当前市场走势与公司/行业基本面脱钩,建议暂时少看基本面避免冲动交易 [@LinQingV](https://x.com/LinQingV/status/2063896614826349022)
-- 尾盘ETF再平衡随股价下跌一路扫盘,配合平仓盘一起砸盘 [@ShanghaoJin](https://x.com/ShanghaoJin/status/2063940748740116810)
+- **越研究CPI越兴奋乐观，符合预期概率偏大，但要做好愿赌服输准备。** [@hanking66 · 1](https://x.com/hanking66/status/2063908922260648316)、[@hanking66 · 2](https://x.com/hanking66/status/2063821123658322020)
 
-**产业趋势洞察**
-- AI算力竞赛转为能源竞赛,储能与800V直流电成投资焦点 [@SpermCapital](https://x.com/SpermCapital/status/2063939715578109959)
-- 英伟达韩国行锚定物理AI全链路:三星/SK海力士HBM、现代汽车自动驾驶、LG/斗山工业机器人 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063928697074430301)
-- 张忆东警告6月10-18日变盘窗口临近,建议短期控制仓位 [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063785952804471199)
+- **历史数据显示VIX暴涨后95%概率出现技术反弹，但无底部背离则非趋势反转，反弹至头肩顶右肩位置则确立更大跌幅。** [@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2063871782596079994)
 
-**经典投资书籍推荐**
-- Philip Fisher的《Common Stocks and Uncommon Profits》[@BrianFeroldi](https://x.com/BrianFeroldi/status/2063775594932740405)
+- **标普便宜，纳指便宜，芯片估值已回归中性，科技股回调是买入良机。** [@TJ_Research · 1](https://x.com/TJ_Research/status/2063793768407474371)、[@WallStreet0Name](https://x.com/WallStreet0Name/status/2063886468435906999)
+
+- **警惕机构利用大V喊单做多私下出货，机器人行业ETF可能比个股更优，但真正落地还需5-10年。** [@cnfinancewatch](https://x.com/cnfinancewatch/status/2063937121275334845)
+
+- **做空韩国半导体股风险极高，韩国政府打击非法做空背景下做空风险大。** [@cyrilxuq](https://x.com/cyrilxuq/status/2063828813403107514)
 
 ## 最近 7 天
 
+- [2026-06-08](digests/2026/06/08.md)
 - [2026-06-07](digests/2026/06/07.md)
 - [2026-06-06](digests/2026/06/06.md)
 - [2026-06-05](digests/2026/06/05.md)
 - [2026-06-04](digests/2026/06/04.md)
 - [2026-06-03](digests/2026/06/03.md)
 - [2026-06-02](digests/2026/06/02.md)
-- [2026-06-01](digests/2026/06/01.md)
 
 ## 监控的 KOL
 
@@ -246,176 +252,183 @@ $OSCR $UNH $JPM $NBIS $MRVL $ASML $AAOI $HNGE $TRV $LLY,多数在关键位附近
 
 ### @cnfinancewatch · 16 条
 
-**核心观点**：物理AI+机器人、电感涨价、光芯片国产化三线共振
-
-**情绪**：neutral
-
-- $AMD 英国投资20亿英镑扩展AI基础设施，盘前涨2%，AI芯片竞争加剧 ($AMD) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $NBIS AI云服务反弹12%，公布1.7亿英镑英国扩张计划，12个月涨幅333% ($NBIS) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $LLY 减肥药Retatrutide三期试验80周减重28.3%超预期，盘前大涨 ($LLY) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $MSTR Saylor暗示继续增持比特币，盘前上涨 ($MSTR) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $GLD 黄金暴跌3%创3月最大跌幅，支撑位$3000，策略师看好买入 ($GLD) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $RIVN 称AI可能使CarPlay/Android Auto过时，Momentum Score飙升 ($RIVN) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
-- $XOM $CVX 以色列袭击伊朗能源设施，原油涨超3%，地缘风险推高能源股 ($XOM, $CVX) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
-- A股锐新科技并购德恒装备51%股权，业绩从3260万→7108万(+118%)，EPS增85% [原推](https://x.com/cnfinancewatch/status/2063950710597947633)
-- A股沃格光电TGV封装+AI数据中心散热，技术壁垒高护城河深，建仓评级★★★★★ [原推](https://x.com/cnfinancewatch/status/2063950710597947633)
-- A股康达新材PPE树脂全球供应中断70%，涨价潮爆发，3万吨PAE产能满产弹性大 [原推](https://x.com/cnfinancewatch/status/2063950710597947633)
-- A股诺唯赞控股股东增持1.15-2.25亿元，用银行贷款真金白银背书 [原推](https://x.com/cnfinancewatch/status/2063950710597947633)
-- 机构首次买入评级27只A股，包括天通股份(铌酸锂)、中兵红箭(特种装备)、京东方A(1+4+N战略) [原推](https://x.com/cnfinancewatch/status/2063944836030586948)
-- 英伟达韩国行锚定物理AI全链路：三星/SK海力士HBM、现代汽车自动驾驶、LG/斗山工业机器人 [原推](https://x.com/cnfinancewatch/status/2063928697074430301)
-- TLVR电感严重缺货涨价潮，A股顺络电子、麦捷科技或复制MLCC去年行情 [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
-- 光洋股份签下2万台特种机器人海外订单，机器人出海逻辑强化 [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
-- 国产首台光芯片光刻机面世，中新集团唯一参股方 [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
-- 张忆东警告6月10-18日变盘窗口临近，建议短期控制仓位 [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
-- 猝不及防暴跌几乎无人逃生，大概率不用太担心但不要急于抄底 [原推](https://x.com/cnfinancewatch/status/2063935630737059847)
-- 警惕机构利用广告单通过大V喊单做多私下出货 [原推](https://x.com/cnfinancewatch/status/2063937121275334845)
-
-### @nft_hu · 9 条
-
-**核心观点**：英伟达锁定SK海力士长期供应，硅光生态全景曝光
+**核心观点**：物理AI+电感涨价+半导体国产替代三线共振,警惕6月中变盘
 
 **情绪**：bullish
 
-- $INTC 爆量扩产：Intel 3产能至2028年增80%，18A翻倍，14A强劲爬坡，主要驱动力为服务器CPU需求和18A良率改善 ($INTC) [原推](https://x.com/nft_hu/status/2063943905411002498)
-- SK海力士计划2030年DRAM产能翻倍至月产100万片晶圆，龙仁厂提前至2027年2月装机，预计2030年上半年新增36万片月产能 [原推](https://x.com/nft_hu/status/2063895007015133230)
-- $NVDA 硅光生态全景：$TSMC 负责制程，SPIL封装，$LITE $COHR 提供激光器（英伟达各投资20亿美元），$GLW 供光纤，$FN Foxconn负责系统集成 ($NVDA, $TSMC, $LITE, $COHR, $GLW, $FN) [原推](https://x.com/nft_hu/status/2063834795633963423)
-- onsemi捷克厂再裁300人聚焦SiC衬底，西方成本1200美元/片 vs 中国400美元形成3倍差距，IDM被迫放弃衬底自制转向外购，中国SICC+天岳市占合计超40% [原推](https://x.com/nft_hu/status/2063819943574172157)
-- $NVDA 黄仁勋：今年从SK海力士采购数十亿美元芯片且大幅增长，交易将持续超两年并可延长 ($NVDA) [原推](https://x.com/nft_hu/status/2063791557338337403)
-- 韩国KOSPI指数暴跌8%触发熔断 [原推](https://x.com/nft_hu/status/2063782770716061974)
+- 英伟达物理AI战略推进，机器人商业化提速，$盛视科技 $居然智家 $光洋股份 等映射标的稀缺，光洋股份签下2万台特种机器人海外大单 ($002877, $000785, $002708) [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
+- TLVR电感缺货引爆涨价潮，功率电感赛道复刻MLCC行情，$顺络电子 $麦捷科技 $风华高科 受益，订单排期已至Q4 ($002138, $300831, $000636) [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
+- 国产首台光芯片光刻机面世，$中新集团 为唯一间接参股方，半导体设备国产替代提速 ($600319) [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
+- $康达新材 布局人形机器人+MLCC国产替代双风口，低位叠加双逻辑，PPE树脂涨价潮带来业绩弹性 ($002669, $002036) [原推](https://x.com/cnfinancewatch/status/2063785952804471199)
+- 张忆东警告6月10-18日变盘点临近，建议控制仓位，猝不及防暴跌后不要急于抄底 [原推](https://x.com/cnfinancewatch/status/2063935630737059847)
+- $AMD 英国投资20亿英镑扩展AI基础设施盘前涨2%，$NBIS AI云服务扩张涨12%，AI算力需求持续强劲 ($AMD, $NBIS) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
+- $LLY 减肥药Retatrutide三期试验80周减重28.3%超预期，减肥药赛道火热 ($LLY) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
+- 中东局势推高能源，以色列袭击伊朗能源设施，原油涨超3%，$XOM $CVX 受益地缘溢价 ($XOM, $CVX) [原推](https://x.com/cnfinancewatch/status/2063945296921682079)
+- $锐新科技 收购德恒装备51%股权，业绩翻倍逻辑清晰，归母净利润备考+118%，五星建仓评级 ($300851) [原推](https://x.com/cnfinancewatch/status/2063950710597947633)
+- $沃格光电 TGV封装技术+商业航天+玻璃基板多重叠加，AI数据中心散热需求井喷，五星建仓评级 ($603773) [原推](https://x.com/cnfinancewatch/status/2063950710597947633)
+- $诺唯赞 控股股东计划增持1.15-2.25亿元，用银行贷款真金白银背书，6月9日起正式增持 ($688105) [原推](https://x.com/cnfinancewatch/status/2063950710597947633)
+- A股20日动量排名：煤炭151220、科创半导体588170、科创半导体设备588020领涨，科创债195400进入前十 [原推](https://x.com/cnfinancewatch/status/2063849106720923870)
+- 警惕机构利用大V喊单做多私下出货，机器人行业ETF可能比个股更优，但真正落地还需5-10年 [原推](https://x.com/cnfinancewatch/status/2063937121275334845)
 
-### @Mr_Derivatives · 7 条
+### @nft_hu · 9 条
 
-**核心观点**：市场波动剧烈，关注韩国市场异常与回调机会
+**核心观点**：英伟达硅光生态全景曝光，存储扩产与SiC洗牌并行
+
+**情绪**：bullish
+
+- $INTC 铸造厂产能大幅提升：Intel 3产能+80%、18A产能+100%，主要由服务器CPU需求驱动 ($INTC) [原推](https://x.com/nft_hu/status/2063943905411002498)
+- SK海力士计划2030年前DRAM产能翻倍至月产100万片晶圆，首个龙仁fab设备安装提前至2027年2月 [原推](https://x.com/nft_hu/status/2063895007015133230)
+- $NVDA 硅光生态全景：$TSMC 制程、$LITE $COHR 激光器、$GLW 光纤、$FN 组装，已向Lumentum/Coherent投资约20亿美元锁定产能 ($NVDA, $TSMC, $LITE, $COHR, $GLW, $FN) [原推](https://x.com/nft_hu/status/2063834795633963423)
+- 个人交易：买入铠侠285A、SK海力士、三星、4062 [原推](https://x.com/nft_hu/status/2063822201615515907)
+- $ON 捷克工厂再裁300人聚焦SiC衬底，中国厂商成本400美元/片 vs 西方1200美元，成本差3倍迫使IDM放弃衬底自制转外购 ($ON) [原推](https://x.com/nft_hu/status/2063819943574172157)
+- $NVDA CEO黄仁勋：今年从SK海力士采购将大幅增长，交易将持续超过两年 ($NVDA) [原推](https://x.com/nft_hu/status/2063791557338337403)
+- 韩国KOSPI指数下跌8%触发熔断，交易暂停20分钟 [原推](https://x.com/nft_hu/status/2063782770716061974)
+
+### @realDonaldTrump · 7 条
+
+**核心观点**：呼吁以色列和伊朗立即停火，封锁持续直至最终协议达成
 
 **情绪**：neutral
 
-- 韩国散户变卖人寿保单满杠杆炒股，风险极高 [原推](https://x.com/Mr_Derivatives/status/2063847497299345635)
-- $KWEB 与 $BTC 在2025年10月同时见顶后同步下跌，相关性超预期 ($KWEB, $BTC) [原推](https://x.com/Mr_Derivatives/status/2063829622580744240)
-- $GLD 首次跌破200日均线，若接近4000美元是绝佳加仓区域 ($GLD) [原推](https://x.com/Mr_Derivatives/status/2063817824284672256)
-- 韩国 KOSPI 指数暴跌8%，但 $EWY ETF 实际上涨3.5%，存在反差 ($EWY) [原推](https://x.com/Mr_Derivatives/status/2063785932088856910)
-- $SPHR 今年迄今上涨近50%，看好该股表现 ($SPHR) [原推](https://x.com/Mr_Derivatives/status/2063783516169793731)
-- $QQQ 正在收复部分失地 ($QQQ) [原推](https://x.com/Mr_Derivatives/status/2063780969405149628)
-- 若本周收复周五全部跌幅将令人震惊，市场无所不能但高度不可能 [原推](https://x.com/Mr_Derivatives/status/2063775216480989691)
+- 以色列和伊朗双方寻求立即停火，和平谈判进行中，封锁维持至最终协议 [原推](https://x.com/realDonaldTrump/status/truth_1780914850845167301)
+- 要求以色列和伊朗必须立即停止射击 [原推](https://x.com/realDonaldTrump/status/truth_1780911399542841331)
+- 国会报告批评明尼苏达州官员对大规模福利欺诈视而不见 [原推](https://x.com/realDonaldTrump/status/truth_1780913710270837674)
+- 质疑2020年选举舞弊并转发支持证据链接 [原推](https://x.com/realDonaldTrump/status/truth_1780909247201405800)
+- 指控加州选举存在舞弊，共和党候选人被欺骗 [原推](https://x.com/realDonaldTrump/status/truth_1780887768836941558)
+
+### @Mr_Derivatives · 7 条
+
+**核心观点**：市场波动加剧，关注韩国市场异动及$BTC/$KWEB联动
+
+**情绪**：neutral
+
+- 韩国投资者变卖人寿保险全仓加杠杆炒股，风险极高 [原推](https://x.com/Mr_Derivatives/status/2063847497299345635)
+- $KWEB与$BTC在2025年10月同时见顶后同步下跌，相关性超预期 ($KWEB, $BTC) [原推](https://x.com/Mr_Derivatives/status/2063829622580744240)
+- $GLD跌破200日均线，若接近$4000将是很好的加仓区域 ($GLD) [原推](https://x.com/Mr_Derivatives/status/2063817824284672256)
+- 韩国KOSPI指数隔夜跌8%，但$EWY ETF反涨3.5%，存在价格背离 ($EWY) [原推](https://x.com/Mr_Derivatives/status/2063785932088856910)
+- $SPHR年初至今涨近50%，表现强劲 ($SPHR) [原推](https://x.com/Mr_Derivatives/status/2063783516169793731)
+- $QQQ正在收复部分失地 ($QQQ) [原推](https://x.com/Mr_Derivatives/status/2063780969405149628)
+- 若本周收复周五全部跌幅将令人震惊，虽不可能但市场充满意外 [原推](https://x.com/Mr_Derivatives/status/2063775216480989691)
 
 ### @LizAnnSonders · 6 条
 
-**核心观点**：纳指单日暴跌近5%，市场广度恶化，科技股领跌
+**核心观点**：纳指单日暴跌近5%，市场广度恶化，板块轮动明显
 
 **情绪**：bearish
 
 - 纳斯达克100指数周五暴跌近5%，为2025年4月以来最大单日跌幅 [原推](https://x.com/LizAnnSonders/status/2063946234830766497)
-- 各板块及指数表现更新：周五单日、月度及年初至今表现数据 [原推](https://x.com/LizAnnSonders/status/2063945419948793964)
-- 指数表现及Mag7科技股图表更新至周五收盘 [原推](https://x.com/LizAnnSonders/status/2063945138993332259)
-- 各板块创4周及52周新高的个股占比数据显示市场广度收窄 [原推](https://x.com/LizAnnSonders/status/2063945599955738825)
-- 年初至今、3月（调整月）及季度至今的篮子表现对比 [原推](https://x.com/LizAnnSonders/status/2063945797813617061)
-- 移动平均线广度图表更新至周五收盘，显示技术面走弱 [原推](https://x.com/LizAnnSonders/status/2063944917626286575)
+- 各板块年初至今、3月（调整月）及季度表现分化 [原推](https://x.com/LizAnnSonders/status/2063945797813617061)
+- 各板块股票处于4周和52周高点的比例数据更新 [原推](https://x.com/LizAnnSonders/status/2063945599955738825)
+- 板块/指数周五及月度/年度表现数据 [原推](https://x.com/LizAnnSonders/status/2063945419948793964)
+- 指数表现和Mag7图表数据更新至周五收盘 [原推](https://x.com/LizAnnSonders/status/2063945138993332259)
+- 移动均线广度图表更新至周五收盘 [原推](https://x.com/LizAnnSonders/status/2063944917626286575)
 
 ### @charliebilello · 6 条
 
-**核心观点**：科技股估值泡沫化，EPS增速创纪录但缺乏经济基本面支撑
+**核心观点**：科技股估值创历史新高，盈利增速空前，但泡沫风险隐现
 
 **情绪**：bearish
 
-- 白宫经济顾问 Hassett 暗示美联储新领导层可能推动降息 [原推](https://x.com/charliebilello/status/2063944997947203593)
-- 过去3个月60%新增就业集中在医疗保健（+198k）和休闲酒店（+144k）两个行业 [原推](https://x.com/charliebilello/status/2063944963910479877)
-- $SPY 股息率跌破1%，逼近2000年0.94%历史最低水平 ($SPY) [原推](https://x.com/charliebilello/status/2063815648484917583)
-- $AAPL 市销率超10倍，创公司历史新高 ($AAPL) [原推](https://x.com/charliebilello/status/2063815634358620504)
-- 标普500今年EPS预期增长25%，除衰退后反弹外从未见过，大型科技股推动史无前例的盈利繁荣 [原推](https://x.com/charliebilello/status/2063815626435461352)
-- $XLK 科技板块9周暴涨47%，创历史最大涨幅，超越1999年末抛物线式上涨 ($XLK) [原推](https://x.com/charliebilello/status/2063815615551361252)
+- 白宫经济顾问 Hassett 呼吁美联储降息，称有充足空间 [原推](https://x.com/charliebilello/status/2063944997947203593)
+- 过去3个月60%就业增长来自医疗保健和休闲酒店两大行业 [原推](https://x.com/charliebilello/status/2063944963910479877)
+- $SPY 股息率跌破1%，接近2000年历史低点0.94% ($SPY) [原推](https://x.com/charliebilello/status/2063815648484917583)
+- $AAPL 市销率突破10倍，创公司历史最高估值 ($AAPL) [原推](https://x.com/charliebilello/status/2063815634358620504)
+- 标普500今年盈利预期增长25%，除衰退后反弹外从未如此高，大型科技股推动空前繁荣 [原推](https://x.com/charliebilello/status/2063815626435461352)
+- $XLK 科技板块9周暴涨47%创历史最大涨幅，超越1999年末抛物线式上涨 ($XLK) [原推](https://x.com/charliebilello/status/2063815615551361252)
 
 ### @jukan05 · 6 条
 
-**核心观点**：黄仁勋称AI股票很便宜，HBM4涨价预期强劲
+**核心观点**：黄仁勋称AI股票便宜，HBM4看涨至$53/GB
 
 **情绪**：bullish
 
-- $NVDA CEO黄仁勋表示AI相关股票目前非常便宜 ($NVDA) [原推](https://x.com/jukan05/status/2063783610558407010)
-- Bernstein预计2027年HBM4价格将涨至$53/GB，看多HBM4定价 [原推](https://x.com/jukan05/status/2063831248955736118)
-- SK hynix股价从底部反弹10% [原推](https://x.com/jukan05/status/2063818521143042178)
-- 三星电子半导体负责人称正与$NVDA讨论下一代LPU LP40，否认生产转移至台积电传闻 ($NVDA, $TSM) [原推](https://x.com/jukan05/status/2063943345123237972)
-- $INTC晶圆厂产能大幅提升：Intel 3产能到2028年底增80%，18A增100%，受服务器CPU需求推动 ($INTC) [原推](https://x.com/jukan05/status/2063932238706925823)
-- 村田7月1日起电感器出厂价涨50%，太阳诱电紧缺型号现货价涨150%，标准型号涨35% [原推](https://x.com/jukan05/status/2063915423175987654)
+- $NVDA 黄仁勋：AI相关股票目前非常便宜 ($NVDA) [原推](https://x.com/jukan05/status/2063783610558407010)
+- 三星电子否认 $NVDA LPU40转单台积电传闻，称正与英伟达讨论合作 ($NVDA, $TSM) [原推](https://x.com/jukan05/status/2063943345123237972)
+- Bernstein看涨2027年HBM4价格至$53/GB，Vera Rubin将大量出货 [原推](https://x.com/jukan05/status/2063831248955736118)
+- SK海力士从底部反弹10% [原推](https://x.com/jukan05/status/2063818521143042178)
+- $INTC 大幅提升晶圆厂产能：Intel 3提升80%，18A翻倍，受服务器CPU需求驱动 ($INTC) [原推](https://x.com/jukan05/status/2063932238706925823)
+- 村田7月1日功率电感涨价50%，太阳诱电紧缺型号涨150% [原推](https://x.com/jukan05/status/2063915423175987654)
 
 ### @WallStreet0Name · 5 条
 
-**核心观点**：存储股$MU回调20%可分批买入，AI建设刚开始科技股下跌是机会
+**核心观点**：AI建设刚开始，科技股回调是买入良机
 
 **情绪**：bullish
 
-- $MU 回调至高点下20%，可在20%-30%区间分批买入，去年存储行情最大回调30% ($MU) [原推](https://x.com/WallStreet0Name/status/2063888488861450599)
+- $MU 存储行情回调20%，可在20%-30%区间分批买入 ($MU) [原推](https://x.com/WallStreet0Name/status/2063888488861450599)
 - 黄仁勋称AI建设刚开始，全球科技股下跌是买入良机 [原推](https://x.com/WallStreet0Name/status/2063886468435906999)
-- 韩国交易所KOSPI指数下跌8%触发熔断，暂停交易20分钟 [原推](https://x.com/WallStreet0Name/status/2063774407387144681)
+- 韩国交易所因KOSPI指数下跌8%触发熔断 [原推](https://x.com/WallStreet0Name/status/2063774407387144681)
 
 ### @ShanghaoJin · 5 条
 
-**核心观点**：尾盘ETF再平衡配合平仓盘造成下跌压力
+**核心观点**：尾盘ETF再平衡配合平仓盘砸盘
 
 **情绪**：bearish
 
-- 尾盘ETF再平衡随股价下跌一路扫盘，配合平仓盘一起砸盘 [原推](https://x.com/ShanghaoJin/status/2063940748740116810)
+- 尾盘在ETF rebalancing，随股价下跌一路扫盘，配合平仓盘砸出来 [原推](https://x.com/ShanghaoJin/status/2063940748740116810)
 
 ### @SpermCapital · 5 条
 
-**核心观点**：AI算力竞赛转为能源竞赛，储能与800V直流电成投资焦点
+**核心观点**：AI能源竞赛加速，储能与800V直流电成投资主线
 
 **情绪**：neutral
 
-- 2025年全球数据中心投资5800亿美元超石油供应链，AIDC储能锂电池出货量将从15GWh飙升至2030年300GWh [原推](https://x.com/SpermCapital/status/2063939715578109959)
-- 白毛股神推荐800V直流电概念股：$IFNNY $ON $VICR $LFUS $VSH $ENPH $NVTS $POWI $BDC $EOSE $SEDG $AEHR $WOLF $AMSC $AOSL $HYLN $FCEL $ASYS $RELL $IPWR及A股易事特 ($IFNNY, $ON, $VICR, $LFUS, $VSH, $ENPH, $NVTS, $POWI, $BDC, $EOSE, $SEDG, $AEHR, $WOLF, $AMSC, $AOSL, $HYLN, $FCEL, $ASYS, $RELL, $IPWR) [原推](https://x.com/SpermCapital/status/2063905813429961097)
-- 易事特（智慧电源UPS/EPS龙头）A股涨停，Serenity带货能力显现 [原推](https://x.com/SpermCapital/status/2063901571386368125)
-- 日韩股市集体收跌，反弹乏力 [原推](https://x.com/SpermCapital/status/2063897025599676537)
-- 韩国KOSPI指数开盘跳水8.8%触发熔断，三星、SK海力士领跌，预计A股开盘承压 [原推](https://x.com/SpermCapital/status/2063778818939294164)
+- 2025年全球数据中心投资5800亿美元超石油供应链，AIDC储能锂电池出货量将从15GWh飙升至2030年300GWh，CAGR超80% [原推](https://x.com/SpermCapital/status/2063939715578109959)
+- 白毛股神推荐800V直流电概念股：$IFNNY $ON $VICR $LFUS $VSH $ENPH $NVTS $POWI $BDC $EOSE $SEDG $AEHR $WOLF $AMSC $AOSL $HYLN $FCEL $ASYS $RELL $IPWR 及A股易事特 ($IFNNY, $ON, $VICR, $LFUS, $VSH, $ENPH, $NVTS, $POWI, $BDC, $EOSE, $SEDG, $AEHR, $WOLF, $AMSC, $AOSL, $HYLN, $FCEL, $ASYS, $RELL, $IPWR) [原推](https://x.com/SpermCapital/status/2063905813429961097)
+- 易事特（UPS/EPS龙头）受海外KOL推荐带动A股涨停，出口转内销效应显现 [原推](https://x.com/SpermCapital/status/2063901571386368125)
+- 日韩股市集体收跌，韩国KOSPI开盘跳水8.8%触发熔断，三星、SK海力士领跌，预计A股开盘承压 [原推](https://x.com/SpermCapital/status/2063778818939294164)
 
 ### @caizhenghai · 5 条
 
-**核心观点**：PDT规则废除、总统救市、A股基金限购
+**核心观点**：PDT规则废除生效，总统救市，A股基金限购
 
 **情绪**：bullish
 
-- SEC和FINRA正式废除PDT规则（日内交易5天4次限制），自2026年6月4日起取消$2.5万最低账户金额门槛和次数限制，但IBKR似乎还未执行 [原推](https://x.com/caizhenghai/status/2063815241801367672)
-- 评论称总统真救市（暗示对市场政策持正面看法） [原推](https://x.com/caizhenghai/status/2063812031187431467)
-- 提及女股神的威力（未明确具体内容） [原推](https://x.com/caizhenghai/status/2063876235659444316)
-- 想加仓A股基金但遇到限购，认为这说明基金能赚钱 [原推](https://x.com/caizhenghai/status/2063805892110536932)
+- SEC和FINRA已废除PDT规则，2026年6月4日起美股日内交易取消$2.5万门槛和次数限制，但IBKR尚未执行 [原推](https://x.com/caizhenghai/status/2063815241801367672)
+- 评论总统救市举措 [原推](https://x.com/caizhenghai/status/2063812031187431467)
+- 发现某A股基金限购，认为这是能赚钱的信号 [原推](https://x.com/caizhenghai/status/2063805892110536932)
+- 提及女股神影响力 [原推](https://x.com/caizhenghai/status/2063876235659444316)
 
 ### @hanking66 · 4 条
 
-**核心观点**：CPI数据研究后乐观，预期符合概率大，坚持逢低买入长期持有
+**核心观点**：CPI数据研究后乐观，预期符合预期概率大，不怕跌只怕买不到
 
 **情绪**：bullish
 
-- 不怕跌只怕买不到，强调逢低买入长期持有策略 [原推](https://x.com/hanking66/status/2063941536774279390)
-- 深入研究CPI数据后越来越兴奋和乐观 [原推](https://x.com/hanking66/status/2063908922260648316)
-- 推荐moomoo美股开户平台新推出预测市场功能 [原推](https://x.com/hanking66/status/2063889951864107205)
-- 周三CPI数据符合预期概率偏大，提醒做好风险管理和退路 [原推](https://x.com/hanking66/status/2063821123658322020)
+- 越研究CPI越兴奋乐观，感觉要喊出来了 [原推](https://x.com/hanking66/status/2063908922260648316)
+- 周三CPI符合预期概率偏大，可以赌但要做好愿赌服输准备 [原推](https://x.com/hanking66/status/2063821123658322020)
+- 不怕跌只怕买不到，以后会懂这句话含义 [原推](https://x.com/hanking66/status/2063941536774279390)
+- moomoo推出预测市场，推荐开户 [原推](https://x.com/hanking66/status/2063889951864107205)
 
 ### @xiaomustock · 4 条
 
-**核心观点**：持仓全跌全方位亏钱，关注仿生机器人与存储需求
+**核心观点**：持仓全跌全方位亏损，关注机器人存储需求
 
 **情绪**：bearish
 
-- 今天持仓全跌，全方位亏钱 [原推](https://x.com/xiaomustock/status/2063860342787031192)
-- 优必选开售仿生机器人U1，定位情感陪伴，搭配养成情感大模型，男女款分别183cm/168cm [原推](https://x.com/xiaomustock/status/2063822541286785098)
-- 马斯克擎天柱机器人量产需海量记忆体，24小时视频存储需求大到离谱 [原推](https://x.com/xiaomustock/status/2063809823423009159)
+- 持仓全跌，全方位亏钱，今天还得装死 [原推](https://x.com/xiaomustock/status/2063860342787031192)
+- 优必选开售仿生机器人U1，定位情感陪伴，配备养成情感大模型，男女款分别183cm/168cm，88个自由度 [原推](https://x.com/xiaomustock/status/2063822541286785098)
+- 马斯克擎天柱机器人若量产，需要海量记忆体存储24小时视频记忆，存储容量需求极大 [原推](https://x.com/xiaomustock/status/2063809823423009159)
 
 ### @insane_analyst · 3 条
 
-**核心观点**：对地缘政治局势的讽刺性评论
+**核心观点**：讽刺当前地缘政治局势和市场反应
 
-**情绪**：unclear
+**情绪**：neutral
 
-- 提议用潜艇油轮在霍尔木兹海峡水下运输石油 [原推](https://x.com/insane_analyst/status/2063827231949078535)
-- 讽刺停火协议执行情况 [原推](https://x.com/insane_analyst/status/2063817515244114006)
+- 讽刺性建议：潜艇油轮在海峡水下安全航行 [原推](https://x.com/insane_analyst/status/2063827231949078535)
+- 讽刺停火协议进展（暗指地缘冲突仍在持续） [原推](https://x.com/insane_analyst/status/2063817515244114006)
+- 简短评论表达嘲讽态度 [原推](https://x.com/insane_analyst/status/2063776794634035419)
 
 ### @TJ_Research · 3 条
 
-**核心观点**：通胀可控，标普纳指便宜，芯片估值已回归中性
+**核心观点**：通胀温和，标普纳指便宜，芯片估值已回归中性
 
 **情绪**：bullish
 
-- 核心PCE 3.3%，核心CPI 2.9%，通胀压力不大，即使加息25个基点也不影响大局 [原推](https://x.com/TJ_Research/status/2063803286767989089)
-- 标普便宜，纳指便宜，芯片6月3日时估值偏高，周五跌后已回归中性 [原推](https://x.com/TJ_Research/status/2063793768407474371)
-- 韩国股市开盘熔断是因为周五美股下跌，与 $MU 盘前上涨不冲突 ($MU) [原推](https://x.com/TJ_Research/status/2063788366471061789)
+- 核心PCE 3.3%，核心CPI 2.9%，通胀压力不大，不必担心加息，即使加息25个基点也不影响大局 [原推](https://x.com/TJ_Research/status/2063803286767989089)
+- 标普便宜，纳指便宜，芯片6月3日时估值偏贵，周五跌完后估值已回归中性 [原推](https://x.com/TJ_Research/status/2063793768407474371)
+- 韩国股市开盘熔断是因周五美股下跌，与 $MU 盘前上涨不冲突 ($MU) [原推](https://x.com/TJ_Research/status/2063788366471061789)
 
 ### @octopusycc · 2 条
 
@@ -423,26 +436,26 @@ $OSCR $UNH $JPM $NBIS $MRVL $ASML $AAOI $HNGE $TRV $LLY,多数在关键位附近
 
 **情绪**：neutral
 
-- 晚间直播讨论去杠杆后美股市场并继续抓老鼠仓 [原推](https://x.com/octopusycc/status/2063943648459518445)
-- 07709未被清算，$NQ收回跌幅与上周持平，市场似乎企稳，等待CPI和FOMC，CPI数据难操纵但沃什可操纵 ($NQ) [原推](https://x.com/octopusycc/status/2063877757449482553)
+- 晚间直播讨论去杠杆后美股市场，继续追踪老鼠仓 [原推](https://x.com/octopusycc/status/2063943648459518445)
+- 07709未被清算，$NQ收回跌幅与上周持平，市场暂时企稳，等待CPI和FOMC，CPI难操纵但沃什可能影响 ($NQ) [原推](https://x.com/octopusycc/status/2063877757449482553)
 
 ### @BrianFeroldi · 2 条
 
-**核心观点**：推荐财务知识和投资经典书籍
+**核心观点**：推荐财务知识与投资经典书籍
 
 **情绪**：neutral
 
 - 转发 @YourCFOGuy 关于收入类型的内容 [原推](https://x.com/BrianFeroldi/status/2063940483504570404)
-- 推荐 Philip Fisher 的《Common Stocks and Uncommon Profits》 [原推](https://x.com/BrianFeroldi/status/2063775594932740405)
+- 推荐 Philip Fisher 的投资经典《Common Stocks and Uncommon Profits》 [原推](https://x.com/BrianFeroldi/status/2063775594932740405)
 
 ### @LinQingV · 2 条
 
-**核心观点**：基本面暂时失效，SiC衬底成本差推动产业链重构
+**核心观点**：市场与基本面脱节，SiC衬底成本差距推动产业链重构
 
 **情绪**：neutral
 
-- 当前市场走势与公司/行业基本面脱钩，建议暂时少看基本面避免冲动交易 [原推](https://x.com/LinQingV/status/2063896614826349022)
-- $ON 捷克工厂再裁300人聚焦SiC衬底环节，中国厂商成本400美元/片 vs 西方1200美元形成3倍差距，$ON 放弃衬底自制转向外购，SiC衬底产能向中国集中（SICC+天岳先进占比超40%），西方IDM收缩至器件和模组环节 ($ON) [原推](https://x.com/LinQingV/status/2063805651856634132)
+- 当前市场走势与公司/行业基本面关系不大，建议少看基本面避免冲动交易 [原推](https://x.com/LinQingV/status/2063896614826349022)
+- $ON 捷克工厂再裁300人聚焦SiC衬底环节，中国厂商成本约$400/片vs西方$1200/片，3倍成本差迫使 $ON 放弃衬底自制转向外购，SiC衬底产能正向中国集中（SICC+天岳先进合计份额超40%），西方IDM将收缩至器件和模组环节 ($ON) [原推](https://x.com/LinQingV/status/2063805651856634132)
 
 ### @rwang07 · 2 条
 
@@ -450,53 +463,56 @@ $OSCR $UNH $JPM $NBIS $MRVL $ASML $AAOI $HNGE $TRV $LLY,多数在关键位附近
 
 **情绪**：neutral
 
-- Vera SOCAMM 研究报告引起市场关注和争议，部分人误解为假新闻，但在 Computex 上 Hynix 展台可证实相关信息 [原推](https://x.com/rwang07/status/2063849329790787745)
+- Vera SOCAMM 研究报告引起市场热议，部分人得出错误结论并质疑真实性，但作者强调在 Computex 的 Hynix 展台可验证相关信息 [原推](https://x.com/rwang07/status/2063849329790787745)
 
 ### @cyrilxuq · 2 条
 
-**核心观点**：警告做空韩国芯片股风险，赞赏川普强硬媒体态度
+**核心观点**：警告做空韩国半导体股风险极高
 
 **情绪**：neutral
 
-- 批评做空$005930（三星）$000660（海力士）是币圈思维，韩国政府打击非法做空时去做空很危险 ($005930, $000660) [原推](https://x.com/cyrilxuq/status/2063828813403107514)
-- 称赞川普在NBC采访中对媒体强硬，摘麦离场 [原推](https://x.com/cyrilxuq/status/2063817926705295804)
+- 批评做空三星、海力士是币圈思维，韩国政府打击非法做空背景下做空风险大 ($005930.KS, $000660.KS) [原推](https://x.com/cyrilxuq/status/2063828813403107514)
+- 评论川普接受NBC采访表现强势 [原推](https://x.com/cyrilxuq/status/2063817926705295804)
 
 ### @Remzztrades · 2 条
 
-**核心观点**：明日多只股票接近关键位，准备交易机会
+**核心观点**：明日多只个股处于关键位置，准备交易机会
 
 **情绪**：bullish
 
-- 预告有重大交易机会即将到来 [原推](https://x.com/Remzztrades/status/2063823926606676397)
-- 明日关注列表：$OSCR $UNH $JPM $NBIS $MRVL $ASML $AAOI $HNGE $TRV $LLY，多数在关键位附近，若市场配合可能有交易机会 ($OSCR, $UNH, $JPM, $NBIS, $MRVL, $ASML, $AAOI, $HNGE, $TRV, $LLY) [原推](https://x.com/Remzztrades/status/2063778593847521510)
+- watchlist包含$OSCR $UNH $JPM $NBIS $MRVL $ASML $AAOI $HNGE $TRV $LLY，多数在关键技术位附近 ($OSCR, $UNH, $JPM, $NBIS, $MRVL, $ASML, $AAOI, $HNGE, $TRV, $LLY) [原推](https://x.com/Remzztrades/status/2063778593847521510)
+- 预告即将有重大交易机会 [原推](https://x.com/Remzztrades/status/2063823926606676397)
 
 ### @NickTimiraos · 1 条
 
-**核心观点**：5月CPI预期：headline因战争走高，核心通胀温和
+**核心观点**：5月CPI预测：因战争headline再热，但核心通胀温和
 
 **情绪**：neutral
 
-- 5月CPI预期显示headline通胀因战争影响再次走高，但核心通胀相对温和 [原推](https://x.com/NickTimiraos/status/2063949342793183522)
+- 5月CPI预测显示headline因战争影响再次走高，但核心通胀预计较为温和 [原推](https://x.com/NickTimiraos/status/2063949342793183522)
 
 ### @sssjeffpu · 1 条
 
-**核心观点**：Intel大幅扩产，18A良率改善推动foundry业务
+**核心观点**：Intel大幅扩产foundry产能应对服务器CPU需求
 
 **情绪**：bullish
 
-- $INTC 大幅提升foundry产能：Intel 3产能到2028年底增80%（爱尔兰），18A产能增100%（亚利桑那），14A在俄勒冈强劲爬坡；驱动因素包括服务器CPU需求强劲及18A良率改善 ($INTC) [原推](https://x.com/sssjeffpu/status/2063931662757503352)
+- $INTC 将Intel 3产能提升80%（爱尔兰为主）至2028年底，18A产能翻倍（亚利桑那）至2028年底，14A在俄勒冈强劲爬坡，主要driven by服务器CPU强劲需求和18A良率改善 ($INTC) [原推](https://x.com/sssjeffpu/status/2063931662757503352)
 
 ### @artinmemes · 1 条
 
-**核心观点**：本周财报聚焦$ORCL和$ADBE，需关注周三周四通胀数据
+**核心观点**：本周财报周关注 $ORCL $ADBE，叠加周三周四通胀数据和周五火箭发射
 
 **情绪**：neutral
 
-- $ORCL 周三盘后财报，关注AI云业务表现 ($ORCL) [原推](https://x.com/artinmemes/status/2063924041208242515)
-- $ADBE 周四盘后财报，关注AI工具进展 ($ADBE) [原推](https://x.com/artinmemes/status/2063924041208242515)
+- $ORCL 周三盘后财报，企业软件数据库巨头，AI云业务关键财报 ($ORCL) [原推](https://x.com/artinmemes/status/2063924041208242515)
+- $ADBE 周四盘后财报，软件龙头，看AI工具进展关键节点 ($ADBE) [原推](https://x.com/artinmemes/status/2063924041208242515)
 - $CHWY 周三盘前财报，宠物电商龙头 ($CHWY) [原推](https://x.com/artinmemes/status/2063924041208242515)
-- $FCEL $VFS 等网红股周一财报 ($FCEL, $VFS) [原推](https://x.com/artinmemes/status/2063924041208242515)
-- $RH $LEN 等地产消费股周四盘后财报 ($RH, $LEN) [原推](https://x.com/artinmemes/status/2063924041208242515)
+- $FCEL 周一盘前财报，氢能燃料电池网红股 ($FCEL) [原推](https://x.com/artinmemes/status/2063924041208242515)
+- $CPB 周一盘前财报，消费巨头通胀下防御标的 ($CPB) [原推](https://x.com/artinmemes/status/2063924041208242515)
+- $RH $LEN 周四盘后财报，高端家居零售和住宅建筑商 ($RH, $LEN) [原推](https://x.com/artinmemes/status/2063924041208242515)
+- $UEC 周二盘前财报，铀矿核能热门标的 ($UEC) [原推](https://x.com/artinmemes/status/2063924041208242515)
+- $CASY 周二盘后财报，加油站便利店龙头能源消费双逻辑 ($CASY) [原推](https://x.com/artinmemes/status/2063924041208242515)
 
 ### @tychozzz · 1 条
 
@@ -504,60 +520,59 @@ $OSCR $UNH $JPM $NBIS $MRVL $ASML $AAOI $HNGE $TRV $LLY,多数在关键位附近
 
 **情绪**：neutral
 
-- 总结了嘉信理财美股入金的四种主流方案：Wise美元入金、iFAST英镑入金、汇丰香港港币入金、Bitget钱包虚拟卡欧元入金，无需港卡即可操作 [原推](https://x.com/tychozzz/status/2063919776595079511)
+- 提供 Wise 美元、iFAST 英镑、汇丰香港港币、Bitget 钱包虚拟卡欧元四种嘉信理财入金方案，无需港卡 [原推](https://x.com/tychozzz/status/2063919776595079511)
 
 ### @ArtofSpecuycky · 1 条
 
-**核心观点**：周一开盘惯性下砸后大概率反弹，但反弹是减仓窗口非底部
+**核心观点**：周一惯性下杀后技术反弹，但非底部，周三CPI前减仓避险
 
 **情绪**：bearish
 
-- 周一开盘预计惯性下杀1-1.5%，$SPY 关键支撑位730-732及723-724，阻力位740-751 ($SPY) [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- VIX单日暴涨39.68%突破21.5，历史数据显示95%概率出现技术性反弹，但无底部背离信号 [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 反弹上限748-750美元形成头肩顶右肩，此区间为减仓窗口 [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 周三CPI数据是最大风险点，预期突破4.0%甚至4.2%，建议数据前保持现金 [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- $IWM 小盘股出现三重看跌背离，反弹极限284美元后将补跌至270-265美元 ($IWM) [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
-- 中期选举年6月美股历史平均负收益，Q1下跌年份6月收跌概率91% [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+- 周一开盘预计惯性下杀1-1.5%，$SPY关键位735.5→730-732→723-724地板，反弹阻力740→745→751天花板 ($SPY) [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+- VIX单日暴涨39.68%突破21.5，历史数据显示95%概率周一周二出现技术反弹，但MACD无底部背离，非趋势反转 [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+- 反弹至748-750形成头肩顶右肩则确立更大跌幅，周三CPI预期破4.0%甚至4.2%是最危险事件，数据前保持现金 [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+- $IWM小盘股出现三重看跌背离，反弹极限284美元后或跌至270→265补跌，高Beta概念股趁反弹清仓 ($IWM) [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
+- 中期选举年6月美股历史平均负收益，Q1负收益年份6月收跌概率91%跌幅8.7%，VIX回落20下风险解除否则持现等待 [原推](https://x.com/ArtofSpecuycky/status/2063871782596079994)
 
 ### @biancoresearch · 1 条
 
-**核心观点**：报道伊朗向以色列发射导弹的地缘政治事件
+**核心观点**：伊朗向以色列发射导弹，地缘风险升温
 
-**情绪**：neutral
+**情绪**：bearish
 
 - 以色列国防军确认伊朗向以色列发射导弹 [原推](https://x.com/biancoresearch/status/2063837890828722656)
 
 ### @starzq · 1 条
 
-**核心观点**：推广自制时区转换器插件，无股市观点
+**核心观点**：推广个人开发的时区转换器插件
+
+**情绪**：neutral
+
+- 发布时区转换器浏览器插件，可自动转换各时区时间为本地时间，方便追踪重要事件 [原推](https://x.com/starzq/status/2063810515743441359)
+
+### @crux_capital_ · 1 条
+
+**核心观点**：$NVDA 面临需求放缓和库存压力，看跌
+
+**情绪**：bearish
+
+- $NVDA 数据中心需求疲软，Blackwell 库存堆积，客户推迟订单，估值过高存在下行风险 ($NVDA) [原推](https://x.com/crux_capital_/status/2063802624181485875)
+
+### @Franktradinglog · 1 条
+
+**核心观点**：SPX守7375可短线做多，反弹不超7500
+
+**情绪**：neutral
+
+- $SPX 不跌破7375可短线做多，预计超跌反弹至7500以下（CPI前），新高需等FOMC后 ($SPX) [原推](https://x.com/Franktradinglog/status/2063802119174709660)
+
+### @rickawsb · 1 条
+
+**核心观点**：无法分析 Twitter Spaces 音频内容
 
 **情绪**：unclear
 
 - 暂无要点。
-
-### @crux_capital_ · 1 条
-
-**核心观点**：无法访问推文内容
-
-**情绪**：unclear
-
-- 推文链接指向 X/Twitter 文章，需要登录或特定权限才能查看完整内容 [原推](https://x.com/crux_capital_/status/2063802624181485875)
-
-### @Franktradinglog · 1 条
-
-**核心观点**：SPX守7375可短线做多,反弹看7500
-
-**情绪**：bullish
-
-- $SPX 不跌破7375可短线做多，预期超跌反弹至7500以下(CPI前)，新高需等FOMC后 ($SPX) [原推](https://x.com/Franktradinglog/status/2063802119174709660)
-
-### @rickawsb · 1 条
-
-**核心观点**：举办 Space 讨论，未提供具体观点
-
-**情绪**：unclear
-
-- 发起 X Space 语音讨论 [原推](https://x.com/rickawsb/status/2063778535492432186)
 
 </details>
 
