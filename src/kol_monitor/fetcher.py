@@ -16,6 +16,7 @@ from kol_monitor.client import OpenTwitterClient
 
 logger = logging.getLogger(__name__)
 NUMERIC_SUFFIX_RE = re.compile(r"(\d+)$")
+MIN_DATETIME = datetime.min.replace(tzinfo=timezone.utc)
 
 
 @dataclass
@@ -47,6 +48,17 @@ def _tweet_id_int(tweet: dict[str, Any]) -> int:
     return _tweet_id_sort_value(_tweet_id(tweet))
 
 
+def _tweet_id_family(tweet_id: str) -> str:
+    match = NUMERIC_SUFFIX_RE.search(tweet_id)
+    if not match:
+        return tweet_id
+    return tweet_id[: match.start(1)] or "numeric"
+
+
+def _tweet_ids_are_comparable(left: str, right: str) -> bool:
+    return _tweet_id_family(left) == _tweet_id_family(right)
+
+
 def _tweet_id_sort_value(tweet_id: str) -> int:
     try:
         return int(tweet_id)
@@ -55,6 +67,28 @@ def _tweet_id_sort_value(tweet_id: str) -> int:
         if match:
             return int(match.group(1))
         raise
+
+
+def _tweet_created_at(tweet: dict[str, Any]) -> datetime | None:
+    value = tweet.get("created_at") or tweet.get("createdAt")
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        text = str(value).strip()
+        if text.endswith("Z"):
+            text = text[:-1] + "+00:00"
+        try:
+            parsed = datetime.fromisoformat(text)
+        except ValueError:
+            try:
+                parsed = datetime.strptime(text, "%a %b %d %H:%M:%S %z %Y")
+            except ValueError:
+                return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def _attach_kol(tweet: dict[str, Any], kol: dict[str, Any]) -> dict[str, Any]:
@@ -69,7 +103,10 @@ def _attach_kol(tweet: dict[str, Any], kol: dict[str, Any]) -> dict[str, Any]:
 def _max_id(tweets: list[dict[str, Any]]) -> str | None:
     if not tweets:
         return None
-    return _tweet_id(max(tweets, key=_tweet_id_int))
+    families = {_tweet_id_family(_tweet_id(tweet)) for tweet in tweets}
+    if len(families) == 1:
+        return _tweet_id(max(tweets, key=_tweet_id_int))
+    return _tweet_id(max(tweets, key=lambda tweet: _tweet_created_at(tweet) or MIN_DATETIME))
 
 
 def _insert_tweets(tweets: list[dict[str, Any]], kol: dict[str, Any]) -> int:
@@ -78,6 +115,49 @@ def _insert_tweets(tweets: list[dict[str, Any]], kol: dict[str, Any]) -> int:
         if db.insert_tweet(_attach_kol(tweet, kol)):
             inserted += 1
     return inserted
+
+
+def _last_seen_created_at(last_id: str | None) -> datetime | None:
+    if not last_id:
+        return None
+    tweet = db.get_tweet(last_id)
+    if not tweet:
+        return None
+    return _tweet_created_at(tweet)
+
+
+def _is_newer_than_anchor(
+    tweet: dict[str, Any],
+    last_id: str,
+    last_id_int: int,
+    last_seen_created_at: datetime | None,
+) -> bool:
+    tweet_id = _tweet_id(tweet)
+    if _tweet_ids_are_comparable(tweet_id, last_id):
+        return _tweet_id_int(tweet) > last_id_int
+    tweet_created_at = _tweet_created_at(tweet)
+    return bool(tweet_created_at and last_seen_created_at and tweet_created_at > last_seen_created_at)
+
+
+def _batch_overlaps_anchor(
+    batch: list[dict[str, Any]],
+    last_id: str,
+    last_id_int: int,
+    last_seen_created_at: datetime | None,
+) -> bool:
+    if any(_tweet_id(tweet) == last_id for tweet in batch):
+        return True
+    comparable_ids = [
+        _tweet_id_int(tweet)
+        for tweet in batch
+        if _tweet_ids_are_comparable(_tweet_id(tweet), last_id)
+    ]
+    if comparable_ids and min(comparable_ids) < last_id_int:
+        return True
+    if last_seen_created_at is None:
+        return False
+    created_values = [_tweet_created_at(tweet) for tweet in batch]
+    return any(value is not None and value <= last_seen_created_at for value in created_values)
 
 
 async def _latest_tweets(client: Any, handle: str, max_results: int) -> list[dict[str, Any]]:
@@ -114,6 +194,7 @@ async def fetch_one_kol(
         return KolFetchResult(handle, inserted=inserted, fetched=len(batch), incomplete=False)
 
     last_id_int = _tweet_id_sort_value(str(last_id))
+    last_seen_created_at = _last_seen_created_at(str(last_id))
     page_size = initial_pull_size
     fetched_by_id: dict[str, dict[str, Any]] = {}
     overlap = False
@@ -125,13 +206,16 @@ async def fetch_one_kol(
         if not batch:
             overlap = True
             break
-        ids = [_tweet_id_int(tweet) for tweet in batch]
-        if last_id_int in ids or min(ids) < last_id_int:
+        if _batch_overlaps_anchor(batch, str(last_id), last_id_int, last_seen_created_at):
             overlap = True
             break
         page_size = min(page_size * 2, max_results_per_request)
 
-    new_tweets = [tweet for tweet in fetched_by_id.values() if _tweet_id_int(tweet) > last_id_int]
+    new_tweets = [
+        tweet
+        for tweet in fetched_by_id.values()
+        if _is_newer_than_anchor(tweet, str(last_id), last_id_int, last_seen_created_at)
+    ]
     inserted = _insert_tweets(new_tweets, kol)
     newest_id = _max_id(new_tweets) if new_tweets else None
     db.update_kol_anchor(kol["id"], newest_id, datetime.now(timezone.utc), incomplete=not overlap)

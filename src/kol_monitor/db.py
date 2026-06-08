@@ -164,6 +164,11 @@ def get_kol_by_id(kol_id: int) -> dict[str, Any] | None:
         return _row(conn.execute("SELECT * FROM kols WHERE id = ?", (kol_id,)).fetchone())
 
 
+def get_tweet(tweet_id: str) -> dict[str, Any] | None:
+    with _connect() as conn:
+        return _row(conn.execute("SELECT * FROM tweets WHERE tweet_id = ?", (tweet_id,)).fetchone())
+
+
 def list_active_kols() -> list[dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute("SELECT * FROM kols WHERE active = 1 ORDER BY lower(screen_name)").fetchall()

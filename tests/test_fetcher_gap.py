@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import httpx
 import pytest
 
-from kol_monitor.db import get_kol, update_kol_anchor, upsert_kol
+from kol_monitor.db import get_kol, insert_tweet, update_kol_anchor, upsert_kol
 from kol_monitor.fetcher import backfill_incomplete, fetch_one_kol
 
 
@@ -156,6 +156,49 @@ async def test_incremental_fetch_accepts_prefixed_numeric_anchor(tmp_db, make_tw
     assert res.inserted == 1
     assert res.incomplete is False
     assert get_kol("realDonaldTrump")["last_seen_tweet_id"] == "truth_1780116388200996847"
+
+
+@pytest.mark.asyncio
+async def test_incremental_fetch_uses_created_at_when_id_families_differ(tmp_db, make_tweet):
+    upsert_kol("realDonaldTrump")
+    kol_id = get_kol("realDonaldTrump")["id"]
+    insert_tweet(
+        make_tweet(
+            handle="realDonaldTrump",
+            id="2057968277062582378",
+            createdAt="2026-05-22T23:34:07Z",
+            kol_id=kol_id,
+        )
+    )
+    update_kol_anchor(
+        kol_id,
+        "2057968277062582378",
+        datetime.now(timezone.utc),
+        incomplete=False,
+    )
+    kol = get_kol("realDonaldTrump")
+    client = FakeClient(
+        pages=[
+            [
+                make_tweet(
+                    handle="realDonaldTrump",
+                    id="truth_1780571635448654951",
+                    createdAt="Thu Jun 04 11:13:55 +0000 2026",
+                ),
+                make_tweet(
+                    handle="realDonaldTrump",
+                    id="2057968277062582378",
+                    createdAt="2026-05-22T23:34:07Z",
+                ),
+            ]
+        ]
+    )
+
+    res = await fetch_one_kol(client, kol)
+
+    assert res.inserted == 1
+    assert res.incomplete is False
+    assert get_kol("realDonaldTrump")["last_seen_tweet_id"] == "truth_1780571635448654951"
 
 
 @pytest.mark.asyncio

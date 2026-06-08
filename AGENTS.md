@@ -80,7 +80,7 @@ KOL_MONITOR_ALLOW_PUSH=false # 可选；默认不执行远端 git push
 
 ## 3. 防漏拉边界条件（务必读）
 
-### 3.1 tweet_id 比较用数值键不是字符串
+### 3.1 tweet_id 比较用数值键，跨 ID 域用时间兜底
 
 X 的 tweet_id 是 64-bit snowflake，单调递增。比较时**一定要转成数值排序键**。SQLite 列是 TEXT 没关系（因为长度可能超 int8），但比较时务必：
 
@@ -89,7 +89,9 @@ last_id_int = tweet_id_sort_value(last_id_str) if last_id_str else 0
 new_tweets = [t for t in batch if tweet_id_sort_value(t["tweet_id"]) > last_id_int]
 ```
 
-注意：`realDonaldTrump` 经 6551 返回的 ID 可能是 `truth_1780116388200996844` 这种带前缀形式。比较时取数字后缀做排序键，但数据库里的 `tweet_id` 和 `last_seen_tweet_id` 要保留原始完整字符串。
+注意：`realDonaldTrump` 经 6551 返回的 ID 可能是 `truth_1780116388200996844` 这种带前缀形式。比较时同一 ID family 内取数字后缀做排序键，但数据库里的 `tweet_id` 和 `last_seen_tweet_id` 要保留原始完整字符串。
+
+还要注意：6551 偶尔会把 `realDonaldTrump` 的普通 X 数字 ID（例如 `2057968277062582378`）和 `truth_数字` 混在一起。两者数字后缀不是同一个单调序列，不能直接比较大小。fetcher 已改为：同一 family 用数字后缀比较，跨 family 时用锚点推文和当前推文的 `created_at` 比较；`created_at` 要同时支持 ISO 和 Twitter 原生格式（如 `Mon Jun 8 18:34:10 +0800 2026`）。
 
 ### 3.2 last_seen_tweet_id 更新原则
 
@@ -350,6 +352,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-02：Layer 1 总摘要可能因主/备 504、第三层 429 等外部 LLM 问题全失败。已增加本地兜底摘要：Layer 1 全失败时仍发布日报；单个 KOL Layer 2 全失败时从原始推文生成最小明细。
 - 2026-06-04：LLM 备用链路已扩展为四层，第四层使用 `ANTHROPIC_FOURTH_*` 环境变量，当前模型名为 `claude-sonnet-4-6`，base URL 填服务根地址即可。
 - 2026-06-07：06-05 日报曾出现一条非 KOL 来源的内部工作原则污染（`investigate_before_answering`）。已清理历史 digest 和本地 DB，并在 Layer 1 发布前增加清理：移除明显内部工件或无 URL 的伪来源 bullet。
+- 2026-06-08：`realDonaldTrump` 的 6551 数据混用了普通 X 数字 ID 和 `truth_数字` ID。旧逻辑直接比较数字后缀，导致 5/22 的普通 X ID 比 6/8 的 `truth_` 后缀更大，后续 Trump 新帖被误判为旧帖。已增加 ID family 判断：同 family 才比数字，跨 family 用已入库锚点推文的 `created_at` 兜底；同时支持 Twitter 原生时间格式解析。已手动补抓 6/5-6/8 Trump 新帖并重新生成 2026-06-08 digest。
 
 ---
 
