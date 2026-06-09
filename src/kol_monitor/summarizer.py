@@ -28,6 +28,16 @@ INTERNAL_ARTIFACT_MARKERS = (
     "提示词",
     "工作原则",
 )
+REQUIRED_LAYER1_SECTIONS = (
+    "特朗普相关",
+    "今日关键词",
+    "重要新闻",
+    "宏观判断",
+    "产业/个股焦点",
+    "交易信号",
+    "投资理念",
+)
+LAYER1_VALID_END_CHARS = set("。！？.!?)]）】」』”’…|")
 
 
 @dataclass(frozen=True)
@@ -161,6 +171,95 @@ def _clean_layer1_markdown(markdown: str) -> str:
     return "\n".join(cleaned)
 
 
+def _prepare_layer1_markdown(markdown: str) -> str:
+    return _clean_layer1_markdown(normalize_layer1_source_links(markdown)).strip()
+
+
+def _is_valid_layer1_markdown(markdown: str, stop_reason: str | None = None) -> bool:
+    return _layer1_validation_error(markdown, stop_reason=stop_reason) is None
+
+
+def _layer1_validation_error(markdown: str, stop_reason: str | None = None) -> str | None:
+    if stop_reason == "max_tokens":
+        return "response stopped at max_tokens"
+
+    top_summary = _layer1_top_summary(markdown)
+    headings = _layer1_headings(top_summary)
+    if not headings:
+        return "missing layer1 markdown headings"
+
+    required_positions: list[int] = []
+    for section in REQUIRED_LAYER1_SECTIONS:
+        position = next(
+            (
+                line_no
+                for line_no, heading in headings
+                if _normalize_layer1_heading(section) in _normalize_layer1_heading(heading)
+            ),
+            None,
+        )
+        if position is None:
+            return f"missing layer1 section: {section}"
+        required_positions.append(position)
+
+    if required_positions != sorted(required_positions):
+        return "layer1 sections are out of order"
+
+    lines = top_summary.splitlines()
+    for index, section in enumerate(REQUIRED_LAYER1_SECTIONS):
+        start = required_positions[index] + 1
+        end = required_positions[index + 1] if index + 1 < len(required_positions) else len(lines)
+        body = [line.strip() for line in lines[start:end] if line.strip() and line.strip() != "---"]
+        if not body:
+            return f"empty layer1 section: {section}"
+
+    if _layer1_looks_truncated(top_summary):
+        return "layer1 summary appears truncated"
+    return None
+
+
+def _layer1_top_summary(markdown: str) -> str:
+    return re.split(r"(?m)^\s{0,3}#{2,4}\s*各\s*KOL\b", markdown, maxsplit=1)[0].strip()
+
+
+def _layer1_headings(markdown: str) -> list[tuple[int, str]]:
+    headings = []
+    for line_no, line in enumerate(markdown.splitlines()):
+        match = re.match(r"^\s{0,3}#{2,4}\s+(.+?)\s*$", line)
+        if match:
+            headings.append((line_no, match.group(1).strip()))
+    return headings
+
+
+def _normalize_layer1_heading(heading: str) -> str:
+    text = re.sub(r"[*_`#]", "", heading)
+    text = re.sub(r"^\s*(?:[一二三四五六七八九十]+|\d+)[、.．]\s*", "", text)
+    text = re.sub(r"\s*/\s*", "/", text)
+    return re.sub(r"\s+", "", text)
+
+
+def _layer1_looks_truncated(markdown: str) -> bool:
+    lines = [line.strip() for line in markdown.splitlines() if line.strip() and line.strip() != "---"]
+    if not lines:
+        return True
+    last = lines[-1]
+    if _has_unbalanced_quotes(last):
+        return True
+    if last[-1] in {",", "，", ":", "：", ";", "；", "、", "(", "（", "[", "【", '"', "“"}:
+        return True
+    if last[-1] in LAYER1_VALID_END_CHARS:
+        return False
+    return last.startswith(("- ", "* ")) and len(last) >= 24
+
+
+def _has_unbalanced_quotes(text: str) -> bool:
+    return (
+        text.count('"') % 2 == 1
+        or text.count("“") != text.count("”")
+        or text.count("‘") != text.count("’")
+    )
+
+
 def _get_client() -> Any:
     global _client
     if _client is None:
@@ -192,6 +291,45 @@ async def call_claude_with_retry(messages: list[dict[str, Any]], max_tokens: int
     if last_error:
         raise last_error
     raise RuntimeError("ANTHROPIC_API_KEY is required")
+
+
+async def call_layer1_with_validation(messages: list[dict[str, Any]], max_tokens: int) -> Any:
+    if _client is not None:
+        response = await _client.messages.create(
+            model=settings.ai.model,
+            max_tokens=max_tokens,
+            temperature=settings.ai.temperature,
+            messages=messages,
+        )
+        _raise_for_invalid_layer1(response)
+        return response
+
+    last_error: Exception | None = None
+    for backend in _anthropic_backends():
+        try:
+            response = await _call_claude_backend(backend, messages, max_tokens)
+            _raise_for_invalid_layer1(response)
+            return response
+        except Exception as exc:
+            last_error = exc
+            logger.warning("Claude layer1 request failed via %s credentials: %s", backend.label, exc)
+    if last_error:
+        raise last_error
+    raise RuntimeError("ANTHROPIC_API_KEY is required")
+
+
+def _raise_for_invalid_layer1(response: Any) -> None:
+    markdown = _prepare_layer1_markdown(_response_text(response))
+    reason = _layer1_validation_error(markdown, stop_reason=getattr(response, "stop_reason", None))
+    if reason:
+        raise ValueError(reason)
+
+
+def _response_text(response: Any) -> str:
+    content = getattr(response, "content", [])
+    if not content:
+        return ""
+    return str(getattr(content[0], "text", "") or "")
 
 
 async def _call_claude_backend(
@@ -389,9 +527,15 @@ def build_layer1_prompt(
     trump_summary: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     intro = (
-        "请基于以下 KOL JSON 总结生成中文 markdown。"
-        "请按七个维度输出，并将“特朗普相关”单独作为一级小节放在最前面："
-        "特朗普相关、今日关键词、重要新闻、宏观判断、产业/个股焦点、交易信号、投资理念。"
+        "请基于以下 KOL JSON 总结生成中文 markdown，只输出正文，不要输出日报标题、分隔线或 emoji。"
+        "必须按顺序完整输出且只输出以下七个二级标题："
+        "## 特朗普相关、## 今日关键词、## 重要新闻、## 宏观判断、"
+        "## 产业/个股焦点、## 交易信号、## 投资理念。"
+        "不要遗漏任何标题；如果某节信息不足，写一条“暂无高质量信号。”，也必须保留该标题。"
+        "先合并重复信息，再写结论，避免逐条复述同一账号的相似推文。"
+        "篇幅控制：特朗普相关 3-6 条；今日关键词用 8-12 个普通 bullet，不要表格；"
+        "重要新闻 6-10 条；宏观判断 4-8 条；产业/个股焦点 8-12 条；"
+        "交易信号最多 8 行 markdown 表格；投资理念 4-8 条。"
         "“特朗普相关”小节必须总结 realDonaldTrump 当天发言可能影响的美股标的、行业、事件线索，"
         "若只是推测也要明确写出推测依据。每条要点尽量附原推链接。"
         "所有涉及具体股票代码的 markdown 文本必须使用 $代码 格式，例如 $TSLA，不要只写 TSLA。"
@@ -399,6 +543,7 @@ def build_layer1_prompt(
         "链接文字必须显示来源账号，例如 [@screen_name](tweet_url)。"
         "同一账号多条来源可写 [@screen_name · 1](tweet_url)、[@screen_name · 2](tweet_url)。"
         "特朗普本人发言使用 [@realDonaldTrump 原文](tweet_url)；其他账号对特朗普事件的解读使用 [@screen_name](tweet_url)。"
+        "最后必须写完 ## 投资理念 后自然结束，不要在前几节耗尽篇幅。"
     )
     parts = [intro]
     if trump_summary is not None:
@@ -649,13 +794,17 @@ async def summarize_day(date: str) -> dict[str, Any]:
 
     layer1_response = None
     try:
-        layer1_response = await call_claude_with_retry(
+        layer1_response = await call_layer1_with_validation(
             messages=build_layer1_prompt(layer2_results, trump_summary=trump_summary),
             max_tokens=settings.ai.max_tokens_layer1,
         )
-        summary_md = _clean_layer1_markdown(
-            normalize_layer1_source_links(layer1_response.content[0].text)
+        summary_md = _prepare_layer1_markdown(_response_text(layer1_response))
+        validation_error = _layer1_validation_error(
+            summary_md,
+            stop_reason=getattr(layer1_response, "stop_reason", None),
         )
+        if validation_error:
+            raise ValueError(validation_error)
     except Exception as exc:
         logger.warning("Layer1 Claude summary failed; using local fallback: %s", exc)
         summary_md = _fallback_layer1_markdown(layer2_results, trump_summary=trump_summary)

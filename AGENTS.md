@@ -353,6 +353,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-04：LLM 备用链路已扩展为四层，第四层使用 `ANTHROPIC_FOURTH_*` 环境变量，当前模型名为 `claude-sonnet-4-6`，base URL 填服务根地址即可。
 - 2026-06-07：06-05 日报曾出现一条非 KOL 来源的内部工作原则污染（`investigate_before_answering`）。已清理历史 digest 和本地 DB，并在 Layer 1 发布前增加清理：移除明显内部工件或无 URL 的伪来源 bullet。
 - 2026-06-08：`realDonaldTrump` 的 6551 数据混用了普通 X 数字 ID 和 `truth_数字` ID。旧逻辑直接比较数字后缀，导致 5/22 的普通 X ID 比 6/8 的 `truth_` 后缀更大，后续 Trump 新帖被误判为旧帖。已增加 ID family 判断：同 family 才比数字，跨 family 用已入库锚点推文的 `created_at` 兜底；同时支持 Twitter 原生时间格式解析。已手动补抓 6/5-6/8 Trump 新帖并重新生成 2026-06-08 digest。
+- 2026-06-09：Layer 1 综合摘要曾在“宏观判断”中途截断，但第四层后端返回 200，旧代码直接接受，导致 `产业/个股焦点`、`交易信号`、`投资理念` 缺失仍发布。已增加 Layer 1 完整性校验：必须包含七个固定章节、各节有内容、不能以 `max_tokens` 停止或半句话结尾；校验失败会继续尝试下一层，全部失败才用本地兜底模板。
 
 ---
 

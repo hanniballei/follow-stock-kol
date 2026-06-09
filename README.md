@@ -21,117 +21,149 @@
 
 ## 2026-06-09 当日总结
 
-# 美股 KOL 每日情报摘要
+## 特朗普相关
+
+特朗普当日发文集中于多州初选背书，直接市场影响有限，但以下事件线索值得关注：
+
+- 密集为南卡、内华达、乔治亚、缅因、北达科他等州初选候选人背书，6月9日为多州选举日，预计当日政治噪音较多。对市场影响偏中性，但若亲特朗普派候选人全面胜出，将强化其对国会共和党的掌控力，有利于后续减税、放松监管等议题推进，对金融、能源板块构成潜在利好（推测依据：国会议员更替影响立法节奏）。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780959618161531073)
+
+- 要求参议院多数党领袖 Thune 撤换参议院议事官，称其阻碍共和党议程。若成功，税改、债务上限等预算相关法案推进速度可能加快，对防务、传统能源及去监管受益行业构成利好；对医疗、清洁能源等依赖补贴板块则是风险（推测依据：议事官裁定权限直接影响预算调和程序）。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780942759577969760)
+
+- 支持俄亥俄州选民身份证宪法修正案（SJR 10），短期无直接市场影响，但选举制度收紧长期利好共和党控制州，间接强化特朗普政策执行预期。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780959583751660860)
+
+- 质疑洛杉矶选举公正性，称结果可能两周后才出炉。此类言论持续强化政治不确定性叙事，对与加州政府关系密切的企业（如清洁能源、公共建设）构成情绪层面的负面扰动（推测依据：加州是全美最大州政府采购市场）。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780935385831156149)
 
 ---
 
-## 一、特朗普相关
+## 今日关键词
 
-> **核心动态：** 特朗普当日发文密集，主要聚焦共和党初选背书与党内政治清洗，无直接经济政策表态。但以下几条线索对美股存在潜在影响，部分为推测，已注明依据。
-
-### 🗳️ 选举政治密集背书（直接市场影响有限，但政治格局信号明确）
-
-- 全力背书佐治亚州副州长 Burt Jones 参选州长，呼吁6月12日前提前投票。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780959618161531073)
-- 背书南卡5区 Wes Climer、7区 Russell Fry、4区 William Timmons、3区 Sheri Biggs、2区 Joe Wilson 等多位众议员候选人，6月9日投票日。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780939188036619840)
-- 警告南卡选民勿投票给 RINO 候选人 David Pascoe，称其为"终身民主党人"。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780939107922991369)
-- 背书北达科他州众议员 Julie Fedorchak 及缅因州2区前州长 Paul LePage。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780938751603869916)
-
-### 💰 "小费免税"政策再度强调（**推测影响：餐饮/服务业股**）
-
-- 背书内华达州3区 Marty O'Donnell、2区 David Flippo、1区 Carrie Buck，**三位候选人均强调"小费免税"政策**。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780939023974785093)
-- **推测依据：** 若"小费免税"立法推进，餐饮连锁（如 $MCD、$DRI、$DENN）及酒店博彩（$MGM、$LVS、$WYNN）等依赖小费劳动力的行业将直接受益，可降低人力成本压力。内华达州为博彩重镇，政策落地概率若提升，相关标的值得关注。
-
-### ⚔️ 要求解雇参议院议事官（**推测影响：立法进程加速，财政/税收法案**）
-
-- 要求参议院多数党领袖 Thune 立即解雇议事官，称其为"奥巴马时代遗留的激进左翼疯子"，偏袒民主党。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780942759577969760)
-- 公开抨击共和党参议员 Tillis 为"失败者"。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780951406220611770)
-- **推测依据：** 议事官（Parliamentarian）负责裁定预算调解程序（Reconciliation）规则。若特朗普成功施压更换议事官，"大美丽法案"（减税+债务上限）的立法障碍将大幅降低，利好减税受益板块（金融、企业盈利敏感型股票），但同时加剧财政赤字担忧，对长端美债（$TLT）构成压力。
-
-### 🗳️ 质疑洛杉矶选举结果（**推测影响：选举科技/投票安全概念**）
-
-- 质疑洛杉矶决选结果，称 Spencer Pratt 不可能输，指选举舞弊并抱怨计票需两周。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780935385831156149)
-- **推测依据：** 选举争议升温可能带动选举安全/身份验证相关概念关注度，但目前无直接上市标的，影响较间接。
-
-### ✅ 俄亥俄州选民身份证法案
-
-- 祝贺俄亥俄州参议院通过选民身份证法案，敦促众议院跟进并写入州宪法。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1780959583751660860)
+- AI基础设施军备竞赛
+- 中国2万亿人民币数据中心投资
+- SpaceX IPO超募（定价135美元，估值1.77万亿）
+- DeepSeek自建GW级数据中心
+- Anthropic Mythos公开版即将发布
+- 存储芯片涨价超预期（摩根士丹利：C3Q26 DRAM环比+25-30%，NAND+20-40%）
+- 菲律宾6.8级地震冲击MLCC供应链
+- 日本央行6月加息预期升温
+- ABF基板新周期启动信号
+- $AAPL跌破300美元关口
+- OpenAI/Anthropic IPO传闻
+- 被动元件（MLCC/SP-Cap）供应紧张延续至2H26
 
 ---
 
-## 二、今日关键词
+## 重要新闻
 
-| # | 关键词 | 简述 |
-|---|--------|------|
-| 1 | **AI数据中心军备竞赛** | 中国拟5年投2万亿人民币建AI数据中心；DeepSeek自建GW级IDC；数据中心占美国私人建设比重升至7% |
-| 2 | **SpaceX IPO** | 定价135美元/估值1.77万亿，认购极度火热，流通股仅4.3%，6月12日为关键节点 |
-| 3 | **MLCC/被动元件供应冲击** | 菲律宾6.8级地震重创村田、三星电机产能，全球MLCC供给或缩减10-15% |
-| 4 | **DRAM/NAND涨价预期** | 摩根士丹利预测C3Q26 DRAM环比再涨25-30%，NAND再涨20-40% |
-| 5 | **Anthropic Mythos发布** | 多方消息称Anthropic将发布公开版Mythos模型，AI大模型竞争加速 |
-| 6 | **ABF基板新周期** | Unimicron月营收超越上轮PC周期高点，ABF基板新上行周期或刚启动 |
-| 7 | **日银加息预期** | 市场交易日银6月加息至1.0%，科技股承压、美元走强 |
+- 中国计划未来五年投入约2万亿元人民币建设全国数据中心网络，目标超越美国AI算力，为A股及港股AI硬件产业链带来重大政策催化。[@WallStreet0Name](https://x.com/WallStreet0Name/status/2064285582877167809)、[@LinQingV](https://x.com/LinQingV/status/2064273839367020913)
 
----
+- DeepSeek开始招聘IDC设计工程师，判断其正规划GW级自建数据中心，AI模型公司由轻资产转向重资产基建，是产业格局重大信号。[@zephyr_z9](https://x.com/zephyr_z9/status/2064285563679859111)
 
-## 三、重要新闻
+- SpaceX IPO定价135美元，总估值约1.77万亿美元，流通股仅4.3%，市场认购极度火热，开盘冲200美元被多方预期，但高估值需警惕。[@SpermCapital](https://x.com/SpermCapital/status/2064144719991750876)、[@nft_hu](https://x.com/nft_hu/status/2064288851695481225)
 
-- **中国2万亿AI数据中心计划：** 彭博报道中国计划五年内投入约2万亿元人民币建设全国数据中心，AI硬件产业链最受益。[@LinQingV](https://x.com/LinQingV/status/2064273839367020913) / [@WallStreet0Name](https://x.com/WallStreet0Name/status/2064285582877167809)
+- 有KOL称 OpenAI 已向 SEC 提交 IPO 申请，并认为 Anthropic 也在进入上市准备；相关估值预期接近 1 万亿美元。多位KOL警告，如果相关传闻在高位兑现，可能触发大级别"sell the news"。[@tychozzz](https://x.com/tychozzz/status/2064261051772793027)
 
-- **菲律宾6.8级地震冲击MLCC供应链：** 村田巴丹加斯厂（占全球产能15%、汽车MLCC产能40%）紧急停产，三星电机卡兰巴厂开工率骤降，全球MLCC供给预计缩减10-15%，高端汽车MLCC短缺达20-30%。[@jukan05](https://x.com/jukan05/status/2064255491719786872)
+- Apollo与Blackstone完成为Anthropic的350亿美元私人信贷SPV融资，为史上最大私募信贷交易之一，进一步夯实Anthropic资本实力。[@nft_hu](https://x.com/nft_hu/status/2064221323539394594)
 
-- **摩根士丹利上调存储涨价预期：** 服务器OEM预计C3Q26 DRAM价格环比再涨25-30%、NAND价格环比再涨20-40%，显著高于市场普遍预期的15%。[@jukan05](https://x.com/jukan05/status/2064156257825738979)
+- 苹果WWDC26：新Siri将集成$GOOGL Gemini大模型，实现跨APP操作与屏幕感知，$AAPL AI战略落地进展明确，但股价盘前已跌破300美元。[@SpermCapital](https://x.com/SpermCapital/status/2064139834457981132)
 
-- **SpaceX IPO认购火热：** 定价135美元，估值1.77万亿美元，流通股仅4.3%，国际配售业务经理透露认购极度火热。[@SpermCapital](https://x.com/SpermCapital/status/2064144719991750876) / [@nft_hu](https://x.com/nft_hu/status/2064288851695481225)
+- 菲律宾6.8级地震波及村田Batangas厂及三星电机Calamba厂，全球MLCC供应预计收缩10-15%，高端车载MLCC短缺幅度达20-30%，类比2022年地震后MLCC价格在1-3个月内上涨10-15%。[@jukan05](https://x.com/jukan05/status/2064255491719786872)
 
-- **Apollo与Blackstone为Anthropic完成350亿美元私募信贷SPV融资：** 史上最大私募交易之一，$APO 与 $BX 参与其中。[@nft_hu](https://x.com/nft_hu/status/2064221323539394594)
+- 摩根士丹利：服务器OEM预计C3Q26 DRAM价格环比再涨25-30%、NAND再涨20-40%，远超市场机构15%的涨幅预期，存储涨价幅度存在上行惊喜空间。[@jukan05](https://x.com/jukan05/status/2064156257825738979)
 
-- **OpenAI提交IPO申请：** 与Anthropic估值均接近1万亿美元，预计Q4上市。[@tychozzz](https://x.com/tychozzz/status/2064261051772793027)
+- 5月非农三个月滚动均值跃升至18.8万，为2024年3月以来最大增幅；但纽约联储调查显示消费者失业忧虑持续上升，财务状况悲观比例扩大，就业强劲与信心疲弱形成背离。[@LizAnnSonders · 1](https://x.com/LizAnnSonders/status/2064294347198144914)、[@LizAnnSonders · 2](https://x.com/LizAnnSonders/status/2064293811195404463)
 
-- **苹果WWDC26：新Siri整合谷歌Gemini：** $AAPL 新Siri整合 $GOOGL Gemini大模型，实现跨APP操作与屏幕感知。[@SpermCapital](https://x.com/SpermCapital/status/2064139834457981132)
-
-- **DeepSeek招聘IDC设计规划工程师：** 信号显示其正在筹备GW级自建数据中心，AI算力军备竞赛向基础设施层延伸。[@zephyr_z9](https://x.com/zephyr_z9/status/2064285563679859111)
-
-- **Anthropic Mythos公开版即将发布：** 多方消息源确认，AI大模型竞争格局再添变量。[@zephyr_z9](https://x.com/zephyr_z9/status/2064171636555989275) / [@jukan05](https://x.com/jukan05/status/2064170300452098183) / [@ShanghaoJin](https://x.com/ShanghaoJin/status/2064178107951829179)
-
-- **5月非农就业三个月均值跃升至18.8万：** 为2024年3月以来最大增幅，但消费者信心同步走弱，财务状况预期变差比例上升。[@LizAnnSonders](https://x.com/LizAnnSonders/status/2064294347198144914)
-
-- **数据中心占美国私人非住宅建设比重升至近7%：** 四年前仅2%，AI基础设施投资热度持续。[@LizAnnSonders](https://x.com/LizAnnSonders/status/2064294223638036517)
-
-- **霍尔木兹海峡持续中断消耗全球原油库存：** 分析师警告市场价格尚未反映真实供应紧缺风险。[@biancoresearch](https://x.com/biancoresearch/status/2064195420385935770)
+- 日本央行6月预计加息至1.0%，科技股承压、美元走强，比特币与黄金承压，建议关注浮动利率债ETF。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064194417834229813)
 
 ---
 
-## 四、宏观判断
+## 宏观判断
 
-### 📊 就业强劲但消费信心走弱，信号分裂
+- 就业数据表面强劲（非农均值回升），但消费者信心恶化、失业预期上升，宏观数据出现内部分歧，难以支撑单一方向押注。[@LizAnnSonders · 1](https://x.com/LizAnnSonders/status/2064294347198144914)、[@LizAnnSonders · 2](https://x.com/LizAnnSonders/status/2064293811195404463)
 
-- 5月非农就业三个月均值18.8万，为2024年3月以来最大增幅；非农扩散指数仍处扩张区间（>50），但复苏力度偏弱。[@LizAnnSonders · 1](https://x.com/LizAnnSonders/status/2064294347198144914) [@LizAnnSonders · 2](https://x.com/LizAnnSonders/status/2064294771242197010)
-- 纽约联储调查：预计一年后财务状况变差的家庭比例上升，失业概率均值持续攀升；未来一年食品与租金价格预期上升。[@LizAnnSonders · 3](https://x.com/LizAnnSonders/status/2064293811195404463) [@LizAnnSonders · 4](https://x.com/LizAnnSonders/status/2064293932431815163)
-- 房主保险平均保费2019-2025年翻倍，居民生活成本压力持续攀升。[@LizAnnSonders · 5](https://x.com/LizAnnSonders/status/2064294902523990393)
+- 日银加息预期是本周核心扰动变量，历史上日本加息并未持续压垮美股，多位KOL认为恐慌情绪将快速消散，短期波动不改中期逻辑。[@hanking66](https://x.com/hanking66/status/2064223170224398606)、[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064194417834229813)
 
-### 🏦 日银加息预期升温，短期扰动科技股
+- 大盘股ETF资金连续五周流入居首，消费周期板块遭遇最大资金流出，资金结构显示机构仍在集中防御性配置，市场广度偏窄。[@LizAnnSonders](https://x.com/LizAnnSonders/status/2064294485232603224)
 
-- 市场交易日银6月加息至1.0%，科技股承压、美元走强、黄金与比特币可能下跌，浮动利率债ETF值得关注。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064194417834229813)
-- 反驳观点：日本前两次加息后市场均无大碍，情绪性恐慌不值得过度解读，建议逢低买入。[@hanking66 · 1](https://x.com/hanking66/status/2064223170224398606) [@hanking66 · 2](https://x.com/hanking66/status/2064222213419729064)
+- $SPX 接近历史高点、纳指创新高，但有KOL认为本轮反弹更多来自关税暂停后的情绪修复与FOMO，而非基本面彻底改善。H2 需重点盯住三条线：7月关税暂停到期、年内降息预期变化、7月中旬Q2财报季指引。[@crux_capital_](https://x.com/crux_capital_/status/2064212955546419406)
 
-### 📈 大盘反弹由情绪驱动，结构性隐患未解
+- 食品通胀未消（FAO指数同比仍+2.9%），房主保险成本2019年至2025年翻倍，居民实际生活成本持续抬升，消费复苏动能受压。[@LizAnnSonders · 1](https://x.com/LizAnnSonders/status/2064294902523990393)、[@LizAnnSonders · 2](https://x.com/LizAnnSonders/status/2064294099797029191)
 
-- 标普500接近历史高点，纳斯达克创新高，但反弹由关税暂停乐观情绪和FOMO推动，非基本面驱动；关税、财政赤字、增长放缓等结构性问题被推迟而非解决。[@crux_capital_](https://x.com/crux_capital_/status/2064212955546419406)
-- H2三大关键变量：①90天关税暂停7月到期；②美联储两难，市场定价年内降息2-3次；③7月中旬Q2财报季，指引比业绩更关键。[@crux_capital_](https://x.com/crux_capital_/status/2064212955546419406)
-- 标普500前向PE重回21倍以上，估值偏贵；高收益信用利差收窄过于自满；"大美丽法案"加剧财政赤字为主要风险。[@crux_capital_](https://x.com/crux_capital_/status/2064212955546419406)
+- 霍尔木兹海峡中断持续消耗全球原油缓冲库存，供应紧缺风险比油价当前反映的更为严峻，能源板块存在低估可能。[@biancoresearch](https://x.com/biancoresearch/status/2064195420385935770)
 
-### 🛢️ 原油供应紧缺风险被低估
+- 数据中心占私人非住宅建设比重从约2%升至近7%，AI基础设施投资仍在快速扩张，支撑相关产业链中期逻辑。[@LizAnnSonders](https://x.com/LizAnnSonders/status/2064294223638036517)
 
-- 霍尔木兹海峡持续中断正快速消耗全球原油缓冲库存，市场价格尚未反映真实供应紧缺风险，库存逼近"操作性
+- AI半导体当前处于"低PE泡沫"结构：微观基本面强劲、宏观负面不敏感，命门在于Anthropic与OpenAI收入增速能否持续支撑超大规模资本开支；$ORCL $AMZN $META自由现金流已转负，华尔街容错空间趋零。[@ShanghaoJin](https://x.com/ShanghaoJin/status/2064192562794307796)
+
+- 关键日历节点：6月12日SpaceX上市、6月16-18日美联储议息会议，两者均可能引发阶段性波动，需提前管理仓位风险敞口。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064175280290435449)
+
+---
+
+## 产业/个股焦点
+
+- $MU 存储周期逻辑持续验证：摩根士丹利涨价预期远超市场共识，多位KOL维持核心持仓，但交易拥挤、资金分歧大，短期波动极快，需控制仓位与加仓纪律。[@jukan05](https://x.com/jukan05/status/2064156257825738979)、[@LucyBuilding](https://x.com/LucyBuilding/status/2064314255508402550)、[@WallStreet0Name](https://x.com/WallStreet0Name/status/2064232427984490925)
+
+- $AAPL 盘前跌破300美元，$295附近有小支撑位，WWDC Siri集成Gemini消息未能提振股价，短期技术面偏弱。[@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2064317126979310039)、[@SpermCapital](https://x.com/SpermCapital/status/2064139834457981132)
+
+- $GOOGL 苹果Siri集成Gemini，若合作落地则为$GOOGL AI应用变现增添重要渠道，属正面催化。[@SpermCapital](https://x.com/SpermCapital/status/2064139834457981132)
+
+- $QCOM 边缘计算市场份额面临流失风险：对创业客户报价利润率高达80%且交期无竞争力，客户被迫转向联发科及海外供应商。[@zephyr_z9](https://x.com/zephyr_z9/status/2064233555824390596)
+
+- 800V功率半导体板块系统性梳理：$WOLF 估值错配最优，$NVTS GaN+SiC双线增长，$AEHR 纯正卖铲标的，$VICR 受益AI GPU供电需求，$AOSL 估值被严重低估。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064290079523111268)
+
+- $AXTI 出口管制导致InP供应持续短缺，光子集成电路（PIC）异质集成需求上升，能锁定InP供应订单者优先受益。[@nft_hu](https://x.com/nft_hu/status/2064225286741541324)
+
+- ABF基板新周期启动信号：Unimicron月营收已超越上轮PC周期高点，日股相关标的揖斐电（4062）值得关注。[@zephyr_z9](https://x.com/zephyr_z9/status/2064312889377456201)、[@nft_hu](https://x.com/nft_hu/status/2064283734623588385)
+
+- $JBL 市值380亿或被低估，市场尚未定价其可插拔收发器业务（LRO规模约1.6万亿美元），H1 2027或迎重新定价，上涨40%被认为合理。[@aleabitoreddit](https://x.com/aleabitoreddit/status/2064237083510952402)
+
+- $PYPL 距9.5年新低仅剩7%，技术面极度惨烈，无反弹信号前不宜轻易抄底。[@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2064197968098640117)
+
+- $MRVL 1小时MTF多头信号触发，早盘交易完成，多位KOL维持看好，台湾供应链生态系统将全力支持$AMD抢份额，两者均为AI算力硬件核心标的。[@ripster47](https://x.com/ripster47/status/2064167558912090170)、[@labubu_trader](https://x.com/labubu_trader/status/2064155690621714726)
+
+- MLCC板块短期受菲律宾地震冲击存在供给缺口，叠加松下7月SP-Cap涨价5-30%，被动元件供应紧张将延续至2H26，日股村田（6981）、太阳诱电（6976）等标的值得关注。[@jukan05 · 1](https://x.com/jukan05/status/2064255491719786872)、[@jukan05 · 2](https://x.com/jukan05/status/2064164967126048848)
+
+- $ZS 与 $PDD 财报后跳空低开，缺口持续走弱形态，做空结构清晰，属可重复的财报期交易模式。[@ripster47](https://x.com/ripster47/status/2064165322777620974)
+
+---
+
+## 交易信号
+
+| 方向 | 标的 | 信号描述 | 来源 |
+|------|------|----------|------|
+| 谨慎看多 | $MU | 存储涨价超预期，底部反弹确认，短线弹性强；注意拥挤交易风险 | [@WallStreet0Name](https://x.com/WallStreet0Name/status/2064232427984490925) |
+| 空头警惕 | $AAPL | 跌破300美元，$295小支撑，技术面偏弱，观察是否企稳 | [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2064317126979310039) |
+| 空头回避 | $PYPL | 距9.5年新低仅7%，无反转信号，不宜逆势抄底 | [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2064197968098640117) |
+| 看多 | $MRVL | 1小时MTF多头信号触发，早盘可操作，节奏慢但结构清晰 | [@ripster47](https://x.com/ripster47/status/2064167558912090170) |
+| 做空 | $ZS / $PDD | 财报跳空低开后持续走弱，缺口回落形态，可重复交易 | [@ripster47](https://x.com/ripster47/status/2064165322777620974) |
+| 看多 | $SOXL | 半导体板块多头个股难以取舍，直接持有杠杆ETF以分散选股风险 | [@caizhenghai](https://x.com/caizhenghai/status/2064285494033428602) |
+| 关注 | $AXTI | InP供应持续短缺，出口管制强化供给壁垒，关注订单锁定进展 | [@nft_hu](https://x.com/nft_hu/status/2064225286741541324) |
+| 关注 | $WOLF / $VICR | 800V功率半导体周期启动，估值错配明显，中期配置窗口 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064290079523111268) |
+
+---
+
+## 投资理念
+
+- 执行力与认知同等重要。持有正确逻辑却减仓不到位，结局和判断错误一样痛苦。将仓位管理规则化而非依赖感觉，是避免"知行不一"亏损的关键一步。[@LucyBuilding](https://x.com/LucyBuilding/status/2064314255508402550)
+
+- 机构看空言论有时是制造流动性的工具而非真实判断。美银今年3月将内存股类比2008年泡沫后，散户恐慌抛售，内存股随即创历史新高。独立研究、不被强多强空叙事左右，是保护本金的基本功。[@aleabitoreddit](https://x.com/aleabitoreddit/status/2064141751649284379)
+
+- 当前AI半导体行情是"低PE泡沫"：基本面越完美越需要警惕，命门是AI模型收入能否持续justify超大规模资本开支。醒着狂欢，而非浑噩入场。[@ShanghaoJin](https://x.com/ShanghaoJin/status/2064192562794307796)
+
+- 股票回购动机复杂，并非全部健康。需辨别公司回购是出于真实价值低估判断，还是管理层为完成股权激励指标而操作，两者对长期股东回报的含义截然不同。[@BrianFeroldi](https://x.com/BrianFeroldi/status/2064302117301465508)
+
+- 长期持仓的核心优势是复利时间，而非频繁博弈。高频短线交易的摩擦成本与心理损耗极高，真正能让普通投资者跑赢市场的往往是在正确判断上持有足够长的时间。[@xiaomustock](https://x.com/xiaomustock/status/2064210997590524098)
+
+- IPO往往是最大级别的"sell the news"触发器。有KOL认为 OpenAI 与 Anthropic 若以接近 1 万亿美元估值推进上市，且届时市场处于高位、缺乏新AI叙事支撑，相关兑现可能引发快速回调，但那也可能成为AI赛道的黄金坑。[@tychozzz](https://x.com/tychozzz/status/2064261051772793027)
 
 ## 最近 7 天
 
+- [2026-06-09](digests/2026/06/09.md)
 - [2026-06-08](digests/2026/06/08.md)
 - [2026-06-07](digests/2026/06/07.md)
 - [2026-06-06](digests/2026/06/06.md)
 - [2026-06-05](digests/2026/06/05.md)
 - [2026-06-04](digests/2026/06/04.md)
 - [2026-06-03](digests/2026/06/03.md)
-- [2026-06-02](digests/2026/06/02.md)
 
 ## 监控的 KOL
 
@@ -377,7 +409,7 @@
 **情绪**：bullish
 
 - 亲测AI编程工具Codex 6分钟解决磁盘问题释放200GB空间，认为Codex等AI终端产品是当前AI最成功的上层应用 [原推](https://x.com/tychozzz/status/2064290587814306048)
-- OpenAI宣布提交IPO申请，与Anthropic估值均接近$1T，预计Q4上市；两大IPO是今年最大资本盛宴，但也是最大风险——上市后财务数据公开透明，若届时市场高位且无新AI应用故事，IPO极可能成sell the news引发恐慌 [原推](https://x.com/tychozzz/status/2064261051772793027)
+- KOL称 OpenAI 宣布提交 IPO 申请，与Anthropic估值均接近$1T，预计Q4上市；两大IPO是今年最大资本盛宴，但也是最大风险——上市后财务数据公开透明，若届时市场高位且无新AI应用故事，IPO极可能成sell the news引发恐慌 [原推](https://x.com/tychozzz/status/2064261051772793027)
 - 当前纳指forward PE不到25x并不贵，短期偏乐观，大盘回调是买点；中期需警惕年底IPO风险引发大级别回调，若发生应重仓买入视为AI黄金坑 [原推](https://x.com/tychozzz/status/2064261051772793027)
 
 ### @caizhenghai · 2 条
@@ -464,11 +496,11 @@
 
 ### @168X_Fortune · 1 条
 
-**核心观点**：无法获取推文正文内容，无法生成摘要
+**核心观点**：该条为链接/长文型内容，API 未返回可可靠摘要的正文
 
 **情绪**：unclear
 
-- 暂无要点。
+- 原始推文仅保留链接入口，正文未被 6551 返回，因此未纳入主摘要。 [原推](https://x.com/168X_Fortune/status/2064287535157903577)
 
 ### @crux_capital_ · 1 条
 

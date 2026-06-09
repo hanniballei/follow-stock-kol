@@ -9,6 +9,7 @@ from kol_monitor.summarizer import (
     _anthropic_sdk_base_url,
     _clean_layer1_markdown,
     _fallback_layer1_markdown,
+    _is_valid_layer1_markdown,
     _layer2_prompt,
     call_claude_with_retry,
     build_layer1_prompt,
@@ -122,6 +123,97 @@ def test_fallback_layer1_markdown_keeps_sections_sources_and_tickers():
     assert "$NVDA" in md
 
 
+def test_layer1_validation_accepts_complete_digest():
+    md = """## 特朗普相关
+
+- 暂无直接市场信号。
+
+## 今日关键词
+
+- AI 算力、非农、关税
+
+## 重要新闻
+
+- $NVDA 供应链需求仍强。[@kol](https://x.com/kol/status/1)
+
+## 宏观判断
+
+- 非农数据偏强但消费信心走弱。[@macro](https://x.com/macro/status/1)
+
+## 产业/个股焦点
+
+- $MU 存储涨价线索继续发酵。[@kol](https://x.com/kol/status/2)
+
+## 交易信号
+
+| 标的 | 线索 | 来源 |
+|---|---|---|
+| $MU | DRAM 涨价 | [@kol](https://x.com/kol/status/2) |
+
+## 投资理念
+
+- 高共识方向要控制仓位。[@macro](https://x.com/macro/status/2)
+"""
+
+    assert _is_valid_layer1_markdown(md) is True
+
+
+def test_layer1_validation_rejects_missing_required_sections():
+    md = """## 特朗普相关
+
+- 暂无直接市场信号。
+
+## 今日关键词
+
+- AI 算力
+
+## 重要新闻
+
+- $NVDA 需求仍强。
+
+## 宏观判断
+
+- 原油库存逼近"操作性
+
+## 各 KOL 详细总结
+"""
+
+    assert _is_valid_layer1_markdown(md) is False
+
+
+def test_layer1_validation_rejects_truncated_ending():
+    md = """## 特朗普相关
+
+- 暂无直接市场信号。
+
+## 今日关键词
+
+- AI 算力
+
+## 重要新闻
+
+- $NVDA 需求仍强。
+
+## 宏观判断
+
+- 非农数据偏强。
+
+## 产业/个股焦点
+
+- $MU 存储涨价。
+
+## 交易信号
+
+- $SPY 关注关键位置。
+
+## 投资理念
+
+- 霍尔木兹海峡持续中断正快速消耗全球原油缓冲库存，库存逼近"操作性
+"""
+
+    assert _is_valid_layer1_markdown(md) is False
+
+
 @pytest.mark.asyncio
 async def test_summarize_day_saves_digest_when_layer1_fails(monkeypatch):
     saved = {}
@@ -163,7 +255,7 @@ async def test_summarize_day_saves_digest_when_layer1_fails(monkeypatch):
         saved.update(kwargs)
 
     monkeypatch.setattr("kol_monitor.summarizer.summarize_one_kol", fake_summarize_one_kol)
-    monkeypatch.setattr("kol_monitor.summarizer.call_claude_with_retry", fake_layer1)
+    monkeypatch.setattr("kol_monitor.summarizer.call_layer1_with_validation", fake_layer1)
     monkeypatch.setattr("kol_monitor.summarizer.db.save_digest", fake_save_digest)
 
     result = await summarize_day("2026-06-02")
@@ -173,6 +265,71 @@ async def test_summarize_day_saves_digest_when_layer1_fails(monkeypatch):
     assert "$NVDA" in saved["summary_md"]
     assert saved["kol_count"] == 1
     assert saved["tweet_count"] == 1
+    assert result["summary_md"] == saved["summary_md"]
+
+
+@pytest.mark.asyncio
+async def test_summarize_day_uses_fallback_when_layer1_is_incomplete(monkeypatch):
+    saved = {}
+
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.tweets_on_date",
+        lambda _date: [
+            {
+                "screen_name": "macroKOL",
+                "kol_id": 1,
+                "tweet_id": "1",
+                "text": "AI demand supports NVDA",
+                "url": "https://x.com/macroKOL/status/1",
+            }
+        ],
+    )
+
+    async def fake_summarize_one_kol(kol, tweets, media_files):
+        return {
+            "screen_name": kol["screen_name"],
+            "tweet_count": len(tweets),
+            "core_view": "AI 需求仍强",
+            "bullets": [
+                {
+                    "point": "AI 算力需求支撑",
+                    "tickers": ["NVDA"],
+                    "tweet_url": "https://x.com/macroKOL/status/1",
+                }
+            ],
+            "sentiment": "bullish",
+            "input_tokens": 10,
+            "output_tokens": 5,
+        }
+
+    async def incomplete_layer1(*_args, **_kwargs):
+        return SimpleNamespace(
+            content=[
+                SimpleNamespace(
+                    text=(
+                        "## 特朗普相关\n\n- 暂无。\n\n"
+                        "## 今日关键词\n\n- AI。\n\n"
+                        "## 重要新闻\n\n- $NVDA 需求仍强。\n\n"
+                        "## 宏观判断\n\n- 库存逼近\"操作性"
+                    )
+                )
+            ],
+            usage=SimpleNamespace(input_tokens=100, output_tokens=4000),
+        )
+
+    def fake_save_digest(**kwargs):
+        saved.update(kwargs)
+
+    monkeypatch.setattr("kol_monitor.summarizer.summarize_one_kol", fake_summarize_one_kol)
+    monkeypatch.setattr("kol_monitor.summarizer.call_layer1_with_validation", incomplete_layer1)
+    monkeypatch.setattr("kol_monitor.summarizer.db.save_digest", fake_save_digest)
+
+    result = await summarize_day("2026-06-09")
+
+    assert "本地兜底模板" in saved["summary_md"]
+    assert "## 产业/个股焦点" in saved["summary_md"]
+    assert "## 投资理念" in saved["summary_md"]
+    assert "$NVDA" in saved["summary_md"]
     assert result["summary_md"] == saved["summary_md"]
 
 
@@ -203,7 +360,7 @@ async def test_summarize_day_saves_digest_when_layer2_and_layer1_fail(monkeypatc
         saved.update(kwargs)
 
     monkeypatch.setattr("kol_monitor.summarizer.summarize_one_kol", failing_summarize_one_kol)
-    monkeypatch.setattr("kol_monitor.summarizer.call_claude_with_retry", failing_layer1)
+    monkeypatch.setattr("kol_monitor.summarizer.call_layer1_with_validation", failing_layer1)
     monkeypatch.setattr("kol_monitor.summarizer.db.save_digest", fake_save_digest)
 
     result = await summarize_day("2026-06-02")
