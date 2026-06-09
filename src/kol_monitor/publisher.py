@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import subprocess
+import time
 from pathlib import Path
 
 from kol_monitor import db
 from kol_monitor.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def render_readme(
@@ -124,9 +128,29 @@ def git_publish(date: str, files: list[Path]) -> bool:
     message = f"digest: {date}"
     subprocess.run(["git", "commit", "-m", message], cwd=settings.project_root, env=env, check=True)
     if settings.publish.git_push and getattr(settings, "allow_git_push", False):
-        subprocess.run(["git", "push", "origin", "main"], cwd=settings.project_root, env=env, check=True)
+        _git_push_with_retry(env)
     db.mark_digest_published(date)
     return True
+
+
+def _git_push_with_retry(env: dict[str, str] | None) -> None:
+    attempts = max(1, int(getattr(settings.publish, "push_retry", 1) or 1))
+    delay = 5
+    last_error: subprocess.CalledProcessError | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            subprocess.run(["git", "push", "origin", "main"], cwd=settings.project_root, env=env, check=True)
+            return
+        except subprocess.CalledProcessError as exc:
+            last_error = exc
+            if attempt >= attempts:
+                break
+            logger.warning("git push failed on attempt %s/%s; retrying in %ss", attempt, attempts, delay)
+            time.sleep(delay)
+            delay *= 2
+    logger.error("git push failed after %s attempts", attempts)
+    if last_error is not None:
+        raise last_error
 
 
 def _git_env() -> dict[str, str] | None:

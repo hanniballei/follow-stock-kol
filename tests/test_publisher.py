@@ -105,6 +105,36 @@ def test_git_publish_pushes_when_explicitly_allowed(monkeypatch, tmp_path):
     assert ["git", "push", "origin", "main"] in calls
 
 
+def test_git_publish_retries_transient_push_failure(monkeypatch, tmp_path):
+    readme = tmp_path / "README.md"
+    readme.write_text("# test\n", encoding="utf-8")
+    calls = []
+    published = []
+    push_attempts = {"count": 0}
+
+    monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
+    monkeypatch.setattr(publisher.settings.publish, "git_push", True)
+    monkeypatch.setattr(publisher.settings.publish, "push_retry", 3)
+    monkeypatch.setattr(publisher.settings, "allow_git_push", True, raising=False)
+    monkeypatch.setattr(publisher.time, "sleep", lambda _seconds: None)
+
+    def fake_run(cmd, **_kwargs):
+        calls.append(cmd)
+        if cmd == ["git", "push", "origin", "main"]:
+            push_attempts["count"] += 1
+            if push_attempts["count"] == 1:
+                raise subprocess.CalledProcessError(128, cmd)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(publisher.subprocess, "run", fake_run)
+    monkeypatch.setattr(publisher.db, "mark_digest_published", published.append)
+
+    assert publisher.git_publish("2026-05-30", [readme]) is True
+
+    assert calls.count(["git", "push", "origin", "main"]) == 2
+    assert published == ["2026-05-30"]
+
+
 def test_git_publish_sets_home_for_systemd_environment(monkeypatch, tmp_path):
     readme = tmp_path / "README.md"
     readme.write_text("# test\n", encoding="utf-8")
