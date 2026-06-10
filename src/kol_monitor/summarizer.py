@@ -329,7 +329,8 @@ def _response_text(response: Any) -> str:
     content = getattr(response, "content", [])
     if not content:
         return ""
-    return str(getattr(content[0], "text", "") or "")
+    texts = [str(getattr(block, "text", "") or "") for block in content]
+    return "\n".join(text for text in texts if text)
 
 
 async def _call_claude_backend(
@@ -341,15 +342,59 @@ async def _call_claude_backend(
         api_key=backend.api_key,
         base_url=_anthropic_sdk_base_url(backend.base_url),
     )
+    try:
+        return await client.messages.create(
+            **_claude_request(
+                backend=backend,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=backend.temperature,
+                thinking=backend.thinking,
+            )
+        )
+    except Exception as exc:
+        if not _should_retry_third_temperature_thinking_error(backend, exc):
+            raise
+        logger.warning("Retrying third Claude backend with provider default temperature/thinking")
+        return await client.messages.create(
+            **_claude_request(
+                backend=backend,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=None,
+                thinking=None,
+            )
+        )
+
+
+def _claude_request(
+    backend: ClaudeBackend,
+    messages: list[dict[str, Any]],
+    max_tokens: int,
+    temperature: float | None,
+    thinking: dict[str, Any] | None,
+) -> dict[str, Any]:
     request = {
         "model": backend.model,
         "max_tokens": max_tokens,
-        "temperature": backend.temperature,
         "messages": messages,
     }
-    if backend.thinking is not None:
-        request["thinking"] = backend.thinking
-    return await client.messages.create(**request)
+    if temperature is not None:
+        request["temperature"] = temperature
+    if thinking is not None:
+        request["thinking"] = thinking
+    return request
+
+
+def _should_retry_third_temperature_thinking_error(backend: ClaudeBackend, exc: Exception) -> bool:
+    if backend.label != "third":
+        return False
+    message = str(exc).lower()
+    return (
+        "temperature" in message
+        and "thinking" in message
+        and ("adaptive" in message or "may only be set to 1" in message)
+    )
 
 
 def _anthropic_backends() -> list[ClaudeBackend]:
@@ -450,7 +495,7 @@ async def _call_layer2_until_parsed(
             temperature=settings.ai.temperature,
             messages=messages,
         )
-        parsed = parse_layer2(response.content[0].text)
+        parsed = parse_layer2(_response_text(response))
         if parsed is not None:
             return parsed, response
         response = await _client.messages.create(
@@ -459,7 +504,7 @@ async def _call_layer2_until_parsed(
             temperature=settings.ai.temperature,
             messages=retry_messages,
         )
-        return parse_layer2(response.content[0].text), response
+        return parse_layer2(_response_text(response)), response
 
     last_error: Exception | None = None
     last_response: Any | None = None
@@ -478,7 +523,7 @@ async def _call_layer2_until_parsed(
                 break
             saw_response = True
             last_response = response
-            parsed = parse_layer2(response.content[0].text)
+            parsed = parse_layer2(_response_text(response))
             if parsed is not None:
                 return parsed, response
         logger.warning(
@@ -533,9 +578,11 @@ def build_layer1_prompt(
         "## 产业/个股焦点、## 交易信号、## 投资理念。"
         "不要遗漏任何标题；如果某节信息不足，写一条“暂无高质量信号。”，也必须保留该标题。"
         "先合并重复信息，再写结论，避免逐条复述同一账号的相似推文。"
-        "篇幅控制：特朗普相关 3-6 条；今日关键词用 8-12 个普通 bullet，不要表格；"
-        "重要新闻 6-10 条；宏观判断 4-8 条；产业/个股焦点 8-12 条；"
-        "交易信号最多 8 行 markdown 表格；投资理念 4-8 条。"
+        "总长度控制在 1800-2600 汉字，每条 bullet 尽量不超过 70 汉字，"
+        "交易信号表格的“线索”列尽量不超过 30 汉字；严禁扩写背景知识。"
+        "篇幅控制：特朗普相关 2-4 条；今日关键词用 6-8 个普通 bullet，不要表格；"
+        "重要新闻 4-6 条；宏观判断 3-5 条；产业/个股焦点 5-8 条；"
+        "交易信号最多 6 行 markdown 表格；投资理念 3-5 条。"
         "“特朗普相关”小节必须总结 realDonaldTrump 当天发言可能影响的美股标的、行业、事件线索，"
         "若只是推测也要明确写出推测依据。每条要点尽量附原推链接。"
         "所有涉及具体股票代码的 markdown 文本必须使用 $代码 格式，例如 $TSLA，不要只写 TSLA。"

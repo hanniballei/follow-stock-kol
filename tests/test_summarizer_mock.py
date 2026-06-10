@@ -11,6 +11,7 @@ from kol_monitor.summarizer import (
     _fallback_layer1_markdown,
     _is_valid_layer1_markdown,
     _layer2_prompt,
+    _response_text,
     call_claude_with_retry,
     build_layer1_prompt,
     normalize_layer1_source_links,
@@ -541,6 +542,52 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_third_backend_retries_temperature_thinking_error_with_provider_defaults(monkeypatch):
+    events = []
+
+    class FakeClient:
+        def __init__(self, api_key, base_url):
+            self.api_key = api_key
+            self.base_url = base_url
+            self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
+
+        async def _create(self, **kwargs):
+            events.append(
+                (
+                    self.api_key,
+                    kwargs.get("temperature", "missing"),
+                    kwargs.get("thinking"),
+                )
+            )
+            if kwargs.get("thinking") == {"type": "disabled"}:
+                raise RuntimeError(
+                    "ValidationException: `temperature` may only be set to 1 "
+                    "when thinking is enabled or in adaptive mode."
+                )
+            return SimpleNamespace(content=[SimpleNamespace(text="ok-defaults")])
+
+    monkeypatch.setattr("kol_monitor.summarizer._client", None)
+    monkeypatch.setattr("kol_monitor.summarizer.AsyncAnthropic", FakeClient)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_api_key", None)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", None)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", "third")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_base_url", "https://third.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_model", "anthropic/claude-sonnet-4.6")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
+
+    response = await call_claude_with_retry(
+        messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
+        max_tokens=10,
+    )
+
+    assert response.content[0].text == "ok-defaults"
+    assert events == [
+        ("third", 1, {"type": "disabled"}),
+        ("third", "missing", None),
+    ]
+
+
+@pytest.mark.asyncio
 async def test_call_claude_falls_through_to_fourth_client(monkeypatch):
     events = []
 
@@ -597,6 +644,18 @@ def test_anthropic_sdk_base_url_keeps_clean_provider_root():
     assert _anthropic_sdk_base_url("https://third.example/v1") == "https://third.example"
 
 
+def test_response_text_uses_text_blocks_after_thinking_blocks():
+    response = SimpleNamespace(
+        content=[
+            SimpleNamespace(type="thinking", thinking="hidden"),
+            SimpleNamespace(type="text", text="正文一"),
+            SimpleNamespace(type="text", text="正文二"),
+        ]
+    )
+
+    assert _response_text(response) == "正文一\n正文二"
+
+
 def test_build_layer1_prompt_includes_trump_section():
     prompt = build_layer1_prompt(
         [{"screen_name": "qinbafrank", "tweet_count": 1, "core_view": "x", "bullets": [], "sentiment": "neutral"}],
@@ -615,6 +674,7 @@ def test_build_layer1_prompt_includes_trump_section():
     assert "$TSLA" in text
     assert "不要使用 [来源]" in text
     assert "[@screen_name]" in text
+    assert "总长度控制在 1800-2600 汉字" in text
 
 
 def test_layer2_prompt_requires_dollar_ticker_display():

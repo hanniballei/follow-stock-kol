@@ -354,6 +354,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-07：06-05 日报曾出现一条非 KOL 来源的内部工作原则污染（`investigate_before_answering`）。已清理历史 digest 和本地 DB，并在 Layer 1 发布前增加清理：移除明显内部工件或无 URL 的伪来源 bullet。
 - 2026-06-08：`realDonaldTrump` 的 6551 数据混用了普通 X 数字 ID 和 `truth_数字` ID。旧逻辑直接比较数字后缀，导致 5/22 的普通 X ID 比 6/8 的 `truth_` 后缀更大，后续 Trump 新帖被误判为旧帖。已增加 ID family 判断：同 family 才比数字，跨 family 用已入库锚点推文的 `created_at` 兜底；同时支持 Twitter 原生时间格式解析。已手动补抓 6/5-6/8 Trump 新帖并重新生成 2026-06-08 digest。
 - 2026-06-09：Layer 1 综合摘要曾在“宏观判断”中途截断，但第四层后端返回 200，旧代码直接接受，导致 `产业/个股焦点`、`交易信号`、`投资理念` 缺失仍发布。已增加 Layer 1 完整性校验：必须包含七个固定章节、各节有内容、不能以 `max_tokens` 停止或半句话结尾；校验失败会继续尝试下一层，全部失败才用本地兜底模板。
+- 2026-06-10：第三层 `llm.onerouter.pro` 大请求曾先 429，再返回 Bedrock `temperature` / `thinking` 校验错误；固定 `temperature=1` + `thinking=disabled` 仍可能触发。已增加第三层专属兼容重试：遇到该错误时同一后端再试一次，不传 `temperature` 和 `thinking`，让 provider 走默认普通模式。不要改成 adaptive thinking 兜底，实测低 `max_tokens` 时可能先输出 thinking block，正文为空；代码已改为从所有 text blocks 提取正文，避免 thinking block 排在前面时读不到文本。
 
 ---
 

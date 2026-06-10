@@ -21,99 +21,115 @@
 
 ## 2026-06-10 当日总结
 
-> 提示：今日总摘要由本地兜底模板根据各 KOL 结构化摘要生成。
-
 ## 特朗普相关
 
-- @realDonaldTrump 今日 14 条：特朗普强硬施压伊朗、宣示封锁成效，同时推进国内政治人事与贸易议题
-- 美军直升机在霍尔木兹海峡被伊朗击落，两名飞行员安全，特朗普称美国必须作出回应 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781023088250477814)
-- 特朗普声称对伊海上封锁极为有效，伊朗已无法开展任何商业活动、正走向失败国家 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781091173655832936)
-- 特朗普称伊朗军事力量已被彻底摧毁，谈判窗口已过、将付出代价 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781089420396001010)
-- William Pulte将于6月19日出任代理国家情报总监，同时继续兼任FHFA局长及 $FNMA / $FMCC 董事长（$FNMA, $FMCC） [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781043033658165784)
-- 特朗普分享美国4月出口创纪录3271亿美元、贸易逆差收窄的报道 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781042236426497347)
-- 特朗普同时转发贸易逆差扩大报道，贸易数据存在矛盾口径 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781042195887106404)
-- 祝贺林赛·格雷厄姆参议员初选大胜，呼吁推进《拯救美国法案》 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781056230881559505)
-- 转发JD万斯就明尼苏达州选举欺诈向司法部提交证据的新闻 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781061798852444334)
-- 攻击媒体人Joe Scarborough收视率暴跌、患有"特朗普错乱综合征" [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781088935720154719)
-- 痛批ESPN主持人Stephen A. Smith智商低下、不具备参政资格 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781087728894583185)
+- 美军直升机在霍尔木兹海峡被伊朗击落，特朗普称"必须作出回应"，并宣称对伊海上封锁极为有效、伊朗军事力量已被摧毁、谈判窗口已过。地缘升级预期推高油价风险，利好能源股（$XLE、$OXY），同时压制航运与全球贸易相关标的。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781089420396001010)
+
+- William Pulte将于6月19日出任代理国家情报总监，同时兼任FHFA局长及 $FNMA / $FMCC 董事长。人事兼任引发市场对房利美、房地美政策走向的关注，推测可能加速两房私有化进程，短期对 $FNMA、$FMCC 构成催化。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781043033658165784)
+
+- 特朗普同日转发出口创纪录（4月出口3271亿美元）与贸易逆差扩大两则矛盾报道，贸易数据口径混乱，市场难以形成一致预期，关税政策不确定性持续压制制造业与进口依赖型消费股。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781042236426497347)
+
+- 祝贺格雷厄姆初选大胜并呼吁推进《拯救美国法案》，显示财政扩张立法仍在推进，长端利率上行风险不可忽视，对高估值成长股形成隐性压力。[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781056230881559505)
+
+---
 
 ## 今日关键词
 
-- 重点标的：$1810.HK, $AAOI, $AAPL, $AMAT, $AMKR, $AMZN, $ARM, $ASTS, $AVGO, $CEG, $COHR, $CRCL, $CRM, $CRWV, $DELL, $FMCC, $FNMA, $FOTO, $GDX, $GLD
-- 活跃账号：@cnfinancewatch（24 条）、@realDonaldTrump（14 条）、@LizAnnSonders（11 条）、@jukan05（9 条）、@zephyr_z9（7 条）、@Mr_Derivatives（6 条）、@octopusycc（4 条）、@nft_hu（4 条）
+- **5月CPI**：8:30公布，核心CPI接近美联储2%目标，但关税传导令电脑、机票、大型家电局部升温，结果直接决定7月加息预期与成长股走向。
+- **CPO/NPO之争**：Semianalysis报告称CPO延期至2028-2029年引发光通信板块大跌，但 $NVDA 高管及 $LITE CEO双双否认延误，市场分歧极大。
+- **SpaceX IPO**：本周五上市，估值1.75万亿美元，筹资750亿美元，流动性虹吸效应已令 $QQQ 盘前净流出约42亿美元。
+- **SK Hynix ADR**：SEC批准预计本月内到位，最快8月中旬美股挂牌，若估值追平 $MU 将带来爆发性空间。
+- **ORCL财报**：盘后公布，期权定价±12%波动，被视为软件板块能否企稳的关键风向标。
+- **霍尔木兹地缘风险**：美军直升机被击落，中东局势骤然升温，油价与避险资产短期受提振。
+- **香港券商限制大陆入金**：富途、长桥本周五起限制大陆用户，内地资金流向QDII/港股通ETF或嘉信理财等替代渠道。
+- **EML激光器供给缺口**：上游光源供给缺口超30%，无论CPO/NPO/可插拔哪条路线胜出，EML均为确定性受益环节。
+
+---
 
 ## 重要新闻
 
-- 美军直升机在霍尔木兹海峡被伊朗击落，两名飞行员安全，特朗普称美国必须作出回应 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781023088250477814)
-- 特朗普声称对伊海上封锁极为有效，伊朗已无法开展任何商业活动、正走向失败国家 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781091173655832936)
-- 特朗普称伊朗军事力量已被彻底摧毁，谈判窗口已过、将付出代价 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781089420396001010)
-- William Pulte将于6月19日出任代理国家情报总监，同时继续兼任FHFA局长及 $FNMA / $FMCC 董事长（$FNMA, $FMCC） [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781043033658165784)
-- 特朗普分享美国4月出口创纪录3271亿美元、贸易逆差收窄的报道 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781042236426497347)
-- 特朗普同时转发贸易逆差扩大报道，贸易数据存在矛盾口径 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781042195887106404)
-- 祝贺林赛·格雷厄姆参议员初选大胜，呼吁推进《拯救美国法案》 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781056230881559505)
-- 转发JD万斯就明尼苏达州选举欺诈向司法部提交证据的新闻 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781061798852444334)
+- 5月CPI数据出炉：核心CPI整体接近美联储2%目标，娱乐服务通胀疲软是主要压制因素；但电脑、机票、大型家电价格因关税传导局部升温，商品通胀存在结构性隐患。[@AnnaEconomist](https://x.com/AnnaEconomist/status/2064504857084805204)
+
+- $NVDA 网络业务高级副总裁明确表示CPO交付无延误，H2 2026按计划量产并向客户交付；富士康同步上调CPO出货预估并提前向 $NVDA 交货，此前Semianalysis报告引发的抛售被多方认定为过度反应。[@aleabitoreddit](https://x.com/aleabitoreddit/status/2064554061253451815)
+
+- $TSM 2026年5月营收NT$4170亿，环比+1.5%，同比+30.1%，半导体景气周期持续；SK Hynix同步上调供应商采购价，设备厂商获3-4%涨价空间，存储产业链景气向上传导。[@jukan05](https://x.com/jukan05/status/2064582513939685645)
+
+- AI超大规模云厂商（$GOOGL、$AMZN、$META、$MSFT、$ORCL）今年前5个月发债1590亿美元，同比激增47%，已超2020-2024年合计发债额；四大科技巨头今年数据中心及AI基础设施支出预计达6700亿美元，占GDP 2.1%。[@charliebilello](https://x.com/charliebilello/status/2064523395178401972)
+
+- $SMCI 手握390亿美元AI服务器订单，却因70亿美元融资计划暴跌7%，市场担忧股权稀释；盘后出现大量行权价35-40美元看跌期权成交，短期情绪偏空。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673298311741745)
+
+- 韩华半导体向SK Hynix供应D2W混合键合集群系统，并另获HBM4 TC键合机追加订单，规模与韩美半导体相当，先进封装供应链格局出现新变量。[@zephyr_z9](https://x.com/zephyr_z9/status/2064650594158358715)
+
+---
 
 ## 宏观判断
 
-- 特朗普分享美国4月出口创纪录3271亿美元、贸易逆差收窄的报道 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781042236426497347)
-- AI超大规模云厂商（$GOOGL $AMZN $META $MSFT $ORCL）今年前5个月发债1590亿美元，同比激增47%，已超2020-2024年合计发债额（$GOOGL, $AMZN, $META, $MSFT, $ORCL） [@charliebilello](https://x.com/charliebilello/status/2064523395178401972)
-- $GOOGL $AMZN $MSFT $META 今年数据中心及AI基础设施支出预计达6700亿美元，占GDP 2.1%，超越1850年代美国铁路扩张投资占比（$GOOGL, $AMZN, $MSFT, $META） [@charliebilello](https://x.com/charliebilello/status/2064523378652811595)
-- 反驳SemiAnalysis的CPO延误论：$LITE 4Q已有$5000万~1亿美元CPO实际营收；$AAOI InP激光产能2027年前扩产约350%；$COHR Quantum X3450经济性被认可；$MRVL、$GLW、$NVDA主导的scale-up CPO机会是scale-out的3~16倍，2028年Feynman世代起加速落地。（$LITE, $AAOI, $COHR, $MRVL, $GLW, $NVDA） [@labubu_trader](https://x.com/labubu_trader/status/2064556507585483051)
-- 今日8:30公布美国5月CPI，预期3.1%。若≥3.3%市场将定价7月加息，$QQQ可能暴跌3%+；若≤2.9%则成长股反弹。VIX已从15飙升至22，纳斯达克期货低开约1%（$QQQ, $VIX） [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673891495317850)
-- SpaceX本周五IPO，估值1.75万亿美元，筹资750亿美元。资金虹吸效应导致科技股被抽血，$QQQ盘前净流出约42亿美元；Tom Lee认为IPO后科技股将反弹（$QQQ, $SPCX） [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673298311741745)
-- $SMCI手握390亿美元AI服务器订单，却因70亿美元融资计划暴跌7%，市场担忧现金消耗速度与股权稀释。盘后出现大量行权价35-40美元的看跌期权成交（$SMCI） [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673298311741745)
-- $RIVN股价从21美元高位回落至9-10美元区间，市场充分定价产能地狱风险；R2 SUV预订超50万辆、亚马逊货车合同追加10亿美元是核心支撑，瑞银目标价下调至12美元（$RIVN） [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673716160893157)
+- 5月CPI结果喜忧参半：核心通胀温和但关税传导局部升温，市场对7月加息预期分歧加大；新Fed主席沃什或以缩表替代加息抑制通胀，长端利率上行风险持续压制高PE成长股。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064630616646455375)
+
+- 批发销售4月同比+10.9%，库存/销售比率降至2013年以来最低，供需结构持续改善；小企业情绪软指标（预期/信心）恶化，但硬指标（实际经营）仍稳健，宏观基本面尚未实质恶化。[@LizAnnSonders](https://x.com/LizAnnSonders/status/2064509550758085000)
+
+- 标普500成分股实现29%利润增长，Forward PE约20.4倍贴近5年均值，基本面不存在系统性泡沫；但 $SOX 芯片指数估值已进入"贵"区间，讲2028年后故事的高Beta标的风险极高。[@TJ_Research](https://x.com/TJ_Research/status/2064532860669694081)
+
+- 本轮调整由SpaceX IPO流动性虹吸、非农超预期、地缘扰动叠加触发，并非AI基本面恶化；SpaceX IPO后流动性有望重新释放，6月底前调整大概率结束，中期选举前有望回到高点。[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2064532421874520526)
+
+- 霍尔木兹海峡地缘风险骤升，若局势持续升级将推高油价与通胀预期，进一步压缩美联储降息空间，风险偏好短期承压。[@LucyBuilding](https://x.com/LucyBuilding/status/2064573344159297932)
+
+---
 
 ## 产业/个股焦点
 
-- $FNMA：William Pulte将于6月19日出任代理国家情报总监，同时继续兼任FHFA局长及 $FNMA / $FMCC 董事长 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781043033658165784)
-- $FMCC：William Pulte将于6月19日出任代理国家情报总监，同时继续兼任FHFA局长及 $FNMA / $FMCC 董事长 [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781043033658165784)
-- $LLY：距历史高点跌幅：$LLY 0%领跑，$TSLA -21%，$MSTR -78%，Fartcoin/Trump Coin等迷因币跌逾95% [@charliebilello](https://x.com/charliebilello/status/2064679181032603999)
-- $TSLA：距历史高点跌幅：$LLY 0%领跑，$TSLA -21%，$MSTR -78%，Fartcoin/Trump Coin等迷因币跌逾95% [@charliebilello](https://x.com/charliebilello/status/2064679181032603999)
-- $MSTR：距历史高点跌幅：$LLY 0%领跑，$TSLA -21%，$MSTR -78%，Fartcoin/Trump Coin等迷因币跌逾95% [@charliebilello](https://x.com/charliebilello/status/2064679181032603999)
-- $NVDA：距历史高点跌幅：$LLY 0%领跑，$TSLA -21%，$MSTR -78%，Fartcoin/Trump Coin等迷因币跌逾95% [@charliebilello](https://x.com/charliebilello/status/2064679181032603999)
-- $MSFT：距历史高点跌幅：$LLY 0%领跑，$TSLA -21%，$MSTR -78%，Fartcoin/Trump Coin等迷因币跌逾95% [@charliebilello](https://x.com/charliebilello/status/2064679181032603999)
-- $META：距历史高点跌幅：$LLY 0%领跑，$TSLA -21%，$MSTR -78%，Fartcoin/Trump Coin等迷因币跌逾95% [@charliebilello](https://x.com/charliebilello/status/2064679181032603999)
-- $GOOGL：AI超大规模云厂商（$GOOGL $AMZN $META $MSFT $ORCL）今年前5个月发债1590亿美元，同比激增47%，已超2020-2024年合计发债额 [@charliebilello](https://x.com/charliebilello/status/2064523395178401972)
-- $AMZN：AI超大规模云厂商（$GOOGL $AMZN $META $MSFT $ORCL）今年前5个月发债1590亿美元，同比激增47%，已超2020-2024年合计发债额 [@charliebilello](https://x.com/charliebilello/status/2064523395178401972)
-- $META：AI超大规模云厂商（$GOOGL $AMZN $META $MSFT $ORCL）今年前5个月发债1590亿美元，同比激增47%，已超2020-2024年合计发债额 [@charliebilello](https://x.com/charliebilello/status/2064523395178401972)
-- $MSFT：AI超大规模云厂商（$GOOGL $AMZN $META $MSFT $ORCL）今年前5个月发债1590亿美元，同比激增47%，已超2020-2024年合计发债额 [@charliebilello](https://x.com/charliebilello/status/2064523395178401972)
+- **$LITE（Lumentum）**：$NVDA 向其投资20亿美元并签多年期采购协议锁定至2030年；CEO在瑞穗科技大会表示NPO市场机会甚至大于CPO，单季营收即将破10亿美元，EML产能缺口超30%，无论哪条路线胜出均为赢家。[@nft_hu](https://x.com/nft_hu/status/2064624956567355576) / [@nbblock](https://x.com/nbblock/status/2064613648153321916)
+
+- **$NVDA**：CPO延误传言被高管亲自否认，H2 2026按计划量产；过去一年利润增长70-80%而估值被压缩，盘中跌穿200美元后被拉回，多方视为买入机会。[@aleabitoreddit · 1](https://x.com/aleabitoreddit/status/2064554061253451815) / [@aleabitoreddit · 2](https://x.com/aleabitoreddit/status/2064521404859719681)
+
+- **$MU / SK Hynix**：$MU 已获 $NVDA HBM4订单；SK Hynix ADR最快8月中旬美股挂牌，若估值追平 $MU 将带来爆发性空间；存储被多位KOL视为当前美股唯一有业绩支撑的方向。[@jukan05](https://x.com/jukan05/status/2064500667004416258) / [@xiaomustock](https://x.com/xiaomustock/status/2064540777754079664)
+
+- **$ORCL**：盘后财报期权定价±12%波动，被视为软件板块能否企稳的关键；多位KOL看好其作为"口碑逆袭"机会，若数据好将提振整个软件板块。[@ArtofSpecuycky](https://x.com/ArtofSpecuycky/status/2064532421874520526) / [@hanking66](https://x.com/hanking66/status/2064642770778931598)
+
+- **$SMCI**：390亿美元订单在手但70亿融资计划引发股权稀释担忧，盘后大量看跌期权成交，短期风险偏高。[@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673298311741745)
+
+- **$AVGO**：近期失去谷歌等大客户后转向亚洲NPU初创公司，护城河受质疑，供应链把控力被高估，需持续观察客户结构变化。[@jukan05](https://x.com/jukan05/status/2064548546725212185)
+
+- **$GLD / $GDX**：金价现货整根K线完全运行于布林带下轨之外，历史罕见；3月中旬同样形态后随即大幅反弹，$GDX 金矿股有望迎来死猫反弹，最快次日启动。[@Mr_Derivatives · 1](https://x.com/Mr_Derivatives/status/2064531560729354682) / [@Mr_Derivatives · 2](https://x.com/Mr_Derivatives/status/2064548963714539875)
+
+- **$ASTS**：6月17日将发射BlueBird 8/9/10三颗新一代卫星，搭载全球最大低轨商业通信阵列，峰值速率接近初代两倍，催化剂明确。[@SpermCapital](https://x.com/SpermCapital/status/2064523545561141658)
+
+---
 
 ## 交易信号
 
-| 标的 | 线索 | 来源 |
-|---|---|---|
-| $FNMA, $FMCC | William Pulte将于6月19日出任代理国家情报总监，同时继续兼任FHFA局长及 $FNMA / $FMCC 董事长 | [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781043033658165784) |
-| $LLY, $TSLA, $MSTR, $NVDA, $MSFT, $META | 距历史高点跌幅：$LLY 0%领跑，$TSLA -21%，$MSTR -78%，Fartcoin/Trump Coin等迷因币跌逾95% | [@charliebilello](https://x.com/charliebilello/status/2064679181032603999) |
-| $GOOGL, $AMZN, $META, $MSFT, $ORCL | AI超大规模云厂商（$GOOGL $AMZN $META $MSFT $ORCL）今年前5个月发债1590亿美元，同比激增47%，已超2020-2024年合计发债额 | [@charliebilello](https://x.com/charliebilello/status/2064523395178401972) |
-| $GOOGL, $AMZN, $MSFT, $META | $GOOGL $AMZN $MSFT $META 今年数据中心及AI基础设施支出预计达6700亿美元，占GDP 2.1%，超越1850年代美国铁路扩张投资占比 | [@charliebilello](https://x.com/charliebilello/status/2064523378652811595) |
-| $MU, $NVDA | 澄清SemiAnalysis关于$MU未获HBM4订单的报告：报告发布时属实，后续$MU获得$NVDA HBM4订单后SemiAnalysis也及时更新了机构报告，原报告并无错误。 | [@labubu_trader](https://x.com/labubu_trader/status/2064677338659664193) |
-| $LITE, $AAOI, $COHR, $MRVL, $GLW, $NVDA | 反驳SemiAnalysis的CPO延误论：$LITE 4Q已有$5000万~1亿美元CPO实际营收；$AAOI InP激光产能2027年前扩产约350%；$COHR Quantum X3450经济性被认可；$MRVL、$GLW、$NVDA主导的scale-up CPO机会是scale-out的3~16倍，2028年Feynman世代起加速落地。 | [@labubu_trader](https://x.com/labubu_trader/status/2064556507585483051) |
-| $NVDA | $NVDA网络业务高级副总裁明确表示CPO交付无延误，H2 2026按计划量产并向客户交付，作者对CPO+$NVDA组合极度看多。 | [@labubu_trader](https://x.com/labubu_trader/status/2064555613456388239) |
-| $QQQ, $VIX | 今日8:30公布美国5月CPI，预期3.1%。若≥3.3%市场将定价7月加息，$QQQ可能暴跌3%+；若≤2.9%则成长股反弹。VIX已从15飙升至22，纳斯达克期货低开约1% | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673891495317850) |
-| $QQQ, $SPCX | SpaceX本周五IPO，估值1.75万亿美元，筹资750亿美元。资金虹吸效应导致科技股被抽血，$QQQ盘前净流出约42亿美元；Tom Lee认为IPO后科技股将反弹 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673298311741745) |
-| $SMCI | $SMCI手握390亿美元AI服务器订单，却因70亿美元融资计划暴跌7%，市场担忧现金消耗速度与股权稀释。盘后出现大量行权价35-40美元的看跌期权成交 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673298311741745) |
+| 方向 | 标的 | 操作思路 | 时间框架 | 线索 | 来源 |
+|------|------|----------|----------|------|------|
+| 做多 | $LITE | CPO/NPO双路线受益，NVDA战略投资锁定 | 中期 | NVDA投资20亿+CEO确认NPO机会 | [@nft_hu](https://x.com/nft_hu/status/2064624956567355576) |
+| 做多 | $GLD / $GDX | 布林带下轨极端超卖，历史形态触发反弹 | 短期 | K线完全运行于布林带下轨外 | [@Mr_Derivatives](https://x.com/Mr_Derivatives/status/2064531560729354682) |
+| 做多 | $MU | HBM4订单落地，存储景气向上，业绩支撑最强 | 中期 | SK Hynix涨价传导+NVDA订单确认 | [@xiaomustock](https://x.com/xiaomustock/status/2064540777754079664) |
+| 做多 | $FNMA / $FMCC | Pulte兼任FHFA局长+DNI，私有化预期升温 | 事件驱动 | 6月19日人事生效为催化节点 | [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1781043033658165784) |
+| 观望 | $SMCI | 订单强劲但融资稀释风险压制，看跌期权活跃 | 短期 | 盘后大量35-40美元看跌期权成交 | [@cnfinancewatch](https://x.com/cnfinancewatch/status/2064673298311741745) |
+| 做多 | $ASTS | 6月17日卫星发射催化，新一代阵列性能翻倍 | 事件驱动 | BlueBird 8/9/10发射窗口明确 | [@SpermCapital](https://x.com/SpermCapital/status/2064523545561141658) |
+
+---
 
 ## 投资理念
 
-- @cnfinancewatch：CPI超预期与SpaceX IPO抽血令美股承压，A股关注AI算力、光通信及政策催化板块
-- @realDonaldTrump：特朗普强硬施压伊朗、宣示封锁成效，同时推进国内政治人事与贸易议题
-- @LizAnnSonders：批发销售强劲、库存比率创新低，宏观数据偏健康，但小企业情绪软指标承压
-- @jukan05：半导体供应链积极信号涌现，$TSM营收强劲，$MU/$HXSL等存储相关标的值得关注
-- @zephyr_z9：对Anthropic商业动机强烈质疑，看好开放AI生态，关注HBM4先进封装供应链进展
-- @Mr_Derivatives：黄金短期超卖有望反弹，关注苹果和UNH技术位突破
-- @octopusycc：CPI数据日预期市场先跌后反弹，$MU与$NVDA财报被视为美国科技国运风向标
-- @nft_hu：硅光子/CPO/NPO浪潮下，高功率激光和有源光器件供应商将获结构性溢价，LITE是最大受益者
+- 区分下跌性质是操作前提：杀估值、杀业绩、政策风险重估、高位筹码释放四种情形对应完全不同的应对策略，不加区分地追涨杀跌是散户最大损耗来源。[@LucyBuilding](https://x.com/LucyBuilding/status/2064573344159297932)
+
+- 期权大单数据存在系统性误读风险：机构roll up操作会被错误标记为方向性信号；技术分析本质是概率游戏，市场长期定价依赖基本面与供需，大资金驾驭的是后者而非前者。[@cyrilxuq](https://x.com/cyrilxuq/status/2064584168118636685)
+
+- 估值纪律优于叙事：Forward PE在40倍以内、基本面清晰的标的无需担忧泡沫；凡是主要讲2028年后故事的高Beta标的，一旦出现风险事件将一地鸡毛，仓位管理须严格区分确定性梯队。[@TJ_Research](https://x.com/TJ_Research/status/2064532860669694081)
+
+- 行为与心态决定长期收益：Morgan Housel《金钱心理学》的核心洞见——市场暴涨暴跌中情绪化操作是最大陷阱，持仓不动等待市场慢慢重估，往往优于频繁换手。[@BrianFeroldi](https://x.com/BrianFeroldi/status/2064501132387393951) / [@xiaomustock](https://x.com/xiaomustock/status/2064513926629412927)
+
+- 产业趋势判断须回归硬数据：GPU、HBM、存储、光模块的订单、营收、利润率与业绩指引有无实质变化，才是判断AI超级周期是否延续的真正依据，高管表态与分析师报告均需交叉验证。[@LucyBuilding](https://x.com/LucyBuilding/status/2064573344159297932)
 
 ## 最近 7 天
 
+- [2026-06-10](digests/2026/06/10.md)
 - [2026-06-09](digests/2026/06/09.md)
 - [2026-06-08](digests/2026/06/08.md)
 - [2026-06-07](digests/2026/06/07.md)
 - [2026-06-06](digests/2026/06/06.md)
 - [2026-06-05](digests/2026/06/05.md)
 - [2026-06-04](digests/2026/06/04.md)
-- [2026-06-03](digests/2026/06/03.md)
 
 ## 监控的 KOL
 
