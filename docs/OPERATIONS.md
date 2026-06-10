@@ -144,13 +144,13 @@ Claude 调用按四层顺序尝试：
 
 1. 主凭据：`ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`，模型用 `config/settings.yaml` 的 `ai.model`
 2. 第二层备用：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同主配置
-3. 第三层备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
-4. 第四层备用：`ANTHROPIC_FOURTH_API_KEY` + `ANTHROPIC_FOURTH_BASE_URL` + `ANTHROPIC_FOURTH_MODEL`
+3. 第三顺位备用：`ANTHROPIC_FOURTH_API_KEY` + `ANTHROPIC_FOURTH_BASE_URL` + `ANTHROPIC_FOURTH_MODEL`
+4. 第四顺位备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
 
-四层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第三层模型名配置为 `anthropic/claude-sonnet-4.6`，第四层模型名配置为 `claude-sonnet-4-6`。
+四层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第三顺位模型名配置为 `claude-sonnet-4-6`，第四顺位模型名配置为 `anthropic/claude-sonnet-4.6`。
 
-第三层 Claude 4.6 兼容后端首选使用 `temperature=1` 且显式关闭 thinking，主凭据和第二层备用仍使用 `config/settings.yaml` 的 `ai.temperature`。这是为了兼容部分 Claude 4.6 后端对 extended thinking/adaptive mode 的限制：当模型启用或走 thinking/adaptive 模式时，非 `1` 的 temperature 会被拒绝。如果第三层仍返回 Bedrock 的 temperature/thinking 校验错误，程序会对同一后端再重试一次，这次不传 `temperature` 和 `thinking`，让 provider 使用默认普通模式；实测这种模式能返回正文，而 adaptive thinking 在低 `max_tokens` 下可能先消耗 thinking block，导致正文为空。
+`ANTHROPIC_THIRD_*` 这组 Infron 后端当前作为第四顺位兜底，首选使用 `temperature=1` 且显式关闭 thinking，主凭据和第二层备用仍使用 `config/settings.yaml` 的 `ai.temperature`。这是为了兼容部分 Claude 4.6 后端对 extended thinking/adaptive mode 的限制：当模型启用或走 thinking/adaptive 模式时，非 `1` 的 temperature 会被拒绝。如果该后端仍返回 Bedrock 的 temperature/thinking 校验错误，程序会对同一后端再重试一次，这次不传 `temperature` 和 `thinking`，让 provider 使用默认普通模式；实测这种模式能返回正文，而 adaptive thinking 在低 `max_tokens` 下可能先消耗 thinking block，导致正文为空。
 
-第四层按普通 Claude 兼容后端处理，使用 `config/settings.yaml` 的 `ai.temperature`，不额外发送 `thinking` 参数。
+`ANTHROPIC_FOURTH_*` 这组 Packy 后端当前作为第三顺位备用，按普通 Claude 兼容后端处理，使用 `config/settings.yaml` 的 `ai.temperature`，不额外发送 `thinking` 参数。
 
 如果 Layer 1 总摘要四层 LLM 都失败，程序会用已生成的各 KOL 结构化摘要拼出本地兜底日报，并在正文开头标注“本地兜底模板”。如果单个 KOL 的 Layer 2 摘要也失败，会从原始推文生成最小明细，避免当天 README 因单点 LLM 故障完全不更新。
