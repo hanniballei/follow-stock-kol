@@ -330,7 +330,7 @@ scheduler.py：
 def main():
     sched = BlockingScheduler(timezone=ZoneInfo("Asia/Shanghai"))
     sched.add_job(daily_job_sync_wrapper,
-                  CronTrigger(hour=20, minute=30),
+                  CronTrigger(hour=21, minute=0),
                   misfire_grace_time=3600,
                   coalesce=True)
     sched.start()
