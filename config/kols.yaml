@@ -1,4 +1,4 @@
-# 监控的 KOL 列表（61 位）
+# 监控的 KOL 列表（62 位）
 # - 纯 Twitter / X handle，不带 @
 # - 大小写按 X 实际显示
 # - 按字母序排列（不区分大小写），方便后续增补不重复
@@ -16,6 +16,7 @@ kols:
   - ArtofSpecuycky
   - awealthofcs
   - biancoresearch
+  - blazingbees
   - BrianFeroldi
   - ByrneHobart
   - caizhenghai

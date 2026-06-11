@@ -16,7 +16,7 @@
 
 不要重新创建以下文件，直接复用 / 增量编辑：
 
-- `config/kols.yaml` — 61 位 KOL，按字母序，handle 大小写如 X 实际显示
+- `config/kols.yaml` — 62 位 KOL，按字母序，handle 大小写如 X 实际显示
 - `config/settings.yaml` — 全部可调参数（调度、抓取、媒体、AI、发布、保留、日志）
 - `.env.example` — 环境变量模板，复制为 `.env` 填值；本机覆盖可放 `.env.local`
 - `.gitignore` — 已正确忽略 `.env / .env.local / *.db / *.log / media/` 等

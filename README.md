@@ -2,7 +2,7 @@
 
 最后更新：2026-06-11
 
-这个仓库每天北京时间 21:00 自动抓取 X 上 61 位美股相关 KOL 的发言，整理成一页当天市场摘要。你可以先看今日完整报告，再看下面的当日总结和各 KOL 细节。
+这个仓库每天北京时间 21:00 自动抓取 X 上 62 位美股相关 KOL 的发言，整理成一页当天市场摘要。你可以先看今日完整报告，再看下面的当日总结和各 KOL 细节。
 
 [阅读今日完整报告](digests/2026/06/11.md)
 
@@ -144,6 +144,7 @@
 - [@ArtofSpecuycky](https://x.com/ArtofSpecuycky)
 - [@awealthofcs](https://x.com/awealthofcs)
 - [@biancoresearch](https://x.com/biancoresearch)
+- [@blazingbees](https://x.com/blazingbees)
 - [@BrianFeroldi](https://x.com/BrianFeroldi)
 - [@ByrneHobart](https://x.com/ByrneHobart)
 - [@caizhenghai](https://x.com/caizhenghai)
