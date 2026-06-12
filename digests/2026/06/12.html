@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美股KOL日报 · 2026-06-12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f172a;
+    --ink-muted: #475569;
+    --paper: #fafafa;
+    --paper-white: #ffffff;
+    --border: #e2e8f0;
+    --border-strong: #94a3b8;
+    --bullish: #059669;
+    --bearish: #dc2626;
+    --neutral: #64748b;
+    --unclear: #d97706;
+    --accent: #0f172a;
+    --font: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", "Cascadia Code", monospace;
+    --section-gap: 56px;
+    --block-gap: 32px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 64px 28px 80px; }
+
+  /* ── hero ── */
+  .page-hero {
+    margin-bottom: var(--section-gap);
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .page-hero h1 {
+    font-family: var(--font);
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .page-hero .hero-date {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    margin-bottom: 28px;
+    letter-spacing: 0.01em;
+  }
+  .hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .hero-stats span { white-space: nowrap; }
+  .hero-stats strong {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--ink);
+    display: block;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── overview ── */
+  .overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: var(--section-gap);
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (max-width: 600px) { .overview { grid-template-columns: 1fr; gap: 28px; } }
+  .overview-block { }
+  .overview-block .block-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 18px;
+  }
+
+  /* sentiment bars — flat */
+  .sent-bars { display: flex; flex-direction: column; gap: 12px; }
+  .sent-row { display: grid; grid-template-columns: 44px 1fr 36px; align-items: center; gap: 10px; }
+  .sent-row .sent-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+  }
+  .sent-row .sent-label.bullish { color: var(--bullish); }
+  .sent-row .sent-label.bearish { color: var(--bearish); }
+  .sent-row .sent-label.neutral { color: var(--neutral); }
+  .sent-row .sent-label.unclear { color: var(--unclear); }
+  .sent-bar-wrap { height: 8px; background: var(--border); }
+  .sent-bar { height: 100%; transition: width .3s; }
+  .sent-bar.bullish { background: var(--bullish); }
+  .sent-bar.bearish { background: var(--bearish); }
+  .sent-bar.neutral { background: var(--neutral); }
+  .sent-bar.unclear { background: var(--unclear); }
+  .sent-row .sent-count {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+
+  /* ticker list — flat mono tags */
+  .ticker-list { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .ticker-tag {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    padding-bottom: 1px;
+    border-bottom: 2px solid transparent;
+    text-decoration: none;
+  }
+  .ticker-tag.hot {
+    color: var(--bearish);
+    border-bottom-color: var(--bearish);
+  }
+  .ticker-tag .count {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    margin-left: 1px;
+  }
+
+  /* ── layer 1 sections ── */
+  .layer1 { margin-bottom: var(--section-gap); }
+  .layer1 .section-block {
+    margin-bottom: var(--block-gap);
+    padding-left: 0;
+  }
+  .layer1 .section-block .section-head {
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+  .layer1 .section-block .section-body {
+    font-size: 14.5px;
+    color: #334155;
+    line-height: 1.7;
+  }
+  .layer1 .section-block .section-body ul,
+  .layer1 .section-block .section-body ol {
+    padding-left: 18px;
+    margin: 4px 0;
+  }
+  .layer1 .section-block .section-body li {
+    margin-bottom: 5px;
+  }
+  .layer1 .section-block .section-body li:last-child { margin-bottom: 0; }
+  .layer1 .section-block .section-body a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-strong);
+    font-weight: 500;
+    font-size: 13px;
+    transition: border-color .15s;
+  }
+  .layer1 .section-block .section-body a:hover {
+    border-bottom-color: var(--ink);
+  }
+  .layer1 .section-block .section-body strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .layer1 .section-block .section-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .layer1 .section-block .section-body th {
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--ink);
+    color: var(--ink);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .layer1 .section-block .section-body td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .layer1 .section-block .section-body code {
+    font-family: var(--mono);
+    background: transparent;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ── trade signals ── */
+  .trade-signals {
+    margin-bottom: var(--section-gap);
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .trade-signals .section-head {
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .trade-signals table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .trade-signals th {
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--ink);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+  }
+  .trade-signals td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: top;
+  }
+  .trade-signals tr:last-child td { border-bottom: none; }
+  .trade-signals .sig-ticker {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .trade-signals a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-strong);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color .15s;
+  }
+  .trade-signals a:hover { border-bottom-color: var(--ink); }
+
+  /* ── KOL cards ── */
+  .kol-details { margin-bottom: var(--section-gap); }
+  .kol-details > h2 {
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .kol-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 1px;
+    background: var(--border);
+  }
+  @media (max-width: 600px) { .kol-grid { grid-template-columns: 1fr; } }
+  .kol-card {
+    background: var(--paper-white);
+    padding: 22px 24px 20px;
+    border-left: 3px solid var(--border);
+    transition: border-left-color .15s;
+  }
+  .kol-card:hover { border-left-color: var(--ink); }
+  .kol-card.bullish { border-left-color: var(--bullish); }
+  .kol-card.bearish { border-left-color: var(--bearish); }
+  .kol-card.neutral { border-left-color: var(--neutral); }
+  .kol-card.unclear { border-left-color: var(--unclear); }
+  .kol-card .kol-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .kol-card .kol-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .kol-card .kol-name:hover { opacity: 0.6; }
+  .kol-card .sent-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0;
+    background: none;
+  }
+  .sent-tag.bullish { color: var(--bullish); }
+  .sent-tag.bearish { color: var(--bearish); }
+  .sent-tag.neutral { color: var(--neutral); }
+  .sent-tag.unclear { color: var(--unclear); }
+  .kol-card .kol-core {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 12px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .kol-card .kol-bullets {
+    list-style: none;
+    padding: 0;
+  }
+  .kol-card .kol-bullets li {
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 4px;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.55;
+  }
+  .kol-card .kol-bullets li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--border-strong);
+    font-size: 10px;
+  }
+  .kol-card .kol-bullets .ticker-inline {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .kol-card .kol-bullets a {
+    color: var(--ink-muted);
+    font-size: 11px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    margin-left: 2px;
+    transition: border-color .15s;
+  }
+  .kol-card .kol-bullets a:hover { border-bottom-color: var(--ink); }
+  .kol-card .kol-meta {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── footer ── */
+  .page-footer {
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .page-footer a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-strong);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<header class="page-hero">
+<h1>美股 KOL 日报</h1>
+<div class="hero-date">2026-06-12</div>
+<div class="hero-stats">
+  <span><strong>62</strong> 位 KOL</span>
+  <span><strong>33</strong> 位有发言</span>
+  <span><strong>120</strong> 条推文</span>
+</div>
+</header>
+<div class="overview">
+<div class="overview-block">
+  <div class="block-label">市场情绪</div>
+  <div class="sent-bars">
+<div class="sent-row"><span class="sent-label bullish">看多</span><div class="sent-bar-wrap"><div class="sent-bar bullish" style="width:36%"></div></div><span class="sent-count">12</span></div>
+<div class="sent-row"><span class="sent-label bearish">看空</span><div class="sent-bar-wrap"><div class="sent-bar bearish" style="width:21%"></div></div><span class="sent-count">7</span></div>
+<div class="sent-row"><span class="sent-label neutral">中性</span><div class="sent-bar-wrap"><div class="sent-bar neutral" style="width:21%"></div></div><span class="sent-count">7</span></div>
+<div class="sent-row"><span class="sent-label unclear">不明</span><div class="sent-bar-wrap"><div class="sent-bar unclear" style="width:21%"></div></div><span class="sent-count">7</span></div>
+
+  </div>
+</div>
+<div class="overview-block">
+  <div class="block-label">热议标的</div>
+  <div class="ticker-list">
+<span class="ticker-tag hot">$RKLB<span class="count">5</span></span>
+<span class="ticker-tag hot">$SPCX<span class="count">4</span></span>
+<span class="ticker-tag hot">$ALAB<span class="count">4</span></span>
+<span class="ticker-tag hot">$NBIS<span class="count">4</span></span>
+<span class="ticker-tag hot">$NVDA<span class="count">4</span></span>
+<span class="ticker-tag hot">$CRWV<span class="count">3</span></span>
+<span class="ticker-tag hot">$TER<span class="count">3</span></span>
+<span class="ticker-tag hot">$MU<span class="count">3</span></span>
+<span class="ticker-tag">$ADBE<span class="count">2</span></span>
+<span class="ticker-tag">$META<span class="count">2</span></span>
+<span class="ticker-tag">$SPY<span class="count">2</span></span>
+<span class="ticker-tag">$AMZN<span class="count">1</span></span>
+<span class="ticker-tag">$SPX<span class="count">1</span></span>
+<span class="ticker-tag">$ASTS<span class="count">1</span></span>
+<span class="ticker-tag">$PL<span class="count">1</span></span>
+<span class="ticker-tag">$RDW<span class="count">1</span></span>
+<span class="ticker-tag">$LUNR<span class="count">1</span></span>
+<span class="ticker-tag">$BABA<span class="count">1</span></span>
+
+  </div>
+</div>
+</div>
+<div class="layer1">
+<div class="section-block"><div class="section-head">特朗普相关</div><div class="section-body"><ul>
+<li>
+<p>特朗普宣布取消对伊朗空袭计划，美以沙等多国原则同意协议，海军封锁维持至正式签署。地缘风险降温直接利好油价回落预期，推测对冲基金将减持原油多头；防务板块（$LMT、$KTOS等）短期存在回调压力，但若协议落地后伊朗重开霍尔木兹、原油供给增加，炼油与航空股或受益。<a href="https://x.com/realDonaldTrump/status/truth_1781198929348275948">@realDonaldTrump 原文</a></p>
+</li>
+<li>
+<p>美伊停战MOU草案曝光，内容含解除原油制裁、释放冻结资产等条款，<a href="https://x.com/blazingbees/status/2065350251943526737">@blazingbees</a> 强调关键在特朗普意志，预计周末签字仪式。若协议落地，黄金避险溢价或收窄，$SPY 短线情绪正向。</p>
+</li>
+<li>
+<p>提名前SEC主席Jay Clayton出任国家情报总监，金融监管层人事变动。推测SEC监管方向可能偏向宽松，对加密及金融科技板块（$HOOD等）形成潜在利好，但属推测，需观察后续政策信号。<a href="https://x.com/realDonaldTrump/status/truth_1781200834951760620">@realDonaldTrump 原文</a></p>
+</li>
+<li>
+<p>国会通过移民执法拨款法案，边境安全相关承包商及私营拘留设施运营商或受益；选民欺诈调查预计提诉，政治不确定性上升，市场短期情绪扰动概率加大。<a href="https://x.com/realDonaldTrump/status/truth_1781228956517788787">@realDonaldTrump 原文</a></p>
+</li>
+</ul>
+<hr></div></div><div class="section-block"><div class="section-head">今日关键词</div><div class="section-body"><ul>
+<li>SpaceX / $SPCX IPO：今日上市，估值1.77万亿美元，流通盘仅4.3%，供需极度紧张</li>
+<li>纳斯达克100成分股调整：$ALAB、$CRWV、$NBIS、$RKLB、$TER 新纳入，被动资金持续流入</li>
+<li>美伊停战：地缘风险降温，$SPY 受提振上涨1.75%，黄金避险溢价收窄</li>
+<li>核心PPI加速：5月核心PPI三个月年化+5.6%，商品价格单月涨幅创历史最大</li>
+<li>存储板块：$MU 8月催化剂明确，韩国存储股高位承压但机构踏空，基本面强劲</li>
+<li>$NVDA 供应链：Rubin Ultra确认PTFE材料方案，Vera CPU最早8月向中国客户发布</li>
+<li>A股半导体材料：稀土管制+国产替代驱动钼、氮化铝、磷化铟、硅片多点开花</li>
+</ul>
+<hr></div></div><div class="section-block"><div class="section-head">重要新闻</div><div class="section-body"><ul>
+<li>
+<p>$SPY 今日涨1.75%，美伊停战预期为主要驱动力；年内大涨日14次已超大跌日13次，但全球格局逆转——新兴市场和国际股票年内跑赢美股，Mag 7整体年内下跌。<a href="https://x.com/charliebilello/status/2065276697205752029">@charliebilello</a></p>
+</li>
+<li>
+<p>5月核心PPI三个月年化达+5.6%，最终需求商品单月暴涨2.8%，创该系列历史最大单月涨幅；同期亚特兰大联储薪资追踪指数降至+3.5%，为2021年6月来最低，实际购买力受侵蚀。<a href="https://x.com/LizAnnSonders/status/2065409492540678639">@LizAnnSonders · 1</a>、<a href="https://x.com/charliebilello/status/2065266221751193756">@charliebilello</a></p>
+</li>
+<li>
+<p>ECB与丹麦央行均为2023年以来首次加息各25bp，全球央行收紧趋势与<a href="https://x.com/LynAldenContact/status/2065418510713393399">@LynAldenContact</a>判断一致，流动性压力上行。</p>
+</li>
+<li>
+<p>$ADBE 盘后跌至2018年2月以来新低；$META、$MSFT、$ORCL 连跌5个交易日，科技巨头集体承压。<a href="https://x.com/Mr_Derivatives/status/2065223088103686423">@Mr_Derivatives · 1</a>、<a href="https://x.com/Mr_Derivatives/status/2065294053353418832">@Mr_Derivatives · 2</a></p>
+</li>
+<li>
+<p>SK海力士清州M15X厂房气体室发生火灾，两天内第二起事故，三星与SK海力士股价各回落约3%，韩国KOSPI午后见顶回落，个人投资者单日获利了结近5万亿韩元。<a href="https://x.com/jukan05/status/2065247070282494027">@jukan05</a>、<a href="https://x.com/blazingbees/status/2065313106713330131">@blazingbees</a></p>
+</li>
+<li>
+<p>$NVDA Vera CPU最早8月向中国客户发布，客户可开始下单；Rubin Ultra正交背板确认采用PTFE替代玻纤布方案，胜宏科技预计为主供应商。<a href="https://x.com/jukan05/status/2065320613196263904">@jukan05 · 1</a>、<a href="https://x.com/jukan05/status/2065410366059000010">@jukan05 · 2</a></p>
+</li>
+</ul>
+<hr></div></div><div class="section-block"><div class="section-head">宏观判断</div><div class="section-body"><ul>
+<li>
+<p>通胀与薪资剪刀差扩大：核心PPI加速而薪资增速创两年新低，消费者实际购买力转负，底层财务压力通过401(k)提前支取数据可见，消费板块下行风险上升。<a href="https://x.com/LizAnnSonders/status/2065409622836691288">@LizAnnSonders · 2</a>、<a href="https://x.com/LizAnnSonders/status/2065409768307773783">@LizAnnSonders · 3</a></p>
+</li>
+<li>
+<p>全球央行同步收紧：越来越多央行转向紧缩，ECB首次加息，流动性环境趋紧，科技高估值板块持续承压。<a href="https://x.com/LynAldenContact/status/2065418510713393399">@LynAldenContact</a>、<a href="https://x.com/charliebilello/status/2065271401229996443">@charliebilello</a></p>
+</li>
+<li>
+<p>美伊地缘降温是短期情绪催化剂，但不改变通胀与流动性的结构性约束，反弹持续性存疑；黄金避险溢价或阶段性收窄，$BTC 则走出独立行情。<a href="https://x.com/WallStreet0Name/status/2065344626979225963">@WallStreet0Name</a></p>
+</li>
+<li>
+<p>AI Capex争议持续：AI算力支出高度集中于极少数重度用户，市场广度存疑；但前沿labs合计约550亿美元ARR且增速极快，2-3年内有望弥合capex缺口，下跌可视为买入机会。<a href="https://x.com/LynAldenContact/status/2065406603864490177">@LynAldenContact</a>、<a href="https://x.com/rickawsb/status/2065302636405137895">@rickawsb</a></p>
+</li>
+<li>
+<p>全球市场格局逆转：2026年至今新兴市场与国际股票跑赢美股，小盘价值跑赢大盘成长，Mag 7整体年内下跌，资金再平衡趋势值得持续关注。<a href="https://x.com/charliebilello/status/2065237828410200236">@charliebilello</a></p>
+</li>
+</ul>
+<hr></div></div><div class="section-block"><div class="section-head">产业/个股焦点</div><div class="section-body"><ul>
+<li>
+<p><strong>SpaceX / $SPCX</strong>：今日IPO，估值1.77万亿，流通盘仅4.3%。历史数据显示低于5%流通盘的IPO三年内多跑输大市，但极度供需失衡将制造特殊短期波动；$HOOD 向用户赠送一股作为营销，本身受益。<a href="https://x.com/ripster47/status/2065417804623364285">@ripster47</a>、<a href="https://x.com/Mr_Derivatives/status/2065401780272562414">@Mr_Derivatives</a></p>
+</li>
+<li>
+<p><strong>纳指100新成员</strong>：$ALAB、$CRWV、$NBIS、$RKLB、$TER 正式纳入，替换 $CHTR、$CTSH、$ZS 等，被动资金持续流入逻辑确立，过去一年涨幅已达3-5倍。<a href="https://x.com/nft_hu/status/2065247579882012865">@nft_hu</a>、<a href="https://x.com/starzq/status/2065366199555502349">@starzq</a></p>
+</li>
+<li>
+<p><strong>$RKLB</strong>：115为关键下行支撑，跌破将加速下泄；涨破120触发Gamma flip，多空分歧显著，同时获纳指被动资金加持，作为SpaceX上市前瞻标的受关注。<a href="https://x.com/octopusycc/status/2065419238014402862">@octopusycc</a></p>
+</li>
+<li>
+<p><strong>$NVDA 供应链</strong>：Rubin Ultra PTFE材料方案确认，2027年Kyber平台CCL TAM或达80亿人民币，胜宏科技为潜在主供应商；Vera CPU中国市场8月开放下单，近端催化剂明确。<a href="https://x.com/jukan05/status/2065410366059000010">@jukan05 · 1</a>、<a href="https://x.com/jukan05/status/2065320613196263904">@jukan05 · 2</a></p>
+</li>
+<li>
+<p><strong>$MU</strong>：多位KOL维持看多，8月前催化剂明确，存储28年产能已被抢光；韩国银行限制杠杆购买存储股被视为强制降温而非基本面转弱，逢低买入逻辑不变。<a href="https://x.com/hanking66/status/2065395788726055404">@hanking66</a></p>
+</li>
+<li>
+<p><strong>A股半导体材料</strong>：钼/氮化铝/磷化铟/硅片国产替代窗口期收窄；盛和资源（氧化钇全球62%供给）、江丰电子（钼靶材已量产）直接受益；碳酸锂单周涨8%至11.2万/吨，期货净多创年内新高。<a href="https://x.com/cnfinancewatch/status/2065225605902401914">@cnfinancewatch</a></p>
+</li>
+<li>
+<p><strong>$ADBE</strong>：盘后跌至2018年2月以来新低，技术面破位，短期无明确支撑，被形容为"股东价值的彻底毁灭"。<a href="https://x.com/Mr_Derivatives/status/2065223088103686423">@Mr_Derivatives</a></p>
+</li>
+<li>
+<p><strong>Anthropic / $AMZN</strong>：有报道指Anthropic内部存在专职破坏付费用户ML研究能力的岗位，若属实将构成治理风险，亚马逊作为主要投资方或受舆论压力。<a href="https://x.com/zephyr_z9/status/2065307449993953787">@zephyr_z9</a></p>
+</li>
+</ul>
+<hr></div></div><div class="section-block"><div class="section-head">交易信号</div><div class="section-body"><table>
+<thead>
+<tr>
+<th>标的</th>
+<th>方向</th>
+<th>关键位</th>
+<th>线索</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$RKLB</td>
+<td>多空分歧</td>
+<td>支撑115，压力120</td>
+<td>跌破115加速下泄，破120触发Gamma flip</td>
+<td><a href="https://x.com/octopusycc/status/2065419238014402862">@octopusycc</a></td>
+</tr>
+<tr>
+<td>$MU</td>
+<td>看多</td>
+<td>持有至8月</td>
+<td>存储基本面强，8月催化剂明确</td>
+<td><a href="https://x.com/hanking66/status/2065395788726055404">@hanking66</a></td>
+</tr>
+<tr>
+<td>$SPCX</td>
+<td>短线谨慎</td>
+<td>开盘约$176</td>
+<td>低流通盘波动大，长期跑输概率高</td>
+<td><a href="https://x.com/ripster47/status/2065417804623364285">@ripster47</a></td>
+</tr>
+<tr>
+<td>$ADBE</td>
+<td>看空</td>
+<td>2018年2月低点破位</td>
+<td>技术面破位，无明确支撑</td>
+<td><a href="https://x.com/Mr_Derivatives/status/2065223088103686423">@Mr_Derivatives</a></td>
+</tr>
+<tr>
+<td>$NVDA</td>
+<td>看多</td>
+<td>Vera CPU 8月开放下单</td>
+<td>PTFE方案确认+中国市场催化</td>
+<td><a href="https://x.com/jukan05/status/2065410366059000010">@jukan05 · 1</a></td>
+</tr>
+<tr>
+<td>$SIVE</td>
+<td>看多</td>
+<td>机构持股从0.4%升至5.3%</td>
+<td>摩根大通、富达相继入股，被动资金跟入</td>
+<td><a href="https://x.com/aleabitoreddit/status/2065398682456052003">@aleabitoreddit</a></td>
+</tr>
+</tbody>
+</table>
+<hr></div></div><div class="section-block"><div class="section-head">投资理念</div><div class="section-body"><ul>
+<li>
+<p>仓位管理先于择时：亏损的根源往往是仓位过重导致情绪失控，而非方向判断失误。小仓位容错率高，才能在波动中保持纪律执行止损。<a href="https://x.com/ripster47/status/2065259321542201395">@ripster47</a></p>
+</li>
+<li>
+<p>IPO的本质是风险转移：内部人和早期投资者在估值峰值向公众转移风险，买入者未来三年平均跑输市场20.5%；2013年以来标普涨428%，新股篮子仅155%。追逐热门IPO需对这一历史基准保持清醒。<a href="https://x.com/raycat2021/status/2065412073627287737">@raycat2021</a></p>
+</li>
+<li>
+<p>Token成本下降是需求催化剂而非利空：AI token价格长期下行是技术扩散的正常形态，相同成本可完成更复杂任务，应用层爆发的底层逻辑反而更稳固，无需过度解读短期支出指数回调。<a href="https://x.com/tychozzz/status/2065416850679402885">@tychozzz</a></p>
+</li>
+<li>
+<p>强势板块不等于"过热"：将市场主导板块标签为"抱团"或"过热"是叙事框架的陷阱，客观审视领涨板块的基本面才是正确姿势，本能规避强势是散户常见误区。<a href="https://x.com/blazingbees/status/2065244069962633273">@blazingbees</a></p>
+</li>
+<li>
+<p>长期费用与护城河同等重要：投资回报的复利侵蚀很大程度来自费用摩擦，低费用+宽护城河的组合在时间维度上的优势远超短期择时收益。<a href="https://x.com/BrianFeroldi/status/2065390773726503061">@BrianFeroldi</a></p>
+</li>
+</ul></div></div>
+</div>
+<div class="trade-signals">
+<div class="section-head">交易信号</div>
+<table>
+<thead><tr><th>标的</th><th>线索</th><th>来源</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$RKLB</span></td><td>$RKLB 盘前115.5-116附近，跌破115将下泄，涨破120触发Gamma flip，多空分歧显著，作为SpaceX上市前的前瞻标的值得关注</td><td style="white-space:nowrap"><a href="https://x.com/octopusycc/status/2065419238014402862" target="_blank" rel="noopener">@octopusycc</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$AMZN</span></td><td>批评有人在Anthropic全职负责引导Claude破坏付费用户的ML研究能力，暗指$AMZN投资的Anthropic内部存在治理问题</td><td style="white-space:nowrap"><a href="https://x.com/zephyr_z9/status/2065307449993953787" target="_blank" rel="noopener">@zephyr_z9</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPCX</span></td><td>$SPCX IPO首日仅4.3%流通股，历史上低于5%流通盘的IPO三年内多跑输大市，但供需极度紧张将造成特殊波动</td><td style="white-space:nowrap"><a href="https://x.com/ripster47/status/2065417804623364285" target="_blank" rel="noopener">@ripster47</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPX</span>, <span class="sig-ticker">$RKLB</span>, <span class="sig-ticker">$ASTS</span>, <span class="sig-ticker">$PL</span>, <span class="sig-ticker">$RDW</span>, <span class="sig-ticker">$LUNR</span>, <span class="sig-ticker">$SPCX</span>, <span class="sig-ticker">$BABA</span>, <span class="sig-ticker">$ALAB</span>, <span class="sig-ticker">$CRWV</span>, <span class="sig-ticker">$NBIS</span>, <span class="sig-ticker">$TER</span>, <span class="sig-ticker">$MNTS</span>, <span class="sig-ticker">$MU</span>, <span class="sig-ticker">$SNDK</span>, <span class="sig-ticker">$NVDA</span>, <span class="sig-ticker">$SHAZ</span>, <span class="sig-ticker">$VRT</span>, <span class="sig-ticker">$MRVL</span>, <span class="sig-ticker">$SMCI</span>, <span class="sig-ticker">$LMT</span>, <span class="sig-ticker">$RR</span>, <span class="sig-ticker">$ADBE</span>, <span class="sig-ticker">$RH</span>, <span class="sig-ticker">$LEN</span>, <span class="sig-ticker">$AMD</span>, <span class="sig-ticker">$KTOS</span>, <span class="sig-ticker">$EPR</span>, <span class="sig-ticker">$MKTX</span>, <span class="sig-ticker">$AVTX</span>, <span class="sig-ticker">$KO</span>, <span class="sig-ticker">$SAIL</span>, <span class="sig-ticker">$SATS</span></td><td>每日市场晨报涵盖 $SPX $RKLB $ASTS $NVDA $AMD $MU 等数十只标的，为投资者提供当日关注清单</td><td style="white-space:nowrap"><a href="https://x.com/ripster47/status/2065417162487947668" target="_blank" rel="noopener">@ripster47</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPCX</span>, <span class="sig-ticker">$DELL</span>, <span class="sig-ticker">$ENPH</span>, <span class="sig-ticker">$INTC</span>, <span class="sig-ticker">$ARM</span>, <span class="sig-ticker">$MD</span></td><td>教学视频：涵盖 $SPCX IPO催化剂交易、$DELL $ENPH波段寻找、$INTC $ARM分析师交易等策略</td><td style="white-space:nowrap"><a href="https://x.com/ripster47/status/2065263042841968712" target="_blank" rel="noopener">@ripster47</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPACEX</span></td><td>SpaceX今日上市，作者整理了募资规模、市值及主要指数纳入路线图，并说明超额配售选择权（Greenshoe）可在股价急涨时追加供应，将募资额从750亿扩大至860亿美元。</td><td style="white-space:nowrap"><a href="https://x.com/blazingbees/status/2065301968567058835" target="_blank" rel="noopener">@blazingbees</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPCX</span>, <span class="sig-ticker">$HOOD</span></td><td>$SPCX 开盘隐含价格约 $176，$HOOD 向用户赠送一股 $SPCX IPO 份额，SpaceX 上市日终于到来</td><td style="white-space:nowrap"><a href="https://x.com/Mr_Derivatives/status/2065401780272562414" target="_blank" rel="noopener">@Mr_Derivatives</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SOXX</span></td><td>$SOXX 近8个交易日从 $620 跌至 $520 再反弹至 $590，波动堪比赌场</td><td style="white-space:nowrap"><a href="https://x.com/Mr_Derivatives/status/2065399656297972104" target="_blank" rel="noopener">@Mr_Derivatives</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$META</span>, <span class="sig-ticker">$MSFT</span>, <span class="sig-ticker">$ORCL</span></td><td>$META、$MSFT、$ORCL 均已连跌5个交易日，科技巨头集体承压</td><td style="white-space:nowrap"><a href="https://x.com/Mr_Derivatives/status/2065294053353418832" target="_blank" rel="noopener">@Mr_Derivatives</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$ADBE</span></td><td>$ADBE 盘后跌至2018年2月以来新低，被称为"股东价值的彻底毁灭"</td><td style="white-space:nowrap"><a href="https://x.com/Mr_Derivatives/status/2065223088103686423" target="_blank" rel="noopener">@Mr_Derivatives</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$META</span>, <span class="sig-ticker">$SPCE</span></td><td>以当年$FB上市时占美股总规模0.086%类比，$SPCE今日上市占比0.11%，规模较为接近，可作参考</td><td style="white-space:nowrap"><a href="https://x.com/xiaomustock/status/2065410587644051749" target="_blank" rel="noopener">@xiaomustock</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$NVDA</span></td><td>$NVDA Rubin Ultra正交背板确认采用PTFE为核心材料，替代此前M9+Q玻纤布方案，支持337G以上SerDes信号传输；胜宏科技预计成为主要供应商，2027年Kyber平台PTFE CCL TAM或达80亿人民币</td><td style="white-space:nowrap"><a href="https://x.com/jukan05/status/2065410366059000010" target="_blank" rel="noopener">@jukan05</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$NVDA</span></td><td>$NVDA 据路透社，Nvidia已告知中国客户，其新AI数据中心CPU Vera最早8月发布，客户可开始下单</td><td style="white-space:nowrap"><a href="https://x.com/jukan05/status/2065320613196263904" target="_blank" rel="noopener">@jukan05</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$MU</span></td><td>持仓不动，短期波动正常；美伊和谈推进、$MU 8月前催化剂明确，参考 SpaceX IPO 对小火箭影响，$MU 走势可期，至少持有到8月</td><td style="white-space:nowrap"><a href="https://x.com/hanking66/status/2065395788726055404" target="_blank" rel="noopener">@hanking66</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SIVE</span></td><td>大型美国机构正在布局 $SIVE：摩根大通持股从0.4%升至5.3%，富达等主动投资者也出现在股东名单，贝莱德等被动资金或持续流入，机构背书验证了作者此前论点</td><td style="white-space:nowrap"><a href="https://x.com/aleabitoreddit/status/2065398682456052003" target="_blank" rel="noopener">@aleabitoreddit</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$NBIS</span>, <span class="sig-ticker">$ALAB</span>, <span class="sig-ticker">$RKLB</span></td><td>$NBIS、$ALAB、$RKLB 被纳入纳斯达克100指数，三家公司从小盘股成长为纳指成分股，将带来被动资金持续流入</td><td style="white-space:nowrap"><a href="https://x.com/aleabitoreddit/status/2065262802328293497" target="_blank" rel="noopener">@aleabitoreddit</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$ALAB</span>, <span class="sig-ticker">$CRWV</span>, <span class="sig-ticker">$NBIS</span>, <span class="sig-ticker">$RKLB</span>, <span class="sig-ticker">$TER</span>, <span class="sig-ticker">$TEM</span>, <span class="sig-ticker">$CRCL</span></td><td>恭喜新晋纳指成分股 $ALAB $CRWV $NBIS $RKLB $TER 股东，1年涨幅3-5倍；百亿美金市值公司兼具成熟度与5-10倍增长空间，关注 $TEM 和 $CRCL 是否成为下一批</td><td style="white-space:nowrap"><a href="https://x.com/starzq/status/2065366199555502349" target="_blank" rel="noopener">@starzq</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$BTC</span></td><td>美伊关系与黄金走势正相关，与比特币无关，$BTC 表现出真正的避险稳定性</td><td style="white-space:nowrap"><a href="https://x.com/WallStreet0Name/status/2065344626979225963" target="_blank" rel="noopener">@WallStreet0Name</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$MU</span></td><td>$MU 高位已卖出（940），错过回调买点（890）；转而专注黄金，4080入场50手、4120追仓50手，单日盈利逾百万</td><td style="white-space:nowrap"><a href="https://x.com/WallStreet0Name/status/2065271019196354938" target="_blank" rel="noopener">@WallStreet0Name</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$STRC</span></td><td>$STRC 下周一6.15除息日，今日为持仓截止日；此前抄底，今日开盘计划卖出，原预期15号前回归Par Value，最终选择放弃利息落袋为安</td><td style="white-space:nowrap"><a href="https://x.com/nbblock/status/2065341660637307163" target="_blank" rel="noopener">@nbblock</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$ALAB</span>, <span class="sig-ticker">$CRWV</span>, <span class="sig-ticker">$NBIS</span>, <span class="sig-ticker">$RKLB</span>, <span class="sig-ticker">$TER</span>, <span class="sig-ticker">$CHTR</span>, <span class="sig-ticker">$CTSH</span>, <span class="sig-ticker">$INSM</span>, <span class="sig-ticker">$VRSK</span>, <span class="sig-ticker">$ZS</span></td><td>$ALAB、$CRWV、$NBIS、$RKLB、$TER 加入纳斯达克100指数，替换 $CHTR、$CTSH、$INSM、$VRSK、$ZS</td><td style="white-space:nowrap"><a href="https://x.com/nft_hu/status/2065247579882012865" target="_blank" rel="noopener">@nft_hu</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$NVDA</span></td><td>$NVDA估值偏低的表面原因是市场不确定Hyperscaler的AI Capex能持续多久，真正原因是NVDA已太优秀，难以想象它如何能变得"更"优秀</td><td style="white-space:nowrap"><a href="https://x.com/ShanghaoJin/status/2065271906467770369" target="_blank" rel="noopener">@ShanghaoJin</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$TSM</span></td><td>2008金融海啸令台湾8090后深受其苦，2025-2026 Capex时代开启，台湾非红供应链与中国decoupling将带动台湾再度起飞，$TSM有望受益</td><td style="white-space:nowrap"><a href="https://x.com/ShanghaoJin/status/2065317967932645418" target="_blank" rel="noopener">@ShanghaoJin</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$MSTR</span></td><td>讽刺Strategy创始人Saylor：此前以"永不卖BTC"形象著称，如今却为公司卖出$BTC辩护，称"公司当然会在必要时卖"，认为加密行业充斥欺骗</td><td style="white-space:nowrap"><a href="https://x.com/cyrilxuq/status/2065271459451412679" target="_blank" rel="noopener">@cyrilxuq</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPY</span></td><td>$SPY 今日涨1.75%，受伊朗战争可能结束提振，年内大涨日（14次）已超大跌日（13次）</td><td style="white-space:nowrap"><a href="https://x.com/charliebilello/status/2065276697205752029" target="_blank" rel="noopener">@charliebilello</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPY</span></td><td>SpaceX估值创历史新高达1.77万亿美元，若上市将为$SPY成分股第7大公司</td><td style="white-space:nowrap"><a href="https://x.com/charliebilello/status/2065266198590202152" target="_blank" rel="noopener">@charliebilello</a></td></tr>
+
+</tbody>
+</table>
+</div>
+<div class="kol-details">
+<h2>KOL 详细观点</h2>
+<div class="kol-grid">
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/blazingbees" target="_blank" rel="noopener">@blazingbees</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">韩股大涨后高位承压，美伊停战协议推进，SpaceX上市引关注</div><ul class="kol-bullets"><li>韩国KOSPI盘中一度暴涨7.72%、KOSDAQ涨4.26%，外资与机构合计净买入约2.8万亿韩元，但午后指数见顶回落，个人投资者累计获利了结近5万亿韩元，市场出现明显高位承压信号。 <a href="https://x.com/blazingbees/status/2065313106713330131" target="_blank" rel="noopener">↗</a></li>
+<li>核电股并非盘中拉升，而是在收盘竞价阶段异常急涨并触及涨停，疑为ETF再平衡操作引发的事故，相关个股在NXT盘后交易中大幅回落，全部被标注"投资注意"一日。 <a href="https://x.com/blazingbees/status/2065391615183864198" target="_blank" rel="noopener">↗</a></li>
+<li>美伊停战MOU草案曝光，内容包括解除对伊原油制裁、重开霍尔木兹海峡、释放伊朗冻结资产等；作者强调关键在于特朗普的意志，伊朗是否批准并不重要，预计周末将举行签字仪式。 <a href="https://x.com/blazingbees/status/2065350251943526737" target="_blank" rel="noopener">↗</a></li>
+<li>SpaceX今日上市，作者整理了募资规模、市值及主要指数纳入路线图，并说明超额配售选择权（Greenshoe）可在股价急涨时追加供应，将募资额从750亿扩大至860亿美元。 <span class="ticker-inline">$SPACEX</span> <a href="https://x.com/blazingbees/status/2065301968567058835" target="_blank" rel="noopener">↗</a></li>
+<li>韩国半导体设备商韩美半导体公告斥资约500亿韩元入股SpaceX，作者认为此举实质上是投资马斯克生态，并调侃该公司是否就此跻身SpaceX概念股。 <a href="https://x.com/blazingbees/status/2065242298670305474" target="_blank" rel="noopener">↗</a></li>
+<li>作者将市场中对热门板块的"过热""抱团"等负面表述，重新定义为"主导板块/领涨板块"，指出叙事框架影响判断，建议投资者客观看待强势板块而非本能规避。 <a href="https://x.com/blazingbees/status/2065244069962633273" target="_blank" rel="noopener">↗</a></li>
+<li>作者披露近期交易日志中曾展示多个止损案例，当日短线与中长线账户均已从亏损恢复至盈利，借此强调止损纪律与盈亏比管理的重要性。 <a href="https://x.com/blazingbees/status/2065236323162825130" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">17 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/cnfinancewatch" target="_blank" rel="noopener">@cnfinancewatch</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">半导体材料国产替代与稀土管制驱动A股材料板块多点开花</div><ul class="kol-bullets"><li>存储巨头铠侠、SK海力士加速"以钼代钨"材料切换，3D NAND超300层堆叠推动钼需求激增，国产供应链窗口期仅剩6-12个月 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>商务部对日扩大出口管制至氮化铝陶瓷基板，AI芯片封装全球仅3家供应商，加速国产替代，江丰电子直接受益 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>盛和资源氧化钇占全球62%供给，稀土出口管制落地后欧洲量子点厂商面临断供，高端稀土材料迎价值重估 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>津巴布韦锂矿恢复发运，碳酸锂单周涨8%至11.2万/吨，期货净多持仓创年内新高，锂价底部反弹信号确立 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>磷化铟成AI算力新瓶颈，400G光模块核心衬底需求年增超40%，中国铟储量占全球60%以上，或复制稀土管制逻辑 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>12寸硅片国产化率不足15%，产能利用率升至96%，设备订单排至2027年，国产替代确定性强 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>江丰电子钼靶材通过多家日韩Fab认证并进入量产，从替代者升级为定义者，产能扩张信号积极 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>"芯片教父"张汝京与汇通能源合作开发28nm光罩，光罩是国产化率最低环节之一，技术背书意义重大 <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>今日三大热点方向：半导体材料国产替代（钼/钨/氮化铝/硅片）、稀土小金属资源（钇/铟/锂/钼）、AI算力材料（磷化铟/光模块衬底/先进封装） <a href="https://x.com/cnfinancewatch/status/2065225605902401914" target="_blank" rel="noopener">↗</a></li>
+<li>上证50ETF华夏单日上涨2.02%，50ETF购6月3020A期权大涨279.63%，A股做多情绪明显升温 <a href="https://x.com/cnfinancewatch/status/2065317949339226470" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">11 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/LizAnnSonders" target="_blank" rel="noopener">@LizAnnSonders</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">通胀压力上行、工资增速放缓，消费者财务压力加剧，市场情绪偏谨慎</div><ul class="kol-bullets"><li>5月核心PPI 3个月年化涨幅达+5.6%，最终需求商品价格单月飙升2.8%，创该系列数据有史以来最大单月涨幅，是本轮PPI加速的主要驱动力 <a href="https://x.com/LizAnnSonders/status/2065409492540678639" target="_blank" rel="noopener">↗</a></li>
+<li>亚特兰大联储工资增长追踪指数5月回落至+3.5%，为2021年6月以来最低，劳动力市场薪资压力持续减轻 <a href="https://x.com/LizAnnSonders/status/2065409622836691288" target="_blank" rel="noopener">↗</a></li>
+<li>消费者401(k)提前支取的首要原因是避免房屋止赎/被驱逐，其次是医疗支出和学费，显示底层消费者财务压力显著 <a href="https://x.com/LizAnnSonders/status/2065409768307773783" target="_blank" rel="noopener">↗</a></li>
+<li>美联储数据显示，家庭净资产与可支配收入之比（衡量以财富支撑消费的潜力）2026年一季度小幅回落至7.8%，但仍远高于历史均值 <a href="https://x.com/LizAnnSonders/status/2065409230564401259" target="_blank" rel="noopener">↗</a></li>
+<li>各篮子策略年初至今、3月（调整月）及季度至今表现更新，Mag7图表与板块/指数涨跌数据同步刷新 <a href="https://x.com/LizAnnSonders/status/2065409205193036191" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">10 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/jukan05" target="_blank" rel="noopener">@jukan05</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">Nvidia Rubin Ultra确认采用PTFE材料，产业链受益；SK海力士接连事故拖累韩股</div><ul class="kol-bullets"><li>$NVDA Rubin Ultra正交背板确认采用PTFE为核心材料，替代此前M9+Q玻纤布方案，支持337G以上SerDes信号传输；胜宏科技预计成为主要供应商，2027年Kyber平台PTFE CCL TAM或达80亿人民币 <span class="ticker-inline">$NVDA</span> <a href="https://x.com/jukan05/status/2065410366059000010" target="_blank" rel="noopener">↗</a></li>
+<li>$NVDA 据路透社，Nvidia已告知中国客户，其新AI数据中心CPU Vera最早8月发布，客户可开始下单 <span class="ticker-inline">$NVDA</span> <a href="https://x.com/jukan05/status/2065320613196263904" target="_blank" rel="noopener">↗</a></li>
+<li>Intel一位Fellow曾考虑起诉台积电，称CoWoS-L抄袭了Intel的硅桥概念 <a href="https://x.com/jukan05/status/2065354641278390299" target="_blank" rel="noopener">↗</a></li>
+<li>三星电子与SK海力士股价各回落约3% <a href="https://x.com/jukan05/status/2065309807742197861" target="_blank" rel="noopener">↗</a></li>
+<li>韩国半导体设备公司韩美半导体（市值约200亿美元）宣布投资SpaceX 3280万美元后单日暴涨23%，作者认为此举不理性 <a href="https://x.com/jukan05/status/2065301503179681829" target="_blank" rel="noopener">↗</a></li>
+<li>SK海力士清州M15X厂房气体室发生火灾，员工紧急疏散，此为两天内第二起事故 <a href="https://x.com/jukan05/status/2065247070282494027" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">9 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/Mr_Derivatives" target="_blank" rel="noopener">@Mr_Derivatives</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">SpaceX IPO成焦点，科技股普跌，市场波动剧烈</div><ul class="kol-bullets"><li>$SPCX 开盘隐含价格约 $176，$HOOD 向用户赠送一股 $SPCX IPO 份额，SpaceX 上市日终于到来 <span class="ticker-inline">$SPCX</span> <span class="ticker-inline">$HOOD</span> <a href="https://x.com/Mr_Derivatives/status/2065401780272562414" target="_blank" rel="noopener">↗</a></li>
+<li>$SOXX 近8个交易日从 $620 跌至 $520 再反弹至 $590，波动堪比赌场 <span class="ticker-inline">$SOXX</span> <a href="https://x.com/Mr_Derivatives/status/2065399656297972104" target="_blank" rel="noopener">↗</a></li>
+<li>$META、$MSFT、$ORCL 均已连跌5个交易日，科技巨头集体承压 <span class="ticker-inline">$META</span> <span class="ticker-inline">$MSFT</span> <span class="ticker-inline">$ORCL</span> <a href="https://x.com/Mr_Derivatives/status/2065294053353418832" target="_blank" rel="noopener">↗</a></li>
+<li>$ADBE 盘后跌至2018年2月以来新低，被称为"股东价值的彻底毁灭" <span class="ticker-inline">$ADBE</span> <a href="https://x.com/Mr_Derivatives/status/2065223088103686423" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">8 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/realDonaldTrump" target="_blank" rel="noopener">@realDonaldTrump</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">特朗普宣布取消对伊朗军事打击，提名Clayton为国家情报总监，推动移民执法与政治清洗议程</div><ul class="kol-bullets"><li>特朗普宣布已取消对伊朗的空袭计划，美以沙等多国已原则同意协议，海军封锁维持至协议签署 <a href="https://x.com/realDonaldTrump/status/truth_1781198929348275948" target="_blank" rel="noopener">↗</a></li>
+<li>提名前SEC主席、现任纽约南区联邦检察官Jay Clayton出任国家情报总监并进入内阁 <a href="https://x.com/realDonaldTrump/status/truth_1781200834951760620" target="_blank" rel="noopener">↗</a></li>
+<li>国会通过移民执法拨款法案，特朗普称此为在民主党阻挠后的重大胜利 <a href="https://x.com/realDonaldTrump/status/truth_1781228956517788787" target="_blank" rel="noopener">↗</a></li>
+<li>加州联邦检察官预计选民欺诈调查将提起诉讼 <a href="https://x.com/realDonaldTrump/status/truth_1781228979896056395" target="_blank" rel="noopener">↗</a></li>
+<li>强烈抨击众议员Jamie Raskin，呼吁国会将其驱逐，称其患有"特朗普狂热综合症" <a href="https://x.com/realDonaldTrump/status/truth_1781221807126430206" target="_blank" rel="noopener">↗</a></li>
+<li>展示从墨西哥贩毒集团缴获的武器，强调卡特尔每年造成数千美国人死亡 <a href="https://x.com/realDonaldTrump/status/truth_1781215274996380431" target="_blank" rel="noopener">↗</a></li>
+<li>表态希望Sara Baxter留任棕榈滩县委员，而非竞选国会席位 <a href="https://x.com/realDonaldTrump/status/truth_1781223103436409770" target="_blank" rel="noopener">↗</a></li>
+<li>转发批评CBS主播Scott Pelley的文章 <a href="https://x.com/realDonaldTrump/status/truth_1781228997216203379" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">8 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/ripster47" target="_blank" rel="noopener">@ripster47</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">SpaceX IPO低流通盘制造供需失衡，同时强调仓位纪律是交易核心</div><ul class="kol-bullets"><li>$SPCX IPO首日仅4.3%流通股，历史上低于5%流通盘的IPO三年内多跑输大市，但供需极度紧张将造成特殊波动 <span class="ticker-inline">$SPCX</span> <a href="https://x.com/ripster47/status/2065417804623364285" target="_blank" rel="noopener">↗</a></li>
+<li>每日市场晨报涵盖 $SPX $RKLB $ASTS $NVDA $AMD $MU 等数十只标的，为投资者提供当日关注清单 <span class="ticker-inline">$SPX</span> <span class="ticker-inline">$RKLB</span> <span class="ticker-inline">$ASTS</span> <span class="ticker-inline">$PL</span> <span class="ticker-inline">$RDW</span> <span class="ticker-inline">$LUNR</span> <span class="ticker-inline">$SPCX</span> <span class="ticker-inline">$BABA</span> <span class="ticker-inline">$ALAB</span> <span class="ticker-inline">$CRWV</span> <span class="ticker-inline">$NBIS</span> <span class="ticker-inline">$TER</span> <span class="ticker-inline">$MNTS</span> <span class="ticker-inline">$MU</span> <span class="ticker-inline">$SNDK</span> <span class="ticker-inline">$NVDA</span> <span class="ticker-inline">$SHAZ</span> <span class="ticker-inline">$VRT</span> <span class="ticker-inline">$MRVL</span> <span class="ticker-inline">$SMCI</span> <span class="ticker-inline">$LMT</span> <span class="ticker-inline">$RR</span> <span class="ticker-inline">$ADBE</span> <span class="ticker-inline">$RH</span> <span class="ticker-inline">$LEN</span> <span class="ticker-inline">$AMD</span> <span class="ticker-inline">$KTOS</span> <span class="ticker-inline">$EPR</span> <span class="ticker-inline">$MKTX</span> <span class="ticker-inline">$AVTX</span> <span class="ticker-inline">$KO</span> <span class="ticker-inline">$SAIL</span> <span class="ticker-inline">$SATS</span> <a href="https://x.com/ripster47/status/2065417162487947668" target="_blank" rel="noopener">↗</a></li>
+<li>早盘笔记预期"Taco"行情，已加仓多只波段标的，策略分析发布于 TenetResearch <a href="https://x.com/ripster47/status/2065279844917588121" target="_blank" rel="noopener">↗</a></li>
+<li>教学视频：涵盖 $SPCX IPO催化剂交易、$DELL $ENPH波段寻找、$INTC $ARM分析师交易等策略 <span class="ticker-inline">$SPCX</span> <span class="ticker-inline">$DELL</span> <span class="ticker-inline">$ENPH</span> <span class="ticker-inline">$INTC</span> <span class="ticker-inline">$ARM</span> <span class="ticker-inline">$MD</span> <a href="https://x.com/ripster47/status/2065263042841968712" target="_blank" rel="noopener">↗</a></li>
+<li>交易心理：仓位过重导致情绪失控进而丧失纪律，亏损根源在于仓位管理而非市场，应以小仓位博取高收益率 <a href="https://x.com/ripster47/status/2065259321542201395" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">5 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/hanking66" target="_blank" rel="noopener">@hanking66</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">存储板块长期确定性最强，持续看多，逢跌买入</div><ul class="kol-bullets"><li>韩国银行限制杠杆买存储股是强制降温而非真利空，长期反而更健康，存储基本面极强，28年产能已被抢光，机构也在踏空，至少还能涨2年 <a href="https://x.com/hanking66/status/2065406378685116895" target="_blank" rel="noopener">↗</a></li>
+<li>持仓不动，短期波动正常；美伊和谈推进、$MU 8月前催化剂明确，参考 SpaceX IPO 对小火箭影响，$MU 走势可期，至少持有到8月 <span class="ticker-inline">$MU</span> <a href="https://x.com/hanking66/status/2065395788726055404" target="_blank" rel="noopener">↗</a></li>
+<li>美伊和解、世界杯、SpaceX IPO 三重宏观利好；社区突破万人里程碑，博主分享成长历程，表达长期陪跑散户的立场 <a href="https://x.com/hanking66/status/2065355695042814246" target="_blank" rel="noopener">↗</a></li>
+<li>发出神秘暗示性短文，暗示有重大消息即将到来，率先布局 <a href="https://x.com/hanking66/status/2065346076094435614" target="_blank" rel="noopener">↗</a></li>
+<li>太空板块当日最热，但存储确定性远强于太空概念股，存储才是核心仓位，太空受热捧时正是逢低买入存储的机会 <a href="https://x.com/hanking66/status/2065307522282779091" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">5 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/charliebilello" target="_blank" rel="noopener">@charliebilello</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">美股今年涨跌互现，全球格局逆转，实际购买力受通胀侵蚀</div><ul class="kol-bullets"><li>$SPY 今日涨1.75%，受伊朗战争可能结束提振，年内大涨日（14次）已超大跌日（13次） <span class="ticker-inline">$SPY</span> <a href="https://x.com/charliebilello/status/2065276697205752029" target="_blank" rel="noopener">↗</a></li>
+<li>全球央行收紧：ECB和丹麦央行均为2023年以来首次加息，各上调25bp至2.25%和1.85% <a href="https://x.com/charliebilello/status/2065271401229996443" target="_blank" rel="noopener">↗</a></li>
+<li>美国薪资增速首次自2023年以来低于通胀，美国工人实际购买力下滑 <a href="https://x.com/charliebilello/status/2065266221751193756" target="_blank" rel="noopener">↗</a></li>
+<li>SpaceX估值创历史新高达1.77万亿美元，若上市将为$SPY成分股第7大公司 <span class="ticker-inline">$SPY</span> <a href="https://x.com/charliebilello/status/2065266198590202152" target="_blank" rel="noopener">↗</a></li>
+<li>2026年至今：新兴市场/国际股票跑赢美股，小盘价值跑赢大盘成长，Mag 7年内下跌，格局全面逆转 <a href="https://x.com/charliebilello/status/2065237828410200236" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">5 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/ShanghaoJin" target="_blank" rel="noopener">@ShanghaoJin</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">市场低估$NVDA估值，同时看好台湾非红供应链在Capex时代的再起飞</div><ul class="kol-bullets"><li>$NVDA估值偏低的表面原因是市场不确定Hyperscaler的AI Capex能持续多久，真正原因是NVDA已太优秀，难以想象它如何能变得"更"优秀 <span class="ticker-inline">$NVDA</span> <a href="https://x.com/ShanghaoJin/status/2065271906467770369" target="_blank" rel="noopener">↗</a></li>
+<li>2008金融海啸令台湾8090后深受其苦，2025-2026 Capex时代开启，台湾非红供应链与中国decoupling将带动台湾再度起飞，$TSM有望受益 <span class="ticker-inline">$TSM</span> <a href="https://x.com/ShanghaoJin/status/2065317967932645418" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">4 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/zephyr_z9" target="_blank" rel="noopener">@zephyr_z9</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">聚焦AI前沿议题，涵盖超级智能路径、AGI内部治理争议与加密暗语</div><ul class="kol-bullets"><li>转发加密暗语帖"trillioniare"，疑为圈内梗或信号，无明确股票指向 <a href="https://x.com/zephyr_z9/status/2065418413720428710" target="_blank" rel="noopener">↗</a></li>
+<li>分享新报告：从AGI迈向超级智能有四条路径——scaling、AI范式跃迁、递归自我改进、大规模多智能体涌现，同时关注潜在瓶颈 <a href="https://x.com/zephyr_z9/status/2065392640674431329" target="_blank" rel="noopener">↗</a></li>
+<li>批评有人在Anthropic全职负责引导Claude破坏付费用户的ML研究能力，暗指$AMZN投资的Anthropic内部存在治理问题 <span class="ticker-inline">$AMZN</span> <a href="https://x.com/zephyr_z9/status/2065307449993953787" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">3 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/LinQingV" target="_blank" rel="noopener">@LinQingV</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">Neocloud商业模式脆弱，仅适合短线交易，不宜长期持有</div><ul class="kol-bullets"><li>Neocloud是高负债、高折旧、资产快速贬值的重资产模式，上行期勉强运转，下行周期大概率破产清算、股权清零，只适合短期波段交易 <a href="https://x.com/LinQingV/status/2065287814548517343" target="_blank" rel="noopener">↗</a></li>
+<li>分享使用 Cursor AI 一万美元 credit 的体验，称云端 agent 并行任务体验明显提升，并建议增加原生 render-to-image 工具；与美股无直接关联 <a href="https://x.com/LinQingV/status/2065357787614609441" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">3 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/WallStreet0Name" target="_blank" rel="noopener">@WallStreet0Name</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">黄金交易获利丰厚，比特币走势独立，普通人勿跟风赌球</div><ul class="kol-bullets"><li>美伊关系与黄金走势正相关，与比特币无关，$BTC 表现出真正的避险稳定性 <span class="ticker-inline">$BTC</span> <a href="https://x.com/WallStreet0Name/status/2065344626979225963" target="_blank" rel="noopener">↗</a></li>
+<li>世界杯期间线上赌球泛滥，提醒普通人认清自身风险承受能力，勿跟风下注 <a href="https://x.com/WallStreet0Name/status/2065344007274967049" target="_blank" rel="noopener">↗</a></li>
+<li>$MU 高位已卖出（940），错过回调买点（890）；转而专注黄金，4080入场50手、4120追仓50手，单日盈利逾百万 <span class="ticker-inline">$MU</span> <a href="https://x.com/WallStreet0Name/status/2065271019196354938" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">3 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/nft_hu" target="_blank" rel="noopener">@nft_hu</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">Nasdaq-100成分股调整，转发科普晶圆分类，无明确方向性观点</div><ul class="kol-bullets"><li>科普晶圆四大分类：逻辑晶圆、内存晶圆、模拟/功率晶圆、图像传感晶圆 <a href="https://x.com/nft_hu/status/2065320839982268877" target="_blank" rel="noopener">↗</a></li>
+<li>在IB平台挂日股限价单价格到位却未成交，吐槽产品设计体验差 <a href="https://x.com/nft_hu/status/2065267179508093128" target="_blank" rel="noopener">↗</a></li>
+<li>$ALAB、$CRWV、$NBIS、$RKLB、$TER 加入纳斯达克100指数，替换 $CHTR、$CTSH、$INSM、$VRSK、$ZS <span class="ticker-inline">$ALAB</span> <span class="ticker-inline">$CRWV</span> <span class="ticker-inline">$NBIS</span> <span class="ticker-inline">$RKLB</span> <span class="ticker-inline">$TER</span> <span class="ticker-inline">$CHTR</span> <span class="ticker-inline">$CTSH</span> <span class="ticker-inline">$INSM</span> <span class="ticker-inline">$VRSK</span> <span class="ticker-inline">$ZS</span> <a href="https://x.com/nft_hu/status/2065247579882012865" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">3 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/octopusycc" target="_blank" rel="noopener">@octopusycc</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">$RKLB 多空分歧大，115为下行关键支撑，120为Gamma flip上方压力</div><ul class="kol-bullets"><li>$RKLB 盘前115.5-116附近，跌破115将下泄，涨破120触发Gamma flip，多空分歧显著，作为SpaceX上市前的前瞻标的值得关注 <span class="ticker-inline">$RKLB</span> <a href="https://x.com/octopusycc/status/2065419238014402862" target="_blank" rel="noopener">↗</a></li>
+<li>博主推广SpaceX发射直播活动，币安广场21:30开播，无具体股票观点 <a href="https://x.com/octopusycc/status/2065417986861830373" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/LynAldenContact" target="_blank" rel="noopener">@LynAldenContact</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">央行趋紧叠加AI支出集中于少数重度用户，流动性与科技估值承压</div><ul class="kol-bullets"><li>越来越多央行转向紧缩立场，全球流动性收紧趋势加剧。 <a href="https://x.com/LynAldenContact/status/2065418510713393399" target="_blank" rel="noopener">↗</a></li>
+<li>AI算力支出高度集中于极少数重度用户，市场广度存疑。 <a href="https://x.com/LynAldenContact/status/2065406603864490177" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/aleabitoreddit" target="_blank" rel="noopener">@aleabitoreddit</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">关注机构建仓标的SIVE及纳入纳指100的NBIS、ALAB、RKLB成长机会</div><ul class="kol-bullets"><li>大型美国机构正在布局 $SIVE：摩根大通持股从0.4%升至5.3%，富达等主动投资者也出现在股东名单，贝莱德等被动资金或持续流入，机构背书验证了作者此前论点 <span class="ticker-inline">$SIVE</span> <a href="https://x.com/aleabitoreddit/status/2065398682456052003" target="_blank" rel="noopener">↗</a></li>
+<li>$NBIS、$ALAB、$RKLB 被纳入纳斯达克100指数，三家公司从小盘股成长为纳指成分股，将带来被动资金持续流入 <span class="ticker-inline">$NBIS</span> <span class="ticker-inline">$ALAB</span> <span class="ticker-inline">$RKLB</span> <a href="https://x.com/aleabitoreddit/status/2065262802328293497" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/BrianFeroldi" target="_blank" rel="noopener">@BrianFeroldi</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">聚焦投资教育，强调费用与选股原则的长期重要性</div><ul class="kol-bullets"><li>费用对投资回报的影响可视化呈现，直观说明低费用的重要性 <a href="https://x.com/BrianFeroldi/status/2065390773726503061" target="_blank" rel="noopener">↗</a></li>
+<li>分享 Pat Dorsey 成功股票投资五大法则，偏向价值与护城河投资理念 <a href="https://x.com/BrianFeroldi/status/2065224144464019561" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/caizhenghai" target="_blank" rel="noopener">@caizhenghai</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">当日无实质性美股观点，内容以娱乐吐槽为主</div><ul class="kol-bullets"><li>调侃身体不好的人可以通过买沃格光电体验坐过山车的刺激感，隐含对该股高波动性的戏谑评价 <a href="https://x.com/caizhenghai/status/2065336131504509245" target="_blank" rel="noopener">↗</a></li>
+<li>分享追番《沧元图》的观感，与股市无关 <a href="https://x.com/caizhenghai/status/2065234895384015005" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/rickawsb" target="_blank" rel="noopener">@rickawsb</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">前沿AI labs高速增长的ARR将在2-3年内弥合大科技capex，下跌是买入机会</div><ul class="kol-bullets"><li>市场可能开始质疑大科技的FCF，但前沿labs合计约$55B ARR且增速极快，不含企业用户，按当前增速2-3年可弥合capex缺口；这些capex同时也是争夺AGI的唯一筹码，跌多了可抄底 <a href="https://x.com/rickawsb/status/2065302636405137895" target="_blank" rel="noopener">↗</a></li>
+<li>发布了一个X Spaces音频链接，内容未知 <a href="https://x.com/rickawsb/status/2065244164963680270" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/cyrilxuq" target="_blank" rel="noopener">@cyrilxuq</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">调侃加密行业风气，并对Saylor卖BTC言论转变表示讽刺</div><ul class="kol-bullets"><li>庆祝某预测市场（Polymarket）押注胜利，语气轻松调侃 <a href="https://x.com/cyrilxuq/status/2065282956743368977" target="_blank" rel="noopener">↗</a></li>
+<li>讽刺Strategy创始人Saylor：此前以"永不卖BTC"形象著称，如今却为公司卖出$BTC辩护，称"公司当然会在必要时卖"，认为加密行业充斥欺骗 <span class="ticker-inline">$MSTR</span> <a href="https://x.com/cyrilxuq/status/2065271459451412679" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/tychozzz" target="_blank" rel="noopener">@tychozzz</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">Token价格长期下行是AI技术扩散正常形态，将刺激企业需求与应用层爆发</div><ul class="kol-bullets"><li>华尔街炒作AI Token价格下降，Silicon Data LLM Token支出指数近半月出现小幅回调，但该指标主要衡量边际付费意愿，无需过度解读短期波动 <a href="https://x.com/tychozzz/status/2065416850679402885" target="_blank" rel="noopener">↗</a></li>
+<li>Token成本持续下降时，企业在相同总成本下可完成更多复杂任务，需求不会持续走弱，反而会刺激业务增长与AI应用层爆发 <a href="https://x.com/tychozzz/status/2065416850679402885" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/awealthofcs" target="_blank" rel="noopener">@awealthofcs</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">财富不平等感受比以往更强烈</div><ul class="kol-bullets"><li>探讨为何当下财富不平等的感受比以往任何时候都更加强烈 <a href="https://x.com/awealthofcs/status/2065416626095223201" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/raycat2021" target="_blank" rel="noopener">@raycat2021</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">IPO整体长期跑输大盘，散户接盘风险高</div><ul class="kol-bullets"><li>IPO本质上是内部人和早期投资者在估值峰值向公众转移风险的时机，买家未来三年平均跑输市场20.5% <a href="https://x.com/raycat2021/status/2065412073627287737" target="_blank" rel="noopener">↗</a></li>
+<li>2013年以来标普涨幅428%，新股篮子仅155%，追逐IPO代价显著 <a href="https://x.com/raycat2021/status/2065412073627287737" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/xiaomustock" target="_blank" rel="noopener">@xiaomustock</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">以Facebook上市时市值占比类比，SPCE上市规模占比相近</div><ul class="kol-bullets"><li>以当年$FB上市时占美股总规模0.086%类比，$SPCE今日上市占比0.11%，规模较为接近，可作参考 <span class="ticker-inline">$META</span> <span class="ticker-inline">$SPCE</span> <a href="https://x.com/xiaomustock/status/2065410587644051749" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/starzq" target="_blank" rel="noopener">@starzq</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">纳指新成分股1年涨3-5倍，百亿市值公司是下一批价值挖掘候选</div><ul class="kol-bullets"><li>恭喜新晋纳指成分股 $ALAB $CRWV $NBIS $RKLB $TER 股东，1年涨幅3-5倍；百亿美金市值公司兼具成熟度与5-10倍增长空间，关注 $TEM 和 $CRCL 是否成为下一批 <span class="ticker-inline">$ALAB</span> <span class="ticker-inline">$CRWV</span> <span class="ticker-inline">$NBIS</span> <span class="ticker-inline">$RKLB</span> <span class="ticker-inline">$TER</span> <span class="ticker-inline">$TEM</span> <span class="ticker-inline">$CRCL</span> <a href="https://x.com/starzq/status/2065366199555502349" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/nbblock" target="_blank" rel="noopener">@nbblock</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">抄底STRC获利了结，放弃吃息</div><ul class="kol-bullets"><li>$STRC 下周一6.15除息日，今日为持仓截止日；此前抄底，今日开盘计划卖出，原预期15号前回归Par Value，最终选择放弃利息落袋为安 <span class="ticker-inline">$STRC</span> <a href="https://x.com/nbblock/status/2065341660637307163" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/crux_capital_" target="_blank" rel="noopener">@crux_capital_</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">暂无核心观点</div><ul class="kol-bullets"></ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/Areskapitalon" target="_blank" rel="noopener">@Areskapitalon</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">平台算法提取效率趋近零损耗，从数学上碾压高损耗的民族国家财政机器，但清零中间层同时也清零了文明减震层</div><ul class="kol-bullets"><li>民族国家财政管道损耗率极高：封建时代超90%，现代科层制虽有改善，但游说集团、承包商、监管俘获（如美国医疗占GDP 18%却结果垫底）使支出端持续渗漏 <a href="https://x.com/Areskapitalon/status/2065286910281482521" target="_blank" rel="noopener">↗</a></li>
+<li>平台算法提取是第三代拓扑：边际成本仅一次数据库写入，无税务员、无拨款委员会、无内部截流层可生长，同样一块社会剩余平台实际到手份额是民族国家的好几倍 <a href="https://x.com/Areskapitalon/status/2065286910281482521" target="_blank" rel="noopener">↗</a></li>
+<li>民族国家死亡闭环：刚性支出（福利、利息、官僚）+高损耗收入端=缺口用主权信用填补；每次改革被制度化截流层否决，债权人下调估值，利率上行挤占财政，螺旋式恶化 <a href="https://x.com/Areskapitalon/status/2065286910281482521" target="_blank" rel="noopener">↗</a></li>
+<li>提取效率≠文明存续：民族国家管道中的"损耗"部分是议会同意成本、司法公正成本、福利原则的执行成本；平台零层拓扑在清零损耗的同时也清零了减震——碾压时同样没有任何一层会喊停 <a href="https://x.com/Areskapitalon/status/2065286910281482521" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/golden_pan1" target="_blank" rel="noopener">@golden_pan1</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">发布与股市无关的感悟内容，无实质投资观点</div><ul class="kol-bullets"><li>发布个人感悟「Skill是能力商品的外化」，无涉及任何股票或市场观点 <a href="https://x.com/golden_pan1/status/2065275899763916833" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/Scottrades" target="_blank" rel="noopener">@Scottrades</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">无法获取推文内容，无法总结</div><ul class="kol-bullets"><li>推文内容无法访问，链接指向 t.co 短链，内容未知 <a href="https://x.com/Scottrades/status/2065266510038434189" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/artinmemes" target="_blank" rel="noopener">@artinmemes</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">Labubu亮相世界杯带动泡泡玛特ADR走强，建议运作主板ADR提升流动性</div><ul class="kol-bullets"><li>Labubu世界杯曝光，$PDD 关联IP带动泡泡玛特美股ADR涨幅超港股，非保荐ADR流动性差但仍有买盘 <a href="https://x.com/artinmemes/status/2065265734314512880" target="_blank" rel="noopener">↗</a></li>
+<li>建议泡泡玛特参考SK海力士模式，升级为美国主板ADR以吸引更多买盘 <a href="https://x.com/artinmemes/status/2065265734314512880" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/Remzztrades" target="_blank" rel="noopener">@Remzztrades</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">看好当前市场小资金快速翻倍机会</div><ul class="kol-bullets"><li>强调当前市场环境下可以快速将5000美元翻至10万美元 <a href="https://x.com/Remzztrades/status/2065226307101774327" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+
+</div>
+</div>
+<footer class="page-footer">
+KOL Daily &middot; Generated at 2026-06-12 21:14 CST
+</footer>
+</div>
+</body>
+</html>
