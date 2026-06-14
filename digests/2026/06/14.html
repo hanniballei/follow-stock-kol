@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美股KOL日报 · 2026-06-14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f172a;
+    --ink-muted: #475569;
+    --paper: #fafafa;
+    --paper-white: #ffffff;
+    --border: #e2e8f0;
+    --border-strong: #94a3b8;
+    --bullish: #059669;
+    --bearish: #dc2626;
+    --neutral: #64748b;
+    --unclear: #d97706;
+    --accent: #0f172a;
+    --font: "Inter", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", "Cascadia Code", monospace;
+    --section-gap: 56px;
+    --block-gap: 32px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: var(--font);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 64px 28px 80px; }
+
+  /* ── hero ── */
+  .page-hero {
+    margin-bottom: var(--section-gap);
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .page-hero h1 {
+    font-family: var(--font);
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .page-hero .hero-date {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    margin-bottom: 28px;
+    letter-spacing: 0.01em;
+  }
+  .hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .hero-stats span { white-space: nowrap; }
+  .hero-stats strong {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--ink);
+    display: block;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── overview ── */
+  .overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: var(--section-gap);
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (max-width: 600px) { .overview { grid-template-columns: 1fr; gap: 28px; } }
+  .overview-block { }
+  .overview-block .block-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 18px;
+  }
+
+  /* sentiment bars — flat */
+  .sent-bars { display: flex; flex-direction: column; gap: 12px; }
+  .sent-row { display: grid; grid-template-columns: 44px 1fr 36px; align-items: center; gap: 10px; }
+  .sent-row .sent-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+  }
+  .sent-row .sent-label.bullish { color: var(--bullish); }
+  .sent-row .sent-label.bearish { color: var(--bearish); }
+  .sent-row .sent-label.neutral { color: var(--neutral); }
+  .sent-row .sent-label.unclear { color: var(--unclear); }
+  .sent-bar-wrap { height: 8px; background: var(--border); }
+  .sent-bar { height: 100%; transition: width .3s; }
+  .sent-bar.bullish { background: var(--bullish); }
+  .sent-bar.bearish { background: var(--bearish); }
+  .sent-bar.neutral { background: var(--neutral); }
+  .sent-bar.unclear { background: var(--unclear); }
+  .sent-row .sent-count {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+
+  /* ticker list — flat mono tags */
+  .ticker-list { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .ticker-tag {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    padding-bottom: 1px;
+    border-bottom: 2px solid transparent;
+    text-decoration: none;
+  }
+  .ticker-tag.hot {
+    color: var(--bearish);
+    border-bottom-color: var(--bearish);
+  }
+  .ticker-tag .count {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    margin-left: 1px;
+  }
+
+  /* ── layer 1 sections ── */
+  .layer1 { margin-bottom: var(--section-gap); }
+  .layer1 .section-block {
+    margin-bottom: var(--block-gap);
+    padding-left: 0;
+  }
+  .layer1 .section-block .section-head {
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+  .layer1 .section-block .section-body {
+    font-size: 14.5px;
+    color: #334155;
+    line-height: 1.7;
+  }
+  .layer1 .section-block .section-body ul,
+  .layer1 .section-block .section-body ol {
+    padding-left: 18px;
+    margin: 4px 0;
+  }
+  .layer1 .section-block .section-body li {
+    margin-bottom: 5px;
+  }
+  .layer1 .section-block .section-body li:last-child { margin-bottom: 0; }
+  .layer1 .section-block .section-body a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-strong);
+    font-weight: 500;
+    font-size: 13px;
+    transition: border-color .15s;
+  }
+  .layer1 .section-block .section-body a:hover {
+    border-bottom-color: var(--ink);
+  }
+  .layer1 .section-block .section-body strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .layer1 .section-block .section-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .layer1 .section-block .section-body th {
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--ink);
+    color: var(--ink);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .layer1 .section-block .section-body td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .layer1 .section-block .section-body code {
+    font-family: var(--mono);
+    background: transparent;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ── trade signals ── */
+  .trade-signals {
+    margin-bottom: var(--section-gap);
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .trade-signals .section-head {
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .trade-signals table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .trade-signals th {
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--ink);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+  }
+  .trade-signals td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: top;
+  }
+  .trade-signals tr:last-child td { border-bottom: none; }
+  .trade-signals .sig-ticker {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .trade-signals a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-strong);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color .15s;
+  }
+  .trade-signals a:hover { border-bottom-color: var(--ink); }
+
+  /* ── KOL cards ── */
+  .kol-details { margin-bottom: var(--section-gap); }
+  .kol-details > h2 {
+    font-family: var(--font);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .kol-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 1px;
+    background: var(--border);
+  }
+  @media (max-width: 600px) { .kol-grid { grid-template-columns: 1fr; } }
+  .kol-card {
+    background: var(--paper-white);
+    padding: 22px 24px 20px;
+    border-left: 3px solid var(--border);
+    transition: border-left-color .15s;
+  }
+  .kol-card:hover { border-left-color: var(--ink); }
+  .kol-card.bullish { border-left-color: var(--bullish); }
+  .kol-card.bearish { border-left-color: var(--bearish); }
+  .kol-card.neutral { border-left-color: var(--neutral); }
+  .kol-card.unclear { border-left-color: var(--unclear); }
+  .kol-card .kol-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .kol-card .kol-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .kol-card .kol-name:hover { opacity: 0.6; }
+  .kol-card .sent-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0;
+    background: none;
+  }
+  .sent-tag.bullish { color: var(--bullish); }
+  .sent-tag.bearish { color: var(--bearish); }
+  .sent-tag.neutral { color: var(--neutral); }
+  .sent-tag.unclear { color: var(--unclear); }
+  .kol-card .kol-core {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 12px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .kol-card .kol-bullets {
+    list-style: none;
+    padding: 0;
+  }
+  .kol-card .kol-bullets li {
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 4px;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.55;
+  }
+  .kol-card .kol-bullets li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--border-strong);
+    font-size: 10px;
+  }
+  .kol-card .kol-bullets .ticker-inline {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .kol-card .kol-bullets a {
+    color: var(--ink-muted);
+    font-size: 11px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    margin-left: 2px;
+    transition: border-color .15s;
+  }
+  .kol-card .kol-bullets a:hover { border-bottom-color: var(--ink); }
+  .kol-card .kol-meta {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── footer ── */
+  .page-footer {
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .page-footer a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-strong);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<header class="page-hero">
+<h1>美股 KOL 日报</h1>
+<div class="hero-date">2026-06-14</div>
+<div class="hero-stats">
+  <span><strong>62</strong> 位 KOL</span>
+  <span><strong>24</strong> 位有发言</span>
+  <span><strong>78</strong> 条推文</span>
+</div>
+</header>
+<div class="overview">
+<div class="overview-block">
+  <div class="block-label">市场情绪</div>
+  <div class="sent-bars">
+<div class="sent-row"><span class="sent-label bullish">看多</span><div class="sent-bar-wrap"><div class="sent-bar bullish" style="width:25%"></div></div><span class="sent-count">6</span></div>
+<div class="sent-row"><span class="sent-label bearish">看空</span><div class="sent-bar-wrap"><div class="sent-bar bearish" style="width:4%"></div></div><span class="sent-count">1</span></div>
+<div class="sent-row"><span class="sent-label neutral">中性</span><div class="sent-bar-wrap"><div class="sent-bar neutral" style="width:54%"></div></div><span class="sent-count">13</span></div>
+<div class="sent-row"><span class="sent-label unclear">不明</span><div class="sent-bar-wrap"><div class="sent-bar unclear" style="width:17%"></div></div><span class="sent-count">4</span></div>
+
+  </div>
+</div>
+<div class="overview-block">
+  <div class="block-label">热议标的</div>
+  <div class="ticker-list">
+<span class="ticker-tag">$AMZN<span class="count">2</span></span>
+<span class="ticker-tag">$QQQ<span class="count">1</span></span>
+<span class="ticker-tag">$SPY<span class="count">1</span></span>
+<span class="ticker-tag">$SNDK<span class="count">1</span></span>
+<span class="ticker-tag">$NVDA<span class="count">1</span></span>
+<span class="ticker-tag">$RKLB<span class="count">1</span></span>
+<span class="ticker-tag">$MRVL<span class="count">1</span></span>
+<span class="ticker-tag">$005930<span class="count">1</span></span>
+<span class="ticker-tag">$000660<span class="count">1</span></span>
+<span class="ticker-tag">$IONQ<span class="count">1</span></span>
+<span class="ticker-tag">$GOOGL<span class="count">1</span></span>
+<span class="ticker-tag">$MSFT<span class="count">1</span></span>
+<span class="ticker-tag">$SPCX<span class="count">1</span></span>
+
+  </div>
+</div>
+</div>
+<div class="layer1">
+<div class="section-block"><div class="section-head">特朗普相关</div><div class="section-body"><p>特朗普宣布伊朗核协议将于明日（6月14日，其生日当天）签署，霍尔木兹海峡随即开放，油价预计暴跌，能源负担将远低于拜登通胀时期。<a href="https://x.com/realDonaldTrump/status/truth_1781369143884494801">@realDonaldTrump 原文</a> 若兑现，传统能源股 $XLE、$CVX、$XOM 或承压，但消费类、运输类及依赖低油价的制造业可能受益；航空股 $DAL、$UAL 和物流股 $FDX、$UPS 值得关注。<a href="https://x.com/blazingbees/status/2066067851015020799">@blazingbees</a> 同样提及油价可能跌至 $80，印证该预期已在市场发酵。</p></div></div><div class="section-block"><div class="section-head">今日关键词</div><div class="section-body"><ul>
+<li>HBM 打破 DRAM 数十年成本下降规律，AI 基础设施需求直接推翻了 1957 年至 2020 年每五年成本下降一个数量级的摩尔定律模式 <a href="https://x.com/zephyr_z9/status/2066138714812842078">@zephyr_z9</a> <a href="https://x.com/LinQingV/status/2066137238728241389">@LinQingV</a> <a href="https://x.com/jukan05/status/2066133616577724740">@jukan05</a></li>
+<li>MLCC 涨价周期已启动：Q1 现货先涨 10-20%，5-6 月 AI 高端产品涨 15-35%，中低端涨 6-13%，供给短缺或持续至 2027 年后 <a href="https://x.com/nft_hu/status/2066092018473042025">@nft_hu</a> <a href="https://x.com/jukan05/status/2066017599553696140">@jukan05</a></li>
+<li>美政府因安全漏洞停止 Anthropic 最前沿 AI 模型外国访问，$AMZN CEO 反馈其模型可被诱导提供网络攻击信息，政府对 AI 行业控制力度显著加强 <a href="https://x.com/raycat2021/status/2065979528544133134">@raycat2021</a> <a href="https://x.com/insane_analyst/status/2066038899072450653">@insane_analyst</a></li>
+<li>三星机电扩展硅电容业务，正与多家全球 Big Tech 讨论供应 AI 服务器用硅电容，已获 1.5 万亿韩元订单（2027 年起确认收入），预计硅电容市场年均增长超 18% <a href="https://x.com/jukan05/status/2065975102953632101">@jukan05</a></li>
+<li>SK 海力士将被纳入纳斯达克 100 指数/$QQQ <a href="https://x.com/labubu_trader/status/2065950805769998578">@labubu_trader</a></li>
+<li>$GOOGL 和 $MSFT 的 AI 订单积压已突破 1 万亿美元 <a href="https://x.com/cnfinancewatch/status/2066040596431823093">@cnfinancewatch</a></li>
+<li>$IONQ 量子计算公司赞助 UFC 白宫站，八角笼地面显示 logo，跨界营销引关注 <a href="https://x.com/artinmemes/status/2066124040163762391">@artinmemes</a></li>
+</ul></div></div><div class="section-block"><div class="section-head">重要新闻</div><div class="section-body"><p>亚马逊 CEO 向特朗普政府表达对 Anthropic Fable 越狱漏洞担忧，白宫官员与 Anthropic CEO 进行紧张电话会议，最终因未承诺下架模型而遭出口管制，Fable 5 和 Mythos 5 外籍访问被迫关闭。<a href="https://x.com/insane_analyst/status/2066038899072450653">@insane_analyst</a> 短期对市场冲击有限因 Anthropic 未上市，但政府以国家安全干预顶级 AI 模型访问是重要信号。<a href="https://x.com/ArtofSpecuycky/status/2065976706524147983">@ArtofSpecuycky</a></p>
+<p>国巨、华新科等台厂 BB ratio 已超 1.3 倍，但高端 MLCC 设备交期长达 1-1.5 年限制产能扩张，AI PC 和边缘设备大规模普及后需求将进一步增长，行业面临"史上最长短缺周期"。<a href="https://x.com/jukan05/status/2066017599553696140">@jukan05</a></p>
+<p>美国限制 Fable 和中国宣布 2900 亿美元 AI 建设，完全按照 Leopold 多年前的预测时间线发展。<a href="https://x.com/rwang07/status/2065951053997396159">@rwang07</a></p>
+<p>All In 播客大佬认为 Anthropic 强制数据保留 30 天及隐蔽降级收费引发开发者不满，这是监管套利企图建立技术垄断。<a href="https://x.com/ArtofSpecuycky/status/2065976706524147983">@ArtofSpecuycky</a></p></div></div><div class="section-block"><div class="section-head">宏观判断</div><div class="section-body"><p>无视周三 FOMC 沃什可能放鹰言论和点阵图预期管理，坚持买入并长期持有（Buy the dip）。<a href="https://x.com/hanking66/status/2066132800177410279">@hanking66</a> 真正影响周一走势的仍是日央行会议和 FOMC 前情绪，而非 Anthropic 事件。<a href="https://x.com/ArtofSpecuycky/status/2065976706524147983">@ArtofSpecuycky</a></p>
+<p>伊朗核协议签署预期下，油价暴跌将降低通胀压力，利好消费和运输板块，但传统能源股承压。<a href="https://x.com/realDonaldTrump/status/truth_1781369143884494801">@realDonaldTrump 原文</a> <a href="https://x.com/blazingbees/status/2066067851015020799">@blazingbees</a></p>
+<p>AI 监管不确定性上升需警惕，政府干预顶级模型访问权限标志着技术监管进入新阶段。<a href="https://x.com/ArtofSpecuycky/status/2065976706524147983">@ArtofSpecuycky</a></p></div></div><div class="section-block"><div class="section-head">产业/个股焦点</div><div class="section-body"><p>控制内存就控制了 AI 发展的核心要素，HBM 颠覆 DRAM 数十年成本下降规律，AI 算力扩产受限于关键工艺节点稀缺性。<a href="https://x.com/xiaomustock/status/2066060007724974200">@xiaomustock</a> <a href="https://x.com/SpermCapital/status/2065976484880318886">@SpermCapital</a> AI 产业链稀缺性本质是少数关键工艺节点锁死算力系统扩产速度，可分为系统级瓶颈、材料与工艺瓶颈、结构性放大器三层。</p>
+<p>$RKLB 下周预计爆发，SpaceX 带动小弟冲高，考虑卖 $MRVL 加仓 $RKLB。<a href="https://x.com/hanking66/status/2066004904435724332">@hanking66</a> 太空经济 ETF $SPCX 成为焦点，投资者讨论其当前估值水平和未来潜力。<a href="https://x.com/golden_pan1/status/2065948188205613565">@golden_pan1</a></p>
+<p>美国政府封禁 DeepSeek 侧面证明 AI 强大，不应将其与刺破 AI 泡沫联系。<a href="https://x.com/hanking66/status/2065998987401048475">@hanking66</a></p>
+<p>日本要让黄仁勋到访，仅靠铠侠（存储器）不够，需要培育大规模消耗 $NVDA 芯片的日本本土 AI 开发企业。<a href="https://x.com/jukan05/status/2065951129742262556">@jukan05</a></p>
+<p>$QQQ 周末涨 0.6%，$SPY 涨 0.56%，市场情绪平稳。<a href="https://x.com/Mr_Derivatives/status/2066134753892504058">@Mr_Derivatives</a></p>
+<p>韩国市场长期表现强劲：2 年间房地产涨 12% vs 韩国综指涨 155%，$005930 涨 380%，$000660 涨 786%。<a href="https://x.com/blazingbees/status/2066002490223726792">@blazingbees</a></p></div></div><div class="section-block"><div class="section-head">交易信号</div><div class="section-body"><table>
+<thead>
+<tr>
+<th>标的</th>
+<th>方向</th>
+<th>线索</th>
+<th>来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>$RKLB</td>
+<td>看多</td>
+<td>SpaceX带动，下周预计爆发</td>
+<td><a href="https://x.com/hanking66/status/2066004904435724332">@hanking66</a></td>
+</tr>
+<tr>
+<td>$SNDK</td>
+<td>观望</td>
+<td>突破$2000后建议回调10%测支撑</td>
+<td><a href="https://x.com/Mr_Derivatives/status/2066021524763775207">@Mr_Derivatives</a></td>
+</tr>
+<tr>
+<td>$XLE/$CVX/$XOM</td>
+<td>看空</td>
+<td>伊朗协议签署，油价暴跌预期</td>
+<td><a href="https://x.com/realDonaldTrump/status/truth_1781369143884494801">@realDonaldTrump 原文</a></td>
+</tr>
+<tr>
+<td>$DAL/$UAL/$FDX/$UPS</td>
+<td>看多</td>
+<td>油价下跌利好航空物流</td>
+<td>推测依据特朗普伊朗协议</td>
+</tr>
+<tr>
+<td>MLCC供应链</td>
+<td>看多</td>
+<td>涨价周期延续至2026年底</td>
+<td><a href="https://x.com/nft_hu/status/2066092018473042025">@nft_hu</a></td>
+</tr>
+</tbody>
+</table></div></div><div class="section-block"><div class="section-head">投资理念</div><div class="section-body"><p>世界上没有只涨不跌的行情，没有所有人都赚钱的市场。<a href="https://x.com/nft_hu/status/2066092675863118195">@nft_hu</a> 去年 9 月推荐半导体但地人们集中精力于其他标的或短线交易而失败，说明坚持长期持有优质标的的重要性。<a href="https://x.com/blazingbees/status/2066092831815635007">@blazingbees</a></p>
+<p>团队管理五要素：战略远见、晋升通道、物质激励、赏罚分明、核心岗位定期轮换。<a href="https://x.com/cnfinancewatch/status/2066077102517207140">@cnfinancewatch</a> 新技术要与资本竞争必须显著优于现有方案，通信系统组件竞争的关键通常在于噪声性能。<a href="https://x.com/insane_analyst/status/2066028326767190377">@insane_analyst</a></p>
+<p>推荐 Gautam Baid 的《复利的喜悦》和财报可视化学习资源，帮助理解损益表与资产负债表的关联。<a href="https://x.com/BrianFeroldi/status/2065948418397155768">@BrianFeroldi</a> <a href="https://x.com/BrianFeroldi/status/2066115818794963323">@BrianFeroldi</a></p></div></div>
+</div>
+<div class="trade-signals">
+<div class="section-head">交易信号</div>
+<table>
+<thead><tr><th>标的</th><th>线索</th><th>来源</th></tr></thead>
+<tbody>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$AMZN</span></td><td>WSJ：川普政府因安全漏洞停止Anthropic最前沿AI模型的外国访问，亚马逊CEO反馈其模型可被诱导提供网络攻击信息，Anthropic已关闭Mythos和Fable访问权限，政府对AI行业控制力度显著加强</td><td style="white-space:nowrap"><a href="https://x.com/raycat2021/status/2065979528544133134" target="_blank" rel="noopener">@raycat2021</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$QQQ</span>, <span class="sig-ticker">$SPY</span></td><td>$QQQ 周末涨 0.6%，$SPY 涨 0.56%</td><td style="white-space:nowrap"><a href="https://x.com/Mr_Derivatives/status/2066134753892504058" target="_blank" rel="noopener">@Mr_Derivatives</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SNDK</span></td><td>$SNDK 突破 $2000 后建议回调 10% 测试支撑</td><td style="white-space:nowrap"><a href="https://x.com/Mr_Derivatives/status/2066021524763775207" target="_blank" rel="noopener">@Mr_Derivatives</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$NVDA</span></td><td>日本要让黄仁勋到访，仅靠铠侠(存储器)不够，需要培育大规模消耗 $NVDA 芯片的日本本土AI开发企业</td><td style="white-space:nowrap"><a href="https://x.com/jukan05/status/2065951129742262556" target="_blank" rel="noopener">@jukan05</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$RKLB</span>, <span class="sig-ticker">$MRVL</span></td><td>$RKLB 下周预计爆发，SpaceX带动小弟冲高，考虑卖 $MRVL 加仓 $RKLB</td><td style="white-space:nowrap"><a href="https://x.com/hanking66/status/2066004904435724332" target="_blank" rel="noopener">@hanking66</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$005930</span>, <span class="sig-ticker">$000660</span></td><td>코스피 장기(1980-현재) 100배 상승, 2년간 부동산 12% vs 코스피 155%, $005930 380%, $000660 786% 상승</td><td style="white-space:nowrap"><a href="https://x.com/blazingbees/status/2066002490223726792" target="_blank" rel="noopener">@blazingbees</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$IONQ</span></td><td>$IONQ 量子计算公司赞助UFC白宫站，八角笼地面显示logo，跨界营销引关注</td><td style="white-space:nowrap"><a href="https://x.com/artinmemes/status/2066124040163762391" target="_blank" rel="noopener">@artinmemes</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$AMZN</span></td><td>亚马逊CEO向特朗普政府表达对Fable越狱漏洞担忧，白宫官员与Anthropic CEO进行紧张电话会议，最终因未承诺下架模型而遭出口管制</td><td style="white-space:nowrap"><a href="https://x.com/insane_analyst/status/2066038899072450653" target="_blank" rel="noopener">@insane_analyst</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$GOOGL</span>, <span class="sig-ticker">$MSFT</span></td><td>谷歌和微软的AI订单积压已突破1万亿美元</td><td style="white-space:nowrap"><a href="https://x.com/cnfinancewatch/status/2066040596431823093" target="_blank" rel="noopener">@cnfinancewatch</a></td></tr>
+<tr><td style="white-space:nowrap"><span class="sig-ticker">$SPCX</span></td><td>$SPCX 太空经济ETF成为焦点，投资者讨论其当前估值水平和未来潜力</td><td style="white-space:nowrap"><a href="https://x.com/golden_pan1/status/2065948188205613565" target="_blank" rel="noopener">@golden_pan1</a></td></tr>
+
+</tbody>
+</table>
+</div>
+<div class="kol-details">
+<h2>KOL 详细观点</h2>
+<div class="kol-grid">
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/blazingbees" target="_blank" rel="noopener">@blazingbees</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">이란-미국 합의 6/14 서명 예정, 유가 급락</div><ul class="kol-bullets"><li>트럼프 생일(6/14)에 이란과 종전 합의 서명 예정, 호르무즈 해협 개방으로 유가 $80 급락 <a href="https://x.com/blazingbees/status/2066067851015020799" target="_blank" rel="noopener">↗</a></li>
+<li>작년 9월 반도체 매수 추천했으나 지인들은 한화오션 등 다른 종목 집착하거나 단타로 실패 <a href="https://x.com/blazingbees/status/2066092831815635007" target="_blank" rel="noopener">↗</a></li>
+<li>코스피 장기(1980-현재) 100배 상승, 2년간 부동산 12% vs 코스피 155%, $005930 380%, $000660 786% 상승 <span class="ticker-inline">$005930</span> <span class="ticker-inline">$000660</span> <a href="https://x.com/blazingbees/status/2066002490223726792" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">12 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/jukan05" target="_blank" rel="noopener">@jukan05</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">HBM打破DRAM降价规律，MLCC供给短缺或持续至2027年后</div><ul class="kol-bullets"><li>HBM的出现直接颠覆了DRAM从1957年至2020年每5年成本下降一个数量级的摩尔定律模式，AI基础设施需求改变了持续数十年的成本下降趋势 <a href="https://x.com/jukan05/status/2066133616577724740" target="_blank" rel="noopener">↗</a></li>
+<li>MLCC行业面临"史上最长短缺周期"，供应缺口预计持续至2027年后。国巨、华新科等台厂BB ratio已超1.3倍，但高端MLCC设备交期长达1-1.5年限制产能扩张，AI PC和边缘设备大规模普及后需求将进一步增长 <a href="https://x.com/jukan05/status/2066017599553696140" target="_blank" rel="noopener">↗</a></li>
+<li>三星机电扩展硅电容业务，正与多家全球Big Tech讨论供应AI服务器用硅电容，采用fabless模式和300mm晶圆制程，基于DRAM技术开发。已获得1.5万亿韩元订单(2027年起确认收入)，预计硅电容市场年均增长超18% <a href="https://x.com/jukan05/status/2065975102953632101" target="_blank" rel="noopener">↗</a></li>
+<li>日本要让黄仁勋到访，仅靠铠侠(存储器)不够，需要培育大规模消耗 $NVDA 芯片的日本本土AI开发企业 <span class="ticker-inline">$NVDA</span> <a href="https://x.com/jukan05/status/2065951129742262556" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">10 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/cnfinancewatch" target="_blank" rel="noopener">@cnfinancewatch</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">管理团队需战略清晰、激励到位、赏罚分明</div><ul class="kol-bullets"><li>团队管理五要素：战略远见、晋升通道、物质激励、赏罚分明、核心岗位定期轮换 <a href="https://x.com/cnfinancewatch/status/2066077102517207140" target="_blank" rel="noopener">↗</a></li>
+<li>谷歌和微软的AI订单积压已突破1万亿美元 <span class="ticker-inline">$GOOGL</span> <span class="ticker-inline">$MSFT</span> <a href="https://x.com/cnfinancewatch/status/2066040596431823093" target="_blank" rel="noopener">↗</a></li>
+<li>支持有雄心、愿意做事的年轻金融博主 <a href="https://x.com/cnfinancewatch/status/2066063248961761783" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">10 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/Mr_Derivatives" target="_blank" rel="noopener">@Mr_Derivatives</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">周末市场微涨，$QQQ +0.6%，$SPY +0.56%</div><ul class="kol-bullets"><li>$QQQ 周末涨 0.6%，$SPY 涨 0.56% <span class="ticker-inline">$QQQ</span> <span class="ticker-inline">$SPY</span> <a href="https://x.com/Mr_Derivatives/status/2066134753892504058" target="_blank" rel="noopener">↗</a></li>
+<li>$SNDK 突破 $2000 后建议回调 10% 测试支撑 <span class="ticker-inline">$SNDK</span> <a href="https://x.com/Mr_Derivatives/status/2066021524763775207" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">8 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/realDonaldTrump" target="_blank" rel="noopener">@realDonaldTrump</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">伊朗协议签署在即，霍尔木兹海峡将开放，油价或暴跌</div><ul class="kol-bullets"><li>伊朗核协议明日签署，霍尔木兹海峡随即开放，油价将暴跌，负担能力将远超拜登通胀时期 <a href="https://x.com/realDonaldTrump/status/truth_1781369143884494801" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">6 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/awealthofcs" target="_blank" rel="noopener">@awealthofcs</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">当日推文均为体育话题（马刺队比赛），无股市相关内容</div><ul class="kol-bullets"></ul><div class="kol-meta">4 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/nft_hu" target="_blank" rel="noopener">@nft_hu</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">MLCC涨价周期已启动，高端AI产品领涨</div><ul class="kol-bullets"><li>MLCC涨价时间线：Q4评估→Q1现货先涨10-20%→5-6月AI高端产品涨15-35%，中低端涨6-13%，涨价周期或延续至2026年底 <a href="https://x.com/nft_hu/status/2066092018473042025" target="_blank" rel="noopener">↗</a></li>
+<li>世界上没有只涨不跌的行情，没有所有人都赚钱的市场 <a href="https://x.com/nft_hu/status/2066092675863118195" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">3 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/hanking66" target="_blank" rel="noopener">@hanking66</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">无视FOMC噪音，坚定Buy the dip长期持有</div><ul class="kol-bullets"><li>无视周三FOMC沃什可能放鹰言论，忽略点阵图和预期管理，坚持买入并长期持有 <a href="https://x.com/hanking66/status/2066132800177410279" target="_blank" rel="noopener">↗</a></li>
+<li>$RKLB 下周预计爆发，SpaceX带动小弟冲高，考虑卖 $MRVL 加仓 $RKLB <span class="ticker-inline">$RKLB</span> <span class="ticker-inline">$MRVL</span> <a href="https://x.com/hanking66/status/2066004904435724332" target="_blank" rel="noopener">↗</a></li>
+<li>美国政府封禁DeepSeek侧面证明AI强大，不应将其与刺破AI泡沫联系 <a href="https://x.com/hanking66/status/2065998987401048475" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">3 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/insane_analyst" target="_blank" rel="noopener">@insane_analyst</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">揭露白宫对Anthropic出口管制前24小时内幕</div><ul class="kol-bullets"><li>亚马逊CEO向特朗普政府表达对Fable越狱漏洞担忧，白宫官员与Anthropic CEO进行紧张电话会议，最终因未承诺下架模型而遭出口管制 <span class="ticker-inline">$AMZN</span> <a href="https://x.com/insane_analyst/status/2066038899072450653" target="_blank" rel="noopener">↗</a></li>
+<li>新技术要与资本竞争必须显著优于现有方案，通信系统组件竞争的关键通常在于噪声性能 <a href="https://x.com/insane_analyst/status/2066028326767190377" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">3 条推文</div></div>
+<div class="kol-card bearish"><div class="kol-head"><a class="kol-name" href="https://x.com/raycat2021" target="_blank" rel="noopener">@raycat2021</a><span class="sent-tag bearish">看空</span></div><div class="kol-core">美政府加强AI模型管控，Anthropic因安全漏洞被迫下架前沿模型</div><ul class="kol-bullets"><li>WSJ：川普政府因安全漏洞停止Anthropic最前沿AI模型的外国访问，亚马逊CEO反馈其模型可被诱导提供网络攻击信息，Anthropic已关闭Mythos和Fable访问权限，政府对AI行业控制力度显著加强 <span class="ticker-inline">$AMZN</span> <a href="https://x.com/raycat2021/status/2065979528544133134" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/zephyr_z9" target="_blank" rel="noopener">@zephyr_z9</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">HBM 颠覆了 DRAM 数十年的成本下降规律</div><ul class="kol-bullets"><li>AI 基础设施需求和 HBM 的出现直接推翻了 DRAM 从 1957 年至 2020 年每五年成本下降一个数量级的摩尔定律成本模式 <a href="https://x.com/zephyr_z9/status/2066138714812842078" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/BrianFeroldi" target="_blank" rel="noopener">@BrianFeroldi</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">分享财报理解和投资复利相关的教育内容</div><ul class="kol-bullets"><li>通过可视化图表讲解损益表与资产负债表如何关联 <a href="https://x.com/BrianFeroldi/status/2066115818794963323" target="_blank" rel="noopener">↗</a></li>
+<li>推荐 Gautam Baid 的《复利的喜悦》一书 <a href="https://x.com/BrianFeroldi/status/2065948418397155768" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/SpermCapital" target="_blank" rel="noopener">@SpermCapital</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">AI算力扩产受限于关键工艺节点稀缺性</div><ul class="kol-bullets"><li>AI产业链稀缺性本质是少数关键工艺节点锁死算力系统扩产速度，可分为系统级瓶颈、材料与工艺瓶颈、结构性放大器三层 <a href="https://x.com/SpermCapital/status/2065976484880318886" target="_blank" rel="noopener">↗</a></li>
+<li>推荐坤元Research关于PCB赛道的深度解读视频，有助于理解PCB细分赛道框架 <a href="https://x.com/SpermCapital/status/2065969406686171539" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">2 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/caizhenghai" target="_blank" rel="noopener">@caizhenghai</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">土耳其claude-sonnet-4-6涨价，推广AI中转服务</div><ul class="kol-bullets"><li>土区claude-sonnet-4-6涨价，利好中转站服务商，推广自有中转平台 <a href="https://x.com/caizhenghai/status/2066141579690344680" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/LinQingV" target="_blank" rel="noopener">@LinQingV</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">HBM颠覆DRAM数十年成本下降规律</div><ul class="kol-bullets"><li>DRAM成本每5年下降一个数量级的摩尔定律被HBM打破，AI基础设施需求改变了延续数十年的成本曲线 <a href="https://x.com/LinQingV/status/2066137238728241389" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/artinmemes" target="_blank" rel="noopener">@artinmemes</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">$IONQ 赞助UFC白宫站，品牌营销跨界布局</div><ul class="kol-bullets"><li>$IONQ 量子计算公司赞助UFC白宫站，八角笼地面显示logo，跨界营销引关注 <span class="ticker-inline">$IONQ</span> <a href="https://x.com/artinmemes/status/2066124040163762391" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/xiaomustock" target="_blank" rel="noopener">@xiaomustock</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">内存是AI的关键瓶颈</div><ul class="kol-bullets"><li>控制内存就控制了AI发展的核心要素 <a href="https://x.com/xiaomustock/status/2066060007724974200" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/LynAldenContact" target="_blank" rel="noopener">@LynAldenContact</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">轻松调侃市场情绪难以做空</div><ul class="kol-bullets"><li>开玩笑说需要一件印有"无法做空氛围感"的T恤 <a href="https://x.com/LynAldenContact/status/2066021551359569976" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/crux_capital_" target="_blank" rel="noopener">@crux_capital_</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">询问市场对Anthropic新闻的看法及对各板块影响</div><ul class="kol-bullets"><li>征求对Anthropic新闻的观点：对软件股、Neoclouds、光学、安全及整体AI交易的影响如何？ <a href="https://x.com/crux_capital_/status/2066006810524590126" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/ArtofSpecuycky" target="_blank" rel="noopener">@ArtofSpecuycky</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">Anthropic出口管制事件短期冲击有限，但AI监管不确定性上升需警惕</div><ul class="kol-bullets"><li>Anthropic因国家安全被迫关闭Fable 5和Mythos 5外籍访问，开发者因强制数据保留30天及隐蔽降级收费而不满，All In播客大佬认为这是监管套利企图建立技术垄断 <a href="https://x.com/ArtofSpecuycky/status/2065976706524147983" target="_blank" rel="noopener">↗</a></li>
+<li>短期对市场冲击有限因Anthropic未上市，但政府以国家安全干预顶级AI模型访问是重要信号，真正影响周一走势的仍是日央行会议和FOMC前情绪 <a href="https://x.com/ArtofSpecuycky/status/2065976706524147983" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card unclear"><div class="kol-head"><a class="kol-name" href="https://x.com/aleabitoreddit" target="_blank" rel="noopener">@aleabitoreddit</a><span class="sent-tag unclear">不明</span></div><div class="kol-core">瑞典人提前一天约午餐很难吗？</div><ul class="kol-bullets"><li>关于瑞典人社交习惯的日常观察/调侃 <a href="https://x.com/aleabitoreddit/status/2065973347897557093" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/rwang07" target="_blank" rel="noopener">@rwang07</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">美国限制Fable与中国AI投资符合Leopold预测时间线</div><ul class="kol-bullets"><li>美国政府限制Fable和中国宣布2900亿美元AI建设，完全按照Leopold多年前的预测时间线发展 <a href="https://x.com/rwang07/status/2065951053997396159" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card bullish"><div class="kol-head"><a class="kol-name" href="https://x.com/labubu_trader" target="_blank" rel="noopener">@labubu_trader</a><span class="sent-tag bullish">看多</span></div><div class="kol-core">SK海力士将被纳入纳斯达克100指数</div><ul class="kol-bullets"><li>SK海力士即将被纳入QQQ/纳斯达克100指数 <a href="https://x.com/labubu_trader/status/2065950805769998578" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+<div class="kol-card neutral"><div class="kol-head"><a class="kol-name" href="https://x.com/golden_pan1" target="_blank" rel="noopener">@golden_pan1</a><span class="sent-tag neutral">中性</span></div><div class="kol-core">太空经济ETF $SPCX 近期热议，市场关注其投资价值</div><ul class="kol-bullets"><li>$SPCX 太空经济ETF成为焦点，投资者讨论其当前估值水平和未来潜力 <span class="ticker-inline">$SPCX</span> <a href="https://x.com/golden_pan1/status/2065948188205613565" target="_blank" rel="noopener">↗</a></li>
+</ul><div class="kol-meta">1 条推文</div></div>
+
+</div>
+</div>
+<footer class="page-footer">
+KOL Daily &middot; Generated at 2026-06-14 21:07 CST
+</footer>
+</div>
+</body>
+</html>
