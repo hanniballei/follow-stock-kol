@@ -318,6 +318,7 @@ kol-monitor daemon
 kol-monitor fetch-only
 kol-monitor backfill
 kol-monitor regen-digest --date 2026-05-29
+kol-monitor quality-draft --date 2026-05-29
 kol-monitor validate-handles
 kol-monitor add-kol <handle> --validate
 kol-monitor list-kols
@@ -340,6 +341,8 @@ def main():
 **输出**：可运行的 CLI 和 daemon
 **验证**：`kol-monitor run-once --dry-run` 走通命令 wiring；`run-once --no-publish` 适合真实首跑但不 push GitHub
 
+**补充**：`kol-monitor quality-draft --date YYYY-MM-DD` 只生成 `/tmp/kol-monitor-quality-drafts/<date>/` 下的草稿和质量报告，不写 DB、README、`digests/`，也不 git publish；适合先试修历史日报再决定是否覆写。
+
 ---
 
 ## 步骤 10 · 测试
@@ -353,6 +356,7 @@ def main():
 - [x] `test_fetcher_gap.py` — 防漏拉 4 种场景（首次 / 重叠 / 无重叠 / search 兜底）
 - [x] `test_summarizer_mock.py` — JSON parse fallback + mock anthropic
 - [x] `test_publisher.py` — markdown snapshot
+- [x] `test_quality.py` — 日报质量门禁与草稿输出
 
 **测试不依赖网络**。运行：`pytest tests/ -v`
 

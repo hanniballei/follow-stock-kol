@@ -378,7 +378,21 @@ def test_digest_md_no_collapse():
 
 ---
 
-## 8. 不写的测试
+## 8. `tests/test_quality.py` — 日报质量门禁
+
+`quality-draft` 和质量扫描必须完全离线测试。重点覆盖：
+
+- Layer 1 markdown 中的内部工作流/提示词污染会被标为 error
+- 关键章节的无来源 bullet / 表格行会被标为 error
+- 韩文/日文残留过多会被标为 error
+- “OpenAI 计划发布 Claude/Anthropic 模型”这类明显归属冲突会被标为 error
+- `write_quality_draft()` 只写指定草稿目录，生成 `draft.md`、`cleaned_existing.md`、`repaired_fallback.md`、`layer2_normalized.json`、`quality_report.json`
+
+测试样例使用 `tmp_db` 写入一条假 digest，再调用 `write_quality_draft()` 到 `tmp_path`，不调用真实 Claude、6551 或 git。
+
+---
+
+## 9. 不写的测试
 
 明确不在测试覆盖范围内（避免范围蔓延 + 网络依赖）：
 
@@ -388,11 +402,11 @@ def test_digest_md_no_collapse():
 - ❌ 真下载 X CDN 图片
 - ❌ apscheduler 触发时机测试（信任 apscheduler 自身）
 
-这些靠 `kol-monitor run-once --dry-run`（步骤 9 的 CLI）做手工冒烟。
+这些靠 `kol-monitor run-once --dry-run` 和 `kol-monitor quality-draft --date <date>` 做手工冒烟。
 
 ---
 
-## 9. CI（可选，未来）
+## 10. CI（可选，未来）
 
 如果接 GitHub Actions：
 ```yaml

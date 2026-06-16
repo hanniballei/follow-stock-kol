@@ -10,7 +10,10 @@ from kol_monitor.summarizer import (
     _clean_layer1_markdown,
     _fallback_layer1_markdown,
     _is_valid_layer1_markdown,
+    _line_has_suspicious_model_company_conflict,
+    _layer2_needs_chinese_retry,
     _layer2_prompt,
+    _normalize_layer2_result,
     _response_text,
     call_claude_with_retry,
     build_layer1_prompt,
@@ -762,8 +765,10 @@ def test_normalize_layer1_source_links_uses_handles():
 
 def test_clean_layer1_markdown_removes_internal_artifacts_and_unlinked_sources():
     md = (
+        "## 投资理念\n\n"
         "- 有效来源保留 [@qinbafrank](https://x.com/qinbafrank/status/1)\n"
         "- **调查先于行动**：读代码再下判断，确认系统行为后再做决策 [@investigate_before_answering 原则]\n"
+        "- **失败两次应诊断根因而非增量修补**：持续探索不同路径，放弃需求特性是最后手段\n"
         "- 没有 URL 的伪来源应删除 [@fake_source]\n"
         "普通正文提到 @realDonaldTrump 但不是来源标签"
     )
@@ -773,5 +778,131 @@ def test_clean_layer1_markdown_removes_internal_artifacts_and_unlinked_sources()
     assert "有效来源保留" in cleaned
     assert "https://x.com/qinbafrank/status/1" in cleaned
     assert "investigate_before_answering" not in cleaned
+    assert "诊断根因" not in cleaned
     assert "@fake_source" not in cleaned
     assert "普通正文提到 @realDonaldTrump" in cleaned
+
+
+def test_clean_layer1_markdown_removes_unsourced_key_section_bullets_and_fills_empty():
+    md = (
+        "## 今日关键词\n\n"
+        "- 可以无链接\n\n"
+        "## 重要新闻\n\n"
+        "- 无来源新闻应删除\n\n"
+        "## 宏观判断\n\n"
+        "- 有来源宏观保留 [@macro](https://x.com/macro/status/1)\n\n"
+        "## 投资理念\n\n"
+        "- 无来源理念应删除"
+    )
+
+    cleaned = _clean_layer1_markdown(md)
+
+    assert "- 可以无链接" in cleaned
+    assert "无来源新闻应删除" not in cleaned
+    assert "无来源理念应删除" not in cleaned
+    assert "- 暂无有来源的高质量信号。" in cleaned
+    assert "有来源宏观保留" in cleaned
+
+
+def test_clean_layer1_markdown_removes_suspicious_model_company_conflicts():
+    md = (
+        "## 重要新闻\n\n"
+        "- OpenAI计划6月23日发布claude-sonnet-4-6。"
+        "[@kol](https://x.com/kol/status/1)\n\n"
+        "## 宏观判断\n\n"
+        "- 作者认为通胀影响收益率。[@macro](https://x.com/macro/status/1)"
+    )
+
+    cleaned = _clean_layer1_markdown(md)
+
+    assert "OpenAI计划" not in cleaned
+    assert "claude-sonnet-4-6" not in cleaned
+    assert "- 暂无有来源的高质量信号。" in cleaned
+    assert "通胀影响收益率" in cleaned
+
+
+def test_clean_layer1_markdown_removes_non_chinese_residue_and_empty_table():
+    md = (
+        "## 交易信号\n\n"
+        "| 标的 | 线索 | 来源 |\n"
+        "|---|---|---|\n"
+        "| $000660 | 100조 주주환원 추진 단독보도 | "
+        "[@bees](https://x.com/bees/status/1) |\n"
+    )
+
+    cleaned = _clean_layer1_markdown(md)
+
+    assert "주주환원" not in cleaned
+    assert "| 标的 |" in cleaned
+    assert "- 暂无有来源的高质量信号。" in cleaned
+
+
+def test_normalize_layer2_result_filters_missing_urls_and_defaults_metadata():
+    parsed = {
+        "core_view": "作者看多半导体",
+        "sentiment": "excited",
+        "bullets": [
+            {
+                "point": "作者认为 $NVDA 需求强",
+                "tickers": ["$nvda"],
+                "tweet_url": "https://x.com/a/status/1",
+            },
+            {"point": "没有来源", "tickers": ["TSLA"]},
+        ],
+    }
+
+    normalized = _normalize_layer2_result(parsed)
+
+    assert normalized["sentiment"] == "unclear"
+    assert len(normalized["bullets"]) == 1
+    assert normalized["bullets"][0]["tickers"] == ["NVDA"]
+    assert normalized["bullets"][0]["claim_type"] == "opinion"
+    assert normalized["bullets"][0]["confidence"] == "medium"
+
+
+def test_normalize_layer2_result_filters_non_chinese_and_company_conflict():
+    parsed = {
+        "core_view": "OpenAI计划发布claude-sonnet-4-6",
+        "sentiment": "neutral",
+        "bullets": [
+            {
+                "point": "OpenAI计划发布claude-sonnet-4-6",
+                "tickers": ["AI"],
+                "tweet_url": "https://x.com/a/status/1",
+            },
+            {
+                "point": "$000660 100조 주주환원 추진 단독보도",
+                "tickers": ["000660"],
+                "tweet_url": "https://x.com/a/status/2",
+            },
+            {
+                "point": "作者称 $NVDA 需求仍强",
+                "tickers": ["NVDA"],
+                "tweet_url": "https://x.com/a/status/3",
+            },
+        ],
+    }
+
+    normalized = _normalize_layer2_result(parsed)
+
+    assert _line_has_suspicious_model_company_conflict(
+        "OpenAI计划6月23日发布claude-sonnet-4-6"
+    )
+    assert not _line_has_suspicious_model_company_conflict(
+        "作者比较 OpenAI 与 Claude 在代码任务上的差异"
+    )
+    assert normalized["core_view"] == "作者称 $NVDA 需求仍强"
+    assert len(normalized["bullets"]) == 1
+    assert normalized["bullets"][0]["tickers"] == ["NVDA"]
+
+
+def test_layer2_needs_chinese_retry_detects_hangul_points():
+    assert _layer2_needs_chinese_retry(
+        {
+            "core_view": "SK하이닉스 주주환원 단독보도",
+            "bullets": [{"point": "이란 합의로 유가 급락"}],
+        }
+    )
+    assert not _layer2_needs_chinese_retry(
+        {"core_view": "作者认为存储板块走强", "bullets": [{"point": "作者称 $MU 需求强"}]}
+    )

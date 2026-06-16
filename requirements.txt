@@ -6,3 +6,4 @@ python-dotenv>=1.0
 pillow>=10.0
 tenacity>=8.2
 rich>=13.0
+markdown>=3.5

@@ -13,6 +13,7 @@ from kol_monitor.client import OpenTwitterClient
 from kol_monitor.logging_setup import setup
 from kol_monitor.media import download_pending_media
 from kol_monitor.publisher import git_publish, write_outputs
+from kol_monitor.quality import DEFAULT_QUALITY_DRAFT_DIR, write_quality_draft
 from kol_monitor.scheduler import run_daemon
 from kol_monitor.summarizer import summarize_day
 
@@ -35,6 +36,18 @@ def build_parser() -> argparse.ArgumentParser:
     regen = sub.add_parser("regen-digest", help="regenerate digest markdown for a date")
     regen.add_argument("--date", required=True)
     regen.add_argument("--no-publish", action="store_true")
+
+    quality_draft = sub.add_parser(
+        "quality-draft",
+        help="write no-publish digest repair drafts and quality reports for a date",
+    )
+    quality_draft.add_argument("--date", required=True)
+    quality_draft.add_argument(
+        "--output-dir",
+        default=str(DEFAULT_QUALITY_DRAFT_DIR),
+        help=f"draft root directory, default: {DEFAULT_QUALITY_DRAFT_DIR}",
+    )
+    quality_draft.add_argument("--dry-run", action="store_true")
 
     sub.add_parser("daemon", help="start scheduler daemon")
     sub.add_parser("list-kols", help="print configured KOL handles")
@@ -73,6 +86,14 @@ def main(argv: list[str] | None = None) -> None:
         return
     if args.command == "regen-digest":
         asyncio.run(_regen_digest(args.date, publish=not args.no_publish))
+        return
+    if args.command == "quality-draft":
+        result = write_quality_draft(args.date, output_dir=args.output_dir)
+        report = result["report"]
+        print(f"quality draft: {report['status']}")
+        print(f"output: {result['output_dir']}")
+        for name, path in result["files"].items():
+            print(f"{name}: {path}")
         return
     if args.command == "daemon":
         run_daemon()

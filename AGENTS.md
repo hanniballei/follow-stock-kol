@@ -316,6 +316,9 @@ kol-monitor fetch-only
 # 重新生成某天 digest
 kol-monitor regen-digest --date 2026-05-29
 
+# 只生成某天质量草稿和扫描报告，不写 DB / README / digests / git
+kol-monitor quality-draft --date 2026-06-16
+
 # 回填 incomplete KOL
 kol-monitor backfill
 
@@ -356,6 +359,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-09：Layer 1 综合摘要曾在“宏观判断”中途截断，但第四层后端返回 200，旧代码直接接受，导致 `产业/个股焦点`、`交易信号`、`投资理念` 缺失仍发布。已增加 Layer 1 完整性校验：必须包含七个固定章节、各节有内容、不能以 `max_tokens` 停止或半句话结尾；校验失败会继续尝试下一层，全部失败才用本地兜底模板。
 - 2026-06-10：第三层 `llm.onerouter.pro` 大请求曾先 429，再返回 Bedrock `temperature` / `thinking` 校验错误；固定 `temperature=1` + `thinking=disabled` 仍可能触发。已增加第三层专属兼容重试：遇到该错误时同一后端再试一次，不传 `temperature` 和 `thinking`，让 provider 走默认普通模式。不要改成 adaptive thinking 兜底，实测低 `max_tokens` 时可能先输出 thinking block，正文为空；代码已改为从所有 text blocks 提取正文，避免 thinking block 排在前面时读不到文本。
 - 2026-06-10：用户要求调换第三/第四层顺序。当前实际调用顺序是：主凭据 → 第二层备用 → `ANTHROPIC_FOURTH_*`（Packy，第三顺位）→ `ANTHROPIC_THIRD_*`（Infron，第四顺位）。注意环境变量名保留历史命名，不等同于当前调用顺位。
+- 2026-06-16：最近日报质量问题主要集中在 Layer 1/Layer 2 的可发布性：6/13 出现内部方法论污染（如“失败两次应诊断根因而非增量修补”），6/16 出现韩文残留和“OpenAI 计划发布 claude-sonnet-4-6”这类模型归属冲突。已增强提示词、Layer 2 结构化字段、确定性清理和质量扫描；新增 `kol-monitor quality-draft --date YYYY-MM-DD`，只在 `/tmp/kol-monitor-quality-drafts/<date>/` 生成 `draft.md`、`cleaned_existing.md`、`repaired_fallback.md`、`layer2_normalized.json`、`quality_report.json`，不写 DB/README/digests，也不 git publish。修旧日报前先跑这个命令看 `quality_report.json`，确认候选稿通过后再决定是否覆写历史文件。
 
 ---
 

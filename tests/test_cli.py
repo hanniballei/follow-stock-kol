@@ -31,3 +31,11 @@ def test_run_once_dry_run_is_accepted(capsys):
 
     assert exc.value.code == 0
     assert "dry run" in capsys.readouterr().out.lower()
+
+
+def test_quality_draft_command_is_accepted(capsys):
+    with pytest.raises(SystemExit) as exc:
+        main(["quality-draft", "--date", "2026-06-16", "--dry-run"])
+
+    assert exc.value.code == 0
+    assert "dry run" in capsys.readouterr().out.lower()

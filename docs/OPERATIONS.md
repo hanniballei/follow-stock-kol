@@ -1,6 +1,6 @@
 # 运维与运行说明
 
-最后更新：2026-05-30
+最后更新：2026-06-16
 
 ## 1. 如何持久化运行
 
@@ -57,6 +57,22 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 ```
 
 这会生成本地 `README.md` 和 `digests/`，但不会推 GitHub。验证结束如果不想保留这些产物，直接删除即可。
+
+如果只是回查或修复某天日报质量，不要用 `regen-digest` 或 `run-once --no-publish`，因为它们会写发布文件。先用：
+
+```bash
+.venv/bin/kol-monitor quality-draft --date 2026-06-16
+```
+
+它只读取 DB 里已有 digest，并把草稿写到 `/tmp/kol-monitor-quality-drafts/2026-06-16/`：
+
+- `draft.md`：推荐候选稿
+- `cleaned_existing.md`：清理旧 Layer 1 后的版本
+- `repaired_fallback.md`：从规范化 Layer 2 拼出的本地兜底稿
+- `layer2_normalized.json`：过滤缺来源、外文残留、明显归属冲突后的 Layer 2
+- `quality_report.json`：质量扫描结果
+
+`quality-draft` 不写 DB、README、`digests/`，也不执行 git；确认 `quality_report.json` 通过后，再决定是否手工替换历史日报。
 
 ### GitHub 发布安全开关
 
@@ -154,3 +170,5 @@ Claude 调用按四层顺序尝试：
 `ANTHROPIC_FOURTH_*` 这组 Packy 后端当前作为第三顺位备用，按普通 Claude 兼容后端处理，使用 `config/settings.yaml` 的 `ai.temperature`，不额外发送 `thinking` 参数。
 
 如果 Layer 1 总摘要四层 LLM 都失败，程序会用已生成的各 KOL 结构化摘要拼出本地兜底日报，并在正文开头标注“本地兜底模板”。如果单个 KOL 的 Layer 2 摘要也失败，会从原始推文生成最小明细，避免当天 README 因单点 LLM 故障完全不更新。
+
+日报发布前会做确定性质量清理：删除明显内部提示词/工作流污染、关键章节中没有 X 来源链接的要点、未链接来源标签、韩文/日文残留过多的行，以及“OpenAI 计划发布 Claude/Anthropic 模型”这类明显归属冲突。`quality_report.json` 会把这些问题按 error/warning 记录下来，方便回查是哪一层出错。

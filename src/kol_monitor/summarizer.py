@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 GENERIC_SOURCE_LABEL_RE = re.compile(r"^(来源|链接|原文|原推)\s*(\d*)$")
 TWEET_URL_RE = re.compile(r"https?://(?:www\.)?(?:x|twitter)\.com/([^/]+)/status/[^)\s]+")
 UNLINKED_SOURCE_LABEL_RE = re.compile(r"\[@[^\]]+\](?!\()")
+SUSPICIOUS_MODEL_COMPANY_RE = re.compile(
+    r"OpenAI[^。！？\n]{0,40}(?:计划|将|将于|发布|推出|release|launch)"
+    r"[^。！？\n]{0,40}(?:Claude|claude[-_.a-z0-9]*|Anthropic)",
+    re.IGNORECASE,
+)
 INTERNAL_ARTIFACT_MARKERS = (
     "investigate_before_answering",
     "读代码",
@@ -27,7 +32,29 @@ INTERNAL_ARTIFACT_MARKERS = (
     "Codex",
     "提示词",
     "工作原则",
+    "失败两次",
+    "诊断根因",
+    "增量修补",
+    "放弃需求",
+    "系统原则",
+    "工作流",
 )
+SOURCE_REQUIRED_LAYER1_SECTIONS = (
+    "重要新闻",
+    "宏观判断",
+    "产业/个股焦点",
+    "交易信号",
+    "投资理念",
+)
+MARKET_RELEVANT_CLAIM_TYPES = {
+    "news",
+    "opinion",
+    "trade_signal",
+    "market_data",
+    "policy",
+    "earnings",
+}
+NON_CHINESE_RETRY_CHAR_LIMIT = 8
 REQUIRED_LAYER1_SECTIONS = (
     "特朗普相关",
     "今日关键词",
@@ -160,15 +187,121 @@ def normalize_layer1_source_links(markdown: str) -> str:
 
 def _clean_layer1_markdown(markdown: str) -> str:
     cleaned = []
+    current_section = ""
     for line in markdown.splitlines():
         stripped = line.strip()
-        is_bullet = stripped.startswith(("- ", "* "))
-        if is_bullet and any(marker in line for marker in INTERNAL_ARTIFACT_MARKERS):
+        heading = re.match(r"^\s{0,3}#{2,4}\s+(.+?)\s*$", line)
+        if heading:
+            current_section = _normalize_layer1_heading(heading.group(1))
+            cleaned.append(line)
             continue
-        if is_bullet and UNLINKED_SOURCE_LABEL_RE.search(line):
+        is_bullet = stripped.startswith(("- ", "* "))
+        is_table_data_row = _is_markdown_table_data_row(stripped)
+        is_content_line = bool(stripped)
+        if is_content_line and any(marker in line for marker in INTERNAL_ARTIFACT_MARKERS):
+            continue
+        if is_content_line and UNLINKED_SOURCE_LABEL_RE.search(line):
+            continue
+        if is_content_line and _line_has_suspicious_model_company_conflict(line):
+            continue
+        if is_content_line and _non_chinese_letter_count(line) > NON_CHINESE_RETRY_CHAR_LIMIT:
+            continue
+        if (
+            (is_bullet or is_table_data_row)
+            and _layer1_section_requires_source(current_section)
+            and not _is_layer1_placeholder(stripped)
+            and not TWEET_URL_RE.search(line)
+        ):
             continue
         cleaned.append(line)
-    return "\n".join(cleaned)
+    return _fill_empty_layer1_sections("\n".join(cleaned))
+
+
+def _layer1_section_requires_source(normalized_heading: str) -> bool:
+    return any(
+        _normalize_layer1_heading(section) in normalized_heading
+        for section in SOURCE_REQUIRED_LAYER1_SECTIONS
+    )
+
+
+def _line_has_suspicious_model_company_conflict(line: str) -> bool:
+    return bool(SUSPICIOUS_MODEL_COMPANY_RE.search(line))
+
+
+def _is_markdown_table_data_row(stripped: str) -> bool:
+    if not (stripped.startswith("|") and stripped.endswith("|")):
+        return False
+    cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+    if not cells:
+        return False
+    if all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells if cell):
+        return False
+    normalized_cells = {re.sub(r"\s+", "", cell) for cell in cells}
+    header_cells = {"标的", "线索", "来源", "主题", "判断", "证据", "账号"}
+    return not bool(normalized_cells & header_cells)
+
+
+def _is_layer1_placeholder(stripped: str) -> bool:
+    text = stripped.lstrip("-* ").strip().rstrip("。")
+    return text in {
+        "暂无高质量信号",
+        "暂无有来源的高质量信号",
+        "暂无明确要点",
+        "暂无明确宏观判断",
+        "暂无明确个股焦点",
+        "暂无明确交易信号",
+        "暂无明确投资理念",
+    }
+
+
+def _fill_empty_layer1_sections(markdown: str) -> str:
+    lines = markdown.splitlines()
+    headings = _layer1_headings(markdown)
+    required = {
+        _normalize_layer1_heading(section)
+        for section in REQUIRED_LAYER1_SECTIONS
+        if section not in SOURCE_REQUIRED_LAYER1_SECTIONS
+    }
+    source_required = {
+        _normalize_layer1_heading(section) for section in SOURCE_REQUIRED_LAYER1_SECTIONS
+    }
+    for index in range(len(headings) - 1, -1, -1):
+        line_no, heading = headings[index]
+        normalized = _normalize_layer1_heading(heading)
+        if not any(section in normalized for section in required | source_required):
+            continue
+        next_line = headings[index + 1][0] if index + 1 < len(headings) else len(lines)
+        if _layer1_body_has_content(lines[line_no + 1 : next_line]):
+            continue
+        placeholder = (
+            "- 暂无有来源的高质量信号。"
+            if any(section in normalized for section in source_required)
+            else "- 暂无高质量信号。"
+        )
+        lines[line_no + 1 : line_no + 1] = ["", placeholder, ""]
+    return "\n".join(lines)
+
+
+def _layer1_body_has_content(lines: list[str]) -> bool:
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped == "---":
+            continue
+        if _is_markdown_table_header_or_separator(stripped):
+            continue
+        return True
+    return False
+
+
+def _is_markdown_table_header_or_separator(stripped: str) -> bool:
+    if not (stripped.startswith("|") and stripped.endswith("|")):
+        return False
+    cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+    if cells and all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells if cell):
+        return True
+    normalized_cells = {re.sub(r"\s+", "", cell) for cell in cells}
+    header_cells = {"标的", "线索", "来源", "主题", "判断", "证据", "账号"}
+    return bool(normalized_cells & header_cells)
 
 
 def _prepare_layer1_markdown(markdown: str) -> str:
@@ -469,8 +602,21 @@ async def summarize_one_kol(
     )
     retry_messages = [{"role": "user", "content": [{"type": "text", "text": retry_text}]}]
     parsed, response = await _call_layer2_until_parsed(messages, retry_messages)
+    if parsed is not None and _layer2_needs_chinese_retry(parsed):
+        chinese_retry = (
+            "上次输出仍包含较多非中文内容。请把所有 core_view 和 bullets.point 翻译成简体中文，"
+            "专有名词和股票代码可保留原文；仍然严格输出 JSON。\n\n"
+            + _layer2_prompt(kol, tweets, bool(media_files))
+        )
+        parsed_retry, response_retry = await _call_layer2_until_parsed(
+            [{"role": "user", "content": [{"type": "text", "text": chinese_retry}]}],
+            [{"role": "user", "content": [{"type": "text", "text": chinese_retry}]}],
+        )
+        if parsed_retry is not None:
+            parsed, response = parsed_retry, response_retry
     if parsed is None:
         parsed = {"core_view": "summary_failed", "bullets": [], "sentiment": "unclear"}
+    parsed = _normalize_layer2_result(parsed)
 
     usage = getattr(response, "usage", None) if response else None
     parsed.update(
@@ -549,10 +695,16 @@ def _image_block(path: Path) -> dict[str, Any]:
 
 def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media: bool) -> str:
     lines = [
-        f"请总结美股 KOL @{kol['screen_name']} 当日推文。",
+        f"请总结美股 KOL @{kol['screen_name']} 当日推文。你是在做“社媒观点摘要”，不是事实核验新闻稿。",
+        "所有 core_view 和 bullets.point 必须使用简体中文；非中文推文要翻译，专有名词和股票代码可保留原文。",
+        "只基于给定推文，不得补充外部背景、不得把传言或观点改写成已确认事实。",
+        "如果推文是在猜测、传言、喊单或表达观点，point 必须包含“作者认为/称/转述/推测”等归因词。",
+        "无市场相关内容时，bullets 输出 []，core_view 写“无市场相关内容”，sentiment 写 unclear。",
         "涉及具体股票代码时，展示文本统一使用 $股票代码 格式，例如 $NVDA；tickers 字段仍只填不带 $ 的代码。",
+        "每条 bullet 必须保留对应 tweet_url；无法关联原推的内容不要写入 bullets。",
+        "claim_type 只能填 news|opinion|trade_signal|market_data|policy|earnings|personal|irrelevant；confidence 只能填 high|medium|low。",
         "输出严格 JSON，格式：",
-        '{"core_view":"≤30字一句话","bullets":[{"point":"$NVDA ...","tickers":["NVDA"],"tweet_url":"https://x.com/..."}],"sentiment":"bullish|bearish|neutral|unclear"}',
+        '{"core_view":"≤30字一句话","bullets":[{"point":"作者认为 $NVDA ...","tickers":["NVDA"],"tweet_url":"https://x.com/...","claim_type":"opinion","confidence":"medium"}],"sentiment":"bullish|bearish|neutral|unclear"}',
         "推文：",
     ]
     for tweet in tweets:
@@ -573,16 +725,21 @@ def build_layer1_prompt(
 ) -> list[dict[str, Any]]:
     intro = (
         "请基于以下 KOL JSON 总结生成中文 markdown，只输出正文，不要输出日报标题、分隔线或 emoji。"
+        "这是社媒观点摘要，不是事实核验新闻稿；不要把 KOL 观点、传言或交易喊单改写成已确认事实。"
         "必须按顺序完整输出且只输出以下七个二级标题："
         "## 特朗普相关、## 今日关键词、## 重要新闻、## 宏观判断、"
         "## 产业/个股焦点、## 交易信号、## 投资理念。"
         "不要遗漏任何标题；如果某节信息不足，写一条“暂无高质量信号。”，也必须保留该标题。"
         "先合并重复信息，再写结论，避免逐条复述同一账号的相似推文。"
+        "除非输入明确来自官方公告或客观市场数据，否则使用“某 KOL 称/认为/转述/推测”等归因表达。"
+        "如果信息互相冲突，保留“分歧”表述，不要强行合并成单一事实。"
         "总长度控制在 1800-2600 汉字，每条 bullet 尽量不超过 70 汉字，"
         "交易信号表格的“线索”列尽量不超过 30 汉字；严禁扩写背景知识。"
         "篇幅控制：特朗普相关 2-4 条；今日关键词用 6-8 个普通 bullet，不要表格；"
         "重要新闻 4-6 条；宏观判断 3-5 条；产业/个股焦点 5-8 条；"
         "交易信号最多 6 行 markdown 表格；投资理念 3-5 条。"
+        "重要新闻、宏观判断、产业/个股焦点、交易信号、投资理念中的每条 bullet 或表格行必须至少包含一个 X 来源链接；没有来源的内容不要写。"
+        "投资理念只能来自 KOL 明确表达的投资原则，禁止写总结过程、工程方法、提示词规则、系统原则。"
         "“特朗普相关”小节必须总结 realDonaldTrump 当天发言可能影响的美股标的、行业、事件线索，"
         "若只是推测也要明确写出推测依据。每条要点尽量附原推链接。"
         "所有涉及具体股票代码的 markdown 文本必须使用 $代码 格式，例如 $TSLA，不要只写 TSLA。"
@@ -654,12 +811,26 @@ def _layer2_bullets_with_sources(layer2_results: list[dict[str, Any]]) -> list[d
     for item in layer2_results:
         handle = str(item.get("screen_name") or "")
         for bullet in item.get("bullets") or []:
+            claim_type = str(bullet.get("claim_type") or "opinion").strip().lower()
+            if claim_type not in MARKET_RELEVANT_CLAIM_TYPES:
+                continue
+            if not bullet.get("tweet_url"):
+                continue
+            point = str(bullet.get("point") or "").strip()
+            if not point:
+                continue
+            if _non_chinese_letter_count(point) > NON_CHINESE_RETRY_CHAR_LIMIT:
+                continue
+            if _line_has_suspicious_model_company_conflict(point):
+                continue
             rows.append(
                 {
                     "handle": handle,
-                    "point": str(bullet.get("point") or "").strip(),
+                    "point": point,
                     "tickers": [_format_markdown_ticker(t) for t in bullet.get("tickers") or []],
                     "tweet_url": bullet.get("tweet_url"),
+                    "claim_type": claim_type,
+                    "confidence": str(bullet.get("confidence") or "medium").strip().lower(),
                 }
             )
     return rows
@@ -672,6 +843,8 @@ def _render_trump_fallback(trump_summary: dict[str, Any] | None) -> str:
         f"- @realDonaldTrump 今日 {trump_summary.get('tweet_count', 0)} 条：{trump_summary.get('core_view', '')}"
     ]
     for bullet in trump_summary.get("bullets") or []:
+        if not bullet.get("tweet_url"):
+            continue
         lines.append(
             "- "
             + _bullet_text(
@@ -733,12 +906,33 @@ def _render_core_views(layer2_results: list[dict[str, Any]]) -> str:
     lines = []
     for item in sorted(layer2_results, key=lambda row: row.get("tweet_count", 0), reverse=True):
         core_view = str(item.get("core_view") or "").strip()
-        if not core_view or core_view == "summary_failed":
+        if not core_view or _is_empty_market_core_view(core_view):
             continue
-        lines.append(f"- @{item.get('screen_name')}：{core_view}")
+        if _non_chinese_letter_count(core_view) > NON_CHINESE_RETRY_CHAR_LIMIT:
+            continue
+        if _line_has_suspicious_model_company_conflict(core_view):
+            continue
+        source = _first_bullet_source(item)
+        if not source:
+            continue
+        lines.append(f"- @{item.get('screen_name')}：{core_view} {source}")
         if len(lines) >= 8:
             break
     return "\n".join(lines) if lines else "- 暂无明确投资理念。"
+
+
+def _first_bullet_source(item: dict[str, Any]) -> str:
+    for bullet in item.get("bullets") or []:
+        url = bullet.get("tweet_url")
+        if url:
+            handle = item.get("screen_name")
+            return f"[@{handle}]({url})"
+    return ""
+
+
+def _is_empty_market_core_view(core_view: str) -> bool:
+    normalized = core_view.strip().lower()
+    return normalized in {"无市场相关内容", "暂无要点", "summary_failed", "no market relevant content"}
 
 
 def _filter_macro_bullets(bullets: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -786,6 +980,8 @@ def _fallback_layer2_summary(kol: dict[str, Any], tweets: list[dict[str, Any]]) 
                 "point": _truncate_text(text, 120) or "原推文本为空。",
                 "tickers": _extract_tickers_from_text(text),
                 "tweet_url": tweet.get("url"),
+                "claim_type": "opinion",
+                "confidence": "low",
             }
         )
     core_view = _truncate_text(bullets[0]["point"], 30) if bullets else "summary_failed"
@@ -798,6 +994,77 @@ def _fallback_layer2_summary(kol: dict[str, Any], tweets: list[dict[str, Any]]) 
         "input_tokens": 0,
         "output_tokens": 0,
     }
+
+
+def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
+    parsed["core_view"] = str(parsed.get("core_view") or "").strip()
+    parsed["sentiment"] = str(parsed.get("sentiment") or "unclear").strip().lower()
+    if parsed["sentiment"] not in {"bullish", "bearish", "neutral", "unclear"}:
+        parsed["sentiment"] = "unclear"
+    normalized_bullets = []
+    for bullet in parsed.get("bullets") or []:
+        if not isinstance(bullet, dict):
+            continue
+        point = str(bullet.get("point") or "").strip()
+        tweet_url = str(bullet.get("tweet_url") or "").strip()
+        if not point or not tweet_url:
+            continue
+        if _non_chinese_letter_count(point) > NON_CHINESE_RETRY_CHAR_LIMIT:
+            continue
+        if _line_has_suspicious_model_company_conflict(point):
+            continue
+        claim_type = str(bullet.get("claim_type") or "opinion").strip().lower()
+        if claim_type not in MARKET_RELEVANT_CLAIM_TYPES | {"personal", "irrelevant"}:
+            claim_type = "opinion"
+        confidence = str(bullet.get("confidence") or "medium").strip().lower()
+        if confidence not in {"high", "medium", "low"}:
+            confidence = "medium"
+        normalized_bullets.append(
+            {
+                "point": point,
+                "tickers": [
+                    str(ticker).strip().lstrip("$").upper()
+                    for ticker in bullet.get("tickers") or []
+                    if str(ticker).strip()
+                ],
+                "tweet_url": tweet_url,
+                "claim_type": claim_type,
+                "confidence": confidence,
+            }
+        )
+    parsed["bullets"] = normalized_bullets
+    if (
+        _non_chinese_letter_count(parsed["core_view"]) > NON_CHINESE_RETRY_CHAR_LIMIT
+        or _line_has_suspicious_model_company_conflict(parsed["core_view"])
+    ):
+        parsed["core_view"] = (
+            _truncate_text(normalized_bullets[0]["point"], 30)
+            if normalized_bullets
+            else "无市场相关内容"
+        )
+    return parsed
+
+
+def _layer2_needs_chinese_retry(parsed: dict[str, Any]) -> bool:
+    text = " ".join(
+        [str(parsed.get("core_view") or "")]
+        + [
+            str(bullet.get("point") or "")
+            for bullet in parsed.get("bullets") or []
+            if isinstance(bullet, dict)
+        ]
+    )
+    return _non_chinese_letter_count(text) > NON_CHINESE_RETRY_CHAR_LIMIT
+
+
+def _non_chinese_letter_count(text: str) -> int:
+    count = 0
+    for char in text:
+        if "\uac00" <= char <= "\ud7a3":
+            count += 1
+        elif "\u3040" <= char <= "\u30ff":
+            count += 1
+    return count
 
 
 def _extract_tickers_from_text(text: str) -> list[str]:

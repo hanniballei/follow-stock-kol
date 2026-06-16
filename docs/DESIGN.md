@@ -86,9 +86,10 @@ src/kol_monitor/
 ├── fetcher.py       # 抓取主流程：增量 + 防漏拉 + 回填
 ├── media.py         # 图片下载（去重、重试、按日期分目录）
 ├── summarizer.py    # Claude 调用：Layer 1 综合 + Layer 2 各 KOL
+├── quality.py       # 日报草稿修复 + 质量扫描（不写发布文件）
 ├── publisher.py     # Markdown 渲染 + README 更新 + git ops
 ├── scheduler.py     # apscheduler 入口
-├── cli.py           # kol-monitor [run-once|daemon|fetch-only|backfill|regen-digest|validate-handles|add-kol]
+├── cli.py           # kol-monitor [run-once|daemon|fetch-only|backfill|regen-digest|quality-draft|validate-handles|add-kol]
 └── logging_setup.py # rich + file handler 双输出
 ```
 
@@ -105,8 +106,13 @@ src/kol_monitor/
                  ├─► media.download_photos ──► media/YYYY-MM-DD/<handle>/
                  │      ▼
                  ├─► summarizer
-                 │      ├─ Layer 2: 每个 KOL 一句话+bullets+情绪
+                 │      ├─ Layer 2: 每个 KOL 一句话+bullets+情绪+claim_type
                  │      └─ Layer 1: 6 大维度综合
+                 │      ▼
+                 ├─► quality（手工草稿/回查用）
+                 │      ├─ clean existing Layer 1
+                 │      ├─ normalize Layer 2
+                 │      └─ write /tmp/kol-monitor-quality-drafts/<date>/
                  │      ▼
                  ├─► publisher
                  │      ├─ render README.md（KOL 名单 + 当日总结 + 历史索引）
@@ -192,11 +198,19 @@ src/kol_monitor/
 {
   "core_view": "≤30 字一句话",
   "bullets": [
-    {"point": "...", "tickers": ["NVDA"], "tweet_url": "https://x.com/.../status/..."}
+    {
+      "point": "...",
+      "tickers": ["NVDA"],
+      "tweet_url": "https://x.com/.../status/...",
+      "claim_type": "news | opinion | trade_signal | market_data | policy | earnings | personal | irrelevant",
+      "confidence": "high | medium | low"
+    }
   ],
   "sentiment": "bullish | bearish | neutral | unclear"
 }
 ```
+
+Layer 2 输出必须使用简体中文；非中文推文要翻译。每条 bullet 必须有原推链接，不能把传言、观点或交易喊单改写成已确认事实。无市场相关内容时输出空 bullets，并把 `core_view` 设为“无市场相关内容”。
 
 ### 9.2 Layer 1 — 综合总结（置顶展示）
 
@@ -211,12 +225,24 @@ src/kol_monitor/
 6. 💹 交易信号（期权异动、技术位、操作建议）
 7. 💡 投资理念（值得收藏的长期视角）
 
-每条要点末尾用 `[↗](原推链接)` 引用对应推文。
+关键章节（重要新闻、宏观判断、产业/个股焦点、交易信号、投资理念）的每条 bullet 或表格行必须带 X 来源链接，链接文字显示来源账号。Layer 1 发布前会清理明显内部工作流污染、未链接来源、关键章节无来源要点、OpenAI/Claude 归属冲突，以及韩文/日文残留过多的行。
 
-### 9.3 失败处理
+### 9.3 质量草稿与门禁
+
+`kol-monitor quality-draft --date YYYY-MM-DD` 用于回查或修复某天日报，不写 DB、README、历史 digest，也不触发 git。它读取 DB 中已有 digest，输出到 `/tmp/kol-monitor-quality-drafts/<date>/`：
+
+- `draft.md` — 推荐候选稿，优先使用通过门禁的清洗版旧摘要，否则使用规范化 Layer 2 生成的本地兜底稿
+- `cleaned_existing.md` — 对旧 Layer 1 摘要做确定性清理后的版本
+- `repaired_fallback.md` — 用规范化 Layer 2 重新拼出的本地兜底稿
+- `layer2_normalized.json` — 过滤缺来源、外文残留、明显归属冲突后的 Layer 2 JSON
+- `quality_report.json` — 质量扫描报告，记录 error/warning、行号、章节和原始片段
+
+门禁关注：内部提示词/工作流污染、关键章节无来源内容、韩文/日文残留、OpenAI 与 Claude/Anthropic 的明显模型归属冲突、重复来源和重复要点。
+
+### 9.4 失败处理
 
 - 单 KOL 总结失败 → 该 KOL 标 `summary_failed`，不影响其他
-- Layer 1 失败 → 重试 3 次，仍失败 digest 标 `degraded`，README 退化为只展示 Layer 2 列表
+- Layer 1 失败 → 尝试多层 Claude 后端；全部失败时使用本地兜底模板，避免当天日报完全缺失
 
 ## 10. 媒体存储策略
 
@@ -292,6 +318,7 @@ kol-monitor daemon                            # 启动定时守护
 kol-monitor fetch-only                        # 只抓取，不总结不发布
 kol-monitor backfill                          # 回填 incomplete KOL
 kol-monitor regen-digest --date YYYY-MM-DD    # 重新生成某天 digest
+kol-monitor quality-draft --date YYYY-MM-DD   # 生成 /tmp 草稿和质量报告，不写发布文件
 kol-monitor validate-handles                  # 逐个校验所有 handle
 kol-monitor add-kol <handle> --validate       # 增加 KOL（去重 + 校验）
 ```
