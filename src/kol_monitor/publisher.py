@@ -13,8 +13,25 @@ import markdown as md_lib
 
 from kol_monitor import db
 from kol_monitor.config import settings
+from kol_monitor.summarizer import (
+    _normalize_layer2_result,
+    _prepare_layer1_markdown,
+    sanitize_tweet_url,
+)
 
 logger = logging.getLogger(__name__)
+
+# Unambiguously-invented SpaceX ticker forms -> the project's canonical $SPCX. These map
+# entries are SAFE to auto-rewrite because no real listed company trades under them.
+# $SPCE is deliberately NOT here: it is Virgin Galactic's real ticker, and KOLs sometimes
+# reference it legitimately (incl. warning others not to confuse it with $SPCX).
+_INVENTED_TICKER_FIXES = {"SPACEX": "SPCX", "SPACE": "SPCX"}
+
+
+def _normalize_ticker_code(ticker: object) -> str:
+    code = str(ticker).strip().lstrip("$").upper()
+    return _INVENTED_TICKER_FIXES.get(code, code)
+
 
 
 def render_readme(
@@ -619,7 +636,7 @@ def _count_tickers(layer2_kols: list[dict]) -> list[tuple[str, int]]:
     for item in layer2_kols:
         for bullet in item.get("bullets") or []:
             for ticker in bullet.get("tickers") or []:
-                code = str(ticker).strip().lstrip("$").upper()
+                code = _normalize_ticker_code(ticker)
                 if code and len(code) <= 6:
                     counter[code] += 1
     return counter.most_common()
@@ -674,13 +691,13 @@ def _html_trade_signals(layer2_kols: list[dict]) -> str:
         sentiment = str(item.get("sentiment", "unclear")).strip().lower()
         for bullet in item.get("bullets") or []:
             tickers = [
-                f"${str(t).strip().lstrip('$').upper()}"
+                f"${_normalize_ticker_code(t)}"
                 for t in bullet.get("tickers") or []
             ]
             if not tickers:
                 continue
             point = str(bullet.get("point", "")).strip()
-            url = bullet.get("tweet_url", "")
+            url = sanitize_tweet_url(bullet.get("tweet_url", ""))
             if point:
                 rows.append(
                     {
@@ -750,14 +767,14 @@ def _html_kol_cards(layer2_kols: list[dict]) -> str:
             tickers_html = ""
             tickers = b.get("tickers") or []
             if tickers:
-                codes = [f"${str(t).strip().lstrip('$').upper()}" for t in tickers]
+                codes = [f"${_normalize_ticker_code(t)}" for t in tickers]
                 tickers_html = (
                     " "
                     + " ".join(
                         f'<span class="ticker-inline">{c}</span>' for c in codes
                     )
                 )
-            url = b.get("tweet_url", "")
+            url = sanitize_tweet_url(b.get("tweet_url", ""))
             link_html = (
                 f' <a href="{url}" target="_blank" rel="noopener">↗</a>'
                 if url
@@ -801,19 +818,33 @@ def write_outputs(date: str) -> tuple[Path, Path, Path]:
     digest = db.get_digest(date)
     if digest is None:
         raise RuntimeError(f"missing digest for {date}")
-    layer2 = json.loads(digest["layer2_json"] or "[]")
+    raw_layer2 = json.loads(digest["layer2_json"] or "[]")
+    # Normalize before rendering so the published per-KOL detail goes through the same
+    # language/residue/model-conflict filters as the layer1 fallback. Without this, the
+    # raw layer2 (e.g. an untranslated Korean @blazingbees block, or a leaked tweet_url)
+    # would render verbatim into the .md even though the DB-level scan flagged it.
+    layer2 = [
+        _normalize_layer2_result(dict(item))
+        for item in raw_layer2
+        if isinstance(item, dict)
+    ]
+    # Clean the layer1 summary (strip internal-methodology artifacts, model-attribution
+    # conflicts, non-Chinese residue) before it reaches any renderer. Previously the raw
+    # summary_md was rendered verbatim, so flagged content (e.g. the OpenAI/claude model
+    # mix-up) leaked into the published .md even though the DB scan caught it.
+    layer1_md = _prepare_layer1_markdown(digest["summary_md"] or "")
     readme = render_readme(
         date=date,
-        layer1_md=digest["summary_md"],
+        layer1_md=layer1_md,
         layer2_kols=layer2,
         kol_list=settings.kols,
         history_dirs=history_dirs(),
         recent_digests=recent_digest_links(),
     )
-    digest_md = render_digest_md(date, digest["summary_md"], layer2)
+    digest_md = render_digest_md(date, layer1_md, layer2)
     digest_html = render_daily_html(
         date=date,
-        layer1_md=digest["summary_md"],
+        layer1_md=layer1_md,
         layer2_kols=layer2,
         kol_list=settings.kols,
     )
@@ -826,7 +857,40 @@ def write_outputs(date: str) -> tuple[Path, Path, Path]:
     readme_path.write_text(readme, encoding="utf-8")
     md_path.write_text(digest_md, encoding="utf-8")
     html_path.write_text(digest_html, encoding="utf-8")
+    _scan_rendered_digest(date, digest_md)
     return readme_path, md_path, html_path
+
+
+def _scan_rendered_digest(date: str, digest_md: str) -> None:
+    """Scan the final rendered markdown (what readers actually see) and log any defects.
+
+    The DB-level layer1/layer2 gates run earlier, but rendering can still introduce
+    reader-visible defects (broken source links, leaked JSON, residue). Surfacing them
+    here closes the gap where a passing DB scan diverged from the published .md. Logged,
+    not raised, to honor the publish-must-not-fail rule.
+    """
+    try:
+        from kol_monitor.quality import scan_summary_quality
+
+        report = scan_summary_quality(digest_md)
+    except Exception:  # never let the gate break publishing
+        logger.exception("rendered digest scan failed for %s", date)
+        return
+    if report.get("error_count"):
+        codes = report.get("issue_counts_by_code", {})
+        logger.error(
+            "rendered digest %s has %d quality errors after render: %s",
+            date,
+            report["error_count"],
+            codes,
+        )
+    elif report.get("warning_count"):
+        logger.warning(
+            "rendered digest %s has %d warnings: %s",
+            date,
+            report["warning_count"],
+            report.get("issue_counts_by_code", {}),
+        )
 
 
 def git_publish(date: str, files: list[Path]) -> bool:
@@ -963,12 +1027,12 @@ def _render_bullets(bullets: list[dict]) -> str:
         formatted_tickers = [_format_ticker(ticker) for ticker in tickers]
         formatted_tickers = [ticker for ticker in formatted_tickers if ticker]
         ticker_text = f" ({', '.join(formatted_tickers)})" if formatted_tickers else ""
-        link = bullet.get("tweet_url")
+        link = sanitize_tweet_url(bullet.get("tweet_url"))
         link_text = f" [原推]({link})" if link else ""
         lines.append(f"- {bullet.get('point', '')}{ticker_text}{link_text}")
     return "\n".join(lines)
 
 
 def _format_ticker(ticker: object) -> str:
-    code = str(ticker).strip().lstrip("$").upper()
+    code = _normalize_ticker_code(ticker)
     return f"${code}" if code else ""

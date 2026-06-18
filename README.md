@@ -86,13 +86,13 @@
 
 ## 最近 7 天
 
+- [2026-06-18](digests/2026/06/18.md)
 - [2026-06-17](digests/2026/06/17.md)
 - [2026-06-16](digests/2026/06/16.md)
 - [2026-06-15](digests/2026/06/15.md)
 - [2026-06-14](digests/2026/06/14.md)
 - [2026-06-13](digests/2026/06/13.md)
 - [2026-06-12](digests/2026/06/12.md)
-- [2026-06-11](digests/2026/06/11.md)
 
 ## 监控的 KOL
 
@@ -169,15 +169,9 @@
 
 **情绪**：bullish
 
-- 作者称美股刚刚创下历史新高，油价正在"暴跌"，批评那些认为他对伊朗不够强硬的人是嫉妒、坏人或愚蠢的人 [原推](https://x.com/realDonaldTrump/status/truth_1781771552550051016",
-      "claim_type": "opinion",
-      "confidence": "high)
-- 作者称欢迎中国、印度投资委内瑞拉石油 [原推](https://x.com/realDonaldTrump/status/truth_1781771301601973622",
-      "claim_type": "policy",
-      "confidence": "high)
-- 作者称帮助 $INTC 回归美国，促成 $NVDA 与 Intel 合作、Elon 建 TerraFab 芯片厂、$AAPL 与 Intel 合作；作者称美国持有 Intel 10% 股份，Intel 市值九个月从约 1000 亿美元增长至超 6000 亿美元，美国持股价值超 600 亿美元 ($INTC, $NVDA, $AAPL) [原推](https://x.com/realDonaldTrump/status/truth_1781756979219536676",
-      "claim_type": "news",
-      "confidence": "medium)
+- 作者称美股刚刚创下历史新高，油价正在"暴跌"，批评那些认为他对伊朗不够强硬的人是嫉妒、坏人或愚蠢的人 [原推](https://x.com/realDonaldTrump/status/truth_1781771552550051016)
+- 作者称欢迎中国、印度投资委内瑞拉石油 [原推](https://x.com/realDonaldTrump/status/truth_1781771301601973622)
+- 作者称帮助 $INTC 回归美国，促成 $NVDA 与 Intel 合作、Elon 建 TerraFab 芯片厂、$AAPL 与 Intel 合作；作者称美国持有 Intel 10% 股份，Intel 市值九个月从约 1000 亿美元增长至超 6000 亿美元，美国持股价值超 600 亿美元 ($INTC, $NVDA, $AAPL) [原推](https://x.com/realDonaldTrump/status/truth_1781756979219536676)
 
 ### @blazingbees · 19 条
 
@@ -278,18 +272,10 @@
 
 **情绪**：bullish
 
-- 作者引述 $SIMO VP 称零售 SSD 市场几乎消失，控制器现主要流向 OEM 厂商，因 OEM 无法直接从内存厂商获得足够 NAND，转而从模组厂商采购 SSD ($SIMO) [原推](https://x.com/rwang07/status/2067580126557335732",
-      "claim_type": "news",
-      "confidence": "high)
-- 作者称 E-glass 供应瓶颈严重，部分 CCL 制造商无法获得足够原材料，迫使客户转向其他供应商；作者认为大厂视角无法反映市场实际情况 [原推](https://x.com/rwang07/status/2067481717393559670",
-      "claim_type": "opinion",
-      "confidence": "medium)
-- 作者转述某问答，当被问及当前需求斜率相比一年前是否更陡或趋平时，回答者称需求曲线是"垂直的"（暗示需求激增） [原推](https://x.com/rwang07/status/2067453178707357830",
-      "claim_type": "opinion",
-      "confidence": "medium)
-- 作者回应黄仁勋称 $MRVL 是"下一个万亿美元公司"的言论，表示自己认为 SK Hynix 是"下一个 3 万亿美元公司" ($MRVL) [原推](https://x.com/rwang07/status/2067404975563853898",
-      "claim_type": "opinion",
-      "confidence": "low)
+- 作者引述 $SIMO VP 称零售 SSD 市场几乎消失，控制器现主要流向 OEM 厂商，因 OEM 无法直接从内存厂商获得足够 NAND，转而从模组厂商采购 SSD ($SIMO) [原推](https://x.com/rwang07/status/2067580126557335732)
+- 作者称 E-glass 供应瓶颈严重，部分 CCL 制造商无法获得足够原材料，迫使客户转向其他供应商；作者认为大厂视角无法反映市场实际情况 [原推](https://x.com/rwang07/status/2067481717393559670)
+- 作者转述某问答，当被问及当前需求斜率相比一年前是否更陡或趋平时，回答者称需求曲线是"垂直的"（暗示需求激增） [原推](https://x.com/rwang07/status/2067453178707357830)
+- 作者回应黄仁勋称 $MRVL 是"下一个万亿美元公司"的言论，表示自己认为 SK Hynix 是"下一个 3 万亿美元公司" ($MRVL) [原推](https://x.com/rwang07/status/2067404975563853898)
 
 ### @WallStreet0Name · 5 条
 
@@ -349,15 +335,9 @@
 
 **情绪**：bullish
 
-- 作者称这是"本月交易"级别的机会 [原推](https://x.com/Remzztrades/status/2067593310856790293",
-      "claim_type": "trade_signal",
-      "confidence": "medium)
-- 作者认为看空存储芯片就像30年前看空互联网，称这是一生一次的机会 [原推](https://x.com/Remzztrades/status/2067592333743329554",
-      "claim_type": "opinion",
-      "confidence": "high)
-- 作者分享其交易社区 Trinity Trading Platform (TTP) 的成长历程，表示目标是帮助成员实现持续盈利 [原推](https://x.com/Remzztrades/status/2067426747960995894",
-      "claim_type": "personal",
-      "confidence": "high)
+- 作者称这是"本月交易"级别的机会 [原推](https://x.com/Remzztrades/status/2067593310856790293)
+- 作者认为看空存储芯片就像30年前看空互联网，称这是一生一次的机会 [原推](https://x.com/Remzztrades/status/2067592333743329554)
+- 作者分享其交易社区 Trinity Trading Platform (TTP) 的成长历程，表示目标是帮助成员实现持续盈利 [原推](https://x.com/Remzztrades/status/2067426747960995894)
 
 ### @Mr_Derivatives · 3 条
 

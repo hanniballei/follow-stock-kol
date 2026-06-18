@@ -18,6 +18,27 @@ _client: Any = None
 logger = logging.getLogger(__name__)
 GENERIC_SOURCE_LABEL_RE = re.compile(r"^(来源|链接|原文|原推)\s*(\d*)$")
 TWEET_URL_RE = re.compile(r"https?://(?:www\.)?(?:x|twitter)\.com/([^/]+)/status/[^)\s]+")
+# Canonical status URL: handle + status + numeric id (optionally a `truth_` prefix for
+# Truth Social-sourced realDonaldTrump posts). Used to sanitize tweet_url values that a
+# malformed-JSON relaxed parse may have polluted with trailing fields (e.g. a missing
+# closing quote causing the URL string to swallow `","claim_type":...`).
+CANONICAL_TWEET_URL_RE = re.compile(
+    r"https?://(?:www\.)?(?:x|twitter)\.com/[A-Za-z0-9_]+/status/(?:truth_)?\d+"
+)
+
+
+def sanitize_tweet_url(raw: object) -> str:
+    """Return the canonical X status URL embedded in `raw`, or "" if none is present.
+
+    Guards the render boundary: a relaxed/garbled parse can leave trailing JSON or
+    quotes glued onto a tweet_url; emitting that verbatim corrupts the markdown link and
+    leaks internal fields. We extract only the well-formed status URL and drop the rest.
+    """
+    text = str(raw or "").strip()
+    if not text:
+        return ""
+    match = CANONICAL_TWEET_URL_RE.search(text)
+    return match.group(0) if match else ""
 UNLINKED_SOURCE_LABEL_RE = re.compile(r"\[@[^\]]+\](?!\()")
 SUSPICIOUS_MODEL_COMPANY_RE = re.compile(
     r"OpenAI[^。！？\n]{0,40}(?:计划|将|将于|发布|推出|release|launch)"
@@ -26,19 +47,26 @@ SUSPICIOUS_MODEL_COMPANY_RE = re.compile(
 )
 INTERNAL_ARTIFACT_MARKERS = (
     "investigate_before_answering",
-    "读代码",
-    "系统行为",
     "AGENTS.md",
-    "Codex",
-    "提示词",
     "工作原则",
     "失败两次",
     "诊断根因",
     "增量修补",
     "放弃需求",
     "系统原则",
-    "工作流",
 )
+# NOTE: markers are deliberately limited to UNAMBIGUOUS internal-workflow phrases. Bare
+# subject-matter words were removed because US-tech-stock KOLs legitimately discuss AI
+# tooling:
+#   - "Codex" / "工作流" — OpenAI Codex / Claude Code product talk; "工作流"=workflow
+#     (dropped 2026-06-17; e.g. 6/16 "与 Claude Code 和 Codex 竞争").
+#   - "提示词" / "读代码" / "系统行为" — a KOL transcribing an All-In podcast about
+#     Anthropic's prompt-retention policy legitimately says "用户提示词…重写提示词"
+#     (6/14 @ArtofSpecuycky). As bare substrings these dropped real Layer-1 content and
+#     failed the rendered-md scan on genuine market commentary.
+# The remaining phrases (失败两次/诊断根因/增量修补/工作原则/系统原则/放弃需求/
+# investigate_before_answering) are the ones that actually caught real pollution (6/05, 6/13)
+# and have no legitimate KOL meaning.
 SOURCE_REQUIRED_LAYER1_SECTIONS = (
     "重要新闻",
     "宏观判断",
@@ -616,6 +644,12 @@ async def summarize_one_kol(
             parsed, response = parsed_retry, response_retry
     if parsed is None:
         parsed = {"core_view": "summary_failed", "bullets": [], "sentiment": "unclear"}
+    # Targeted translation of any residual non-Chinese point/core_view BEFORE normalize.
+    # normalize() drops residual-foreign bullets outright; translating them first keeps the
+    # information (this is what was silently lost when whole Korean @blazingbees blocks
+    # disappeared). A failed translation simply leaves the bullet for normalize to drop, so
+    # the worst case is no worse than before.
+    parsed = await _translate_residual_layer2(parsed)
     parsed = _normalize_layer2_result(parsed)
 
     usage = getattr(response, "usage", None) if response else None
@@ -628,6 +662,102 @@ async def summarize_one_kol(
         }
     )
     return parsed
+
+
+def _text_has_foreign_residue(text: str) -> bool:
+    return _non_chinese_letter_count(str(text or "")) > NON_CHINESE_RETRY_CHAR_LIMIT
+
+
+async def _translate_residual_layer2(parsed: dict[str, Any]) -> dict[str, Any]:
+    """Translate only the residual non-Chinese strings in a parsed layer2 result.
+
+    Collects core_view + each bullet.point that still carries Korean/Japanese residue,
+    sends them as one batched JSON translation request, and writes back any item that
+    comes back clean. Items that fail (LLM error, still-residual, or count mismatch) are
+    left untouched so the downstream normalize() can drop them as before — no regression.
+    """
+    if not isinstance(parsed, dict):
+        return parsed
+
+    targets: list[tuple[str, int]] = []  # (kind, index): kind in {"core","bullet"}
+    texts: list[str] = []
+    core_view = str(parsed.get("core_view") or "")
+    if _text_has_foreign_residue(core_view):
+        targets.append(("core", -1))
+        texts.append(core_view)
+    bullets = parsed.get("bullets") or []
+    for idx, bullet in enumerate(bullets):
+        if not isinstance(bullet, dict):
+            continue
+        point = str(bullet.get("point") or "")
+        if _text_has_foreign_residue(point):
+            targets.append(("bullet", idx))
+            texts.append(point)
+
+    if not texts:
+        return parsed
+
+    translations = await _translate_texts_to_chinese(texts)
+    if translations is None or len(translations) != len(texts):
+        logger.warning(
+            "residual translation skipped for @%s (got %s items for %d targets)",
+            parsed.get("screen_name", "?"),
+            None if translations is None else len(translations),
+            len(texts),
+        )
+        return parsed
+
+    for (kind, idx), original, translated in zip(targets, texts, translations):
+        candidate = str(translated or "").strip()
+        # Only accept a translation that actually removed the residue and is non-empty.
+        if not candidate or _text_has_foreign_residue(candidate):
+            continue
+        if kind == "core":
+            parsed["core_view"] = candidate
+        else:
+            bullets[idx]["point"] = candidate
+    return parsed
+
+
+async def _translate_texts_to_chinese(texts: list[str]) -> list[str] | None:
+    payload = json.dumps(texts, ensure_ascii=False)
+    prompt = (
+        "把下面 JSON 数组里的每个字符串翻译成简体中文，专有名词和 $股票代码 保留原文，"
+        "公司名用中文常用译名（如 Rheinmetall→莱茵金属）。"
+        "保持数组长度和顺序完全一致，只输出 JSON 字符串数组，不要解释、不要 markdown。\n\n"
+        f"{payload}"
+    )
+    messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
+    try:
+        response = await call_claude_with_retry(
+            messages=messages, max_tokens=settings.ai.max_tokens_layer2
+        )
+    except Exception as exc:
+        logger.warning("residual translation request failed: %s", exc)
+        return None
+    raw = _response_text(response)
+    parsed = _parse_string_array(raw)
+    if parsed is None:
+        logger.warning("residual translation returned non-array output")
+    return parsed
+
+
+def _parse_string_array(text: str) -> list[str] | None:
+    candidates = [text]
+    match = re.search(r"```(?:json)?\s*(.+?)```", text, re.DOTALL)
+    if match:
+        candidates.append(match.group(1))
+    start, end = text.find("["), text.rfind("]")
+    if start != -1 and end > start:
+        candidates.append(text[start : end + 1])
+    for candidate in candidates:
+        try:
+            value = json.loads(candidate)
+        except Exception:
+            continue
+        if isinstance(value, list) and all(isinstance(item, str) for item in value):
+            return value
+    return None
 
 
 async def _call_layer2_until_parsed(
@@ -699,6 +829,11 @@ def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media:
         "所有 core_view 和 bullets.point 必须使用简体中文；非中文推文要翻译，专有名词和股票代码可保留原文。",
         "只基于给定推文，不得补充外部背景、不得把传言或观点改写成已确认事实。",
         "如果推文是在猜测、传言、喊单或表达观点，point 必须包含“作者认为/称/转述/推测”等归因词。",
+        "归因纪律：某条 bullet 里写的每个数字/指标/事件（如价格、RSI、财报数据、目标价）只能来自该条 point 真正引用的那一条推文；"
+        "tickers 字段只填该 point 文本里确实出现、且推文确有提及的股票代码，不要把推文里没提到的股票塞进 tickers；"
+        "尤其禁止把 A 股票的数据安到 B 股票上（例如某推说 $SNDK 的 RSI，就不能写成 $MU 的 RSI）。",
+        "专有名词翻译要准确：公司名先用中文常用译名再视情况附原文，例如 Rheinmetall→莱茵金属、Virgin Galactic→维珍银河（$SPCE）；不确定就保留原文，不要音译生造。",
+        "SpaceX 的展示代码统一写 $SPCX；不要写成 $SPACEX/$SPACE，也不要和维珍银河 $SPCE 混淆。",
         "无市场相关内容时，bullets 输出 []，core_view 写“无市场相关内容”，sentiment 写 unclear。",
         "涉及具体股票代码时，展示文本统一使用 $股票代码 格式，例如 $NVDA；tickers 字段仍只填不带 $ 的代码。",
         "每条 bullet 必须保留对应 tweet_url；无法关联原推的内容不要写入 bullets。",
@@ -733,6 +868,10 @@ def build_layer1_prompt(
         "先合并重复信息，再写结论，避免逐条复述同一账号的相似推文。"
         "除非输入明确来自官方公告或客观市场数据，否则使用“某 KOL 称/认为/转述/推测”等归因表达。"
         "如果信息互相冲突，保留“分歧”表述，不要强行合并成单一事实。"
+        "归因纪律（重要）：合并多个 KOL 的要点时，每个数字/指标/事件只能挂到它在源 JSON 里真正对应的那个股票代码上；"
+        "不要把某条要点里 A 股票的数据（价格、RSI、目标价、财报数字等）写成 B 股票的数据。"
+        "如果不确定某个数字属于哪个 ticker，宁可不写该数字，也不要张冠李戴。"
+        "把 SpaceX 统一写 $SPCX，不要写 $SPACEX/$SPACE，也不要与维珍银河 $SPCE 混淆；公司名沿用源 JSON 里的中文译名，不要另行音译生造。"
         "总长度控制在 1800-2600 汉字，每条 bullet 尽量不超过 70 汉字，"
         "交易信号表格的“线索”列尽量不超过 30 汉字；严禁扩写背景知识。"
         "篇幅控制：特朗普相关 2-4 条；今日关键词用 6-8 个普通 bullet，不要表格；"
@@ -923,7 +1062,7 @@ def _render_core_views(layer2_results: list[dict[str, Any]]) -> str:
 
 def _first_bullet_source(item: dict[str, Any]) -> str:
     for bullet in item.get("bullets") or []:
-        url = bullet.get("tweet_url")
+        url = sanitize_tweet_url(bullet.get("tweet_url"))
         if url:
             handle = item.get("screen_name")
             return f"[@{handle}]({url})"
@@ -955,7 +1094,7 @@ def _bullet_text(
 
 def _source_link(bullet: dict[str, Any], trump: bool = False) -> str:
     handle = str(bullet.get("handle") or "").strip()
-    url = bullet.get("tweet_url")
+    url = sanitize_tweet_url(bullet.get("tweet_url"))
     if not handle:
         return ""
     label = f"@{handle} 原文" if trump or handle.lower() == "realdonaldtrump" else f"@{handle}"
@@ -1006,7 +1145,7 @@ def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(bullet, dict):
             continue
         point = str(bullet.get("point") or "").strip()
-        tweet_url = str(bullet.get("tweet_url") or "").strip()
+        tweet_url = sanitize_tweet_url(bullet.get("tweet_url"))
         if not point or not tweet_url:
             continue
         if _non_chinese_letter_count(point) > NON_CHINESE_RETRY_CHAR_LIMIT:

@@ -906,3 +906,106 @@ def test_layer2_needs_chinese_retry_detects_hangul_points():
     assert not _layer2_needs_chinese_retry(
         {"core_view": "作者认为存储板块走强", "bullets": [{"point": "作者称 $MU 需求强"}]}
     )
+
+
+def test_sanitize_tweet_url_strips_trailing_json_pollution():
+    from kol_monitor.summarizer import sanitize_tweet_url
+
+    polluted = (
+        'https://x.com/blazingbees/status/2067202446859145715",\n'
+        '      "claim_type": "news",\n      "confidence": "medium'
+    )
+    assert sanitize_tweet_url(polluted) == "https://x.com/blazingbees/status/2067202446859145715"
+    # Truth Social-style ids for realDonaldTrump survive.
+    assert (
+        sanitize_tweet_url("https://x.com/realDonaldTrump/status/truth_1781180529245152768")
+        == "https://x.com/realDonaldTrump/status/truth_1781180529245152768"
+    )
+    # No valid status URL -> empty (bullet gets dropped downstream).
+    assert sanitize_tweet_url("not a url") == ""
+    assert sanitize_tweet_url("") == ""
+
+
+def test_normalize_layer2_drops_polluted_url_bullet():
+    from kol_monitor.summarizer import _normalize_layer2_result
+
+    item = {
+        "core_view": "x",
+        "sentiment": "bullish",
+        "bullets": [
+            {
+                "point": "干净要点",
+                "tickers": [],
+                "tweet_url": "https://x.com/foo/status/123",
+            },
+            {
+                "point": "另一要点",
+                "tickers": [],
+                "tweet_url": "garbage-no-url",
+            },
+        ],
+    }
+    out = _normalize_layer2_result(dict(item))
+    assert len(out["bullets"]) == 1
+    assert out["bullets"][0]["tweet_url"] == "https://x.com/foo/status/123"
+
+
+def test_parse_string_array_handles_fences_and_prelude():
+    from kol_monitor.summarizer import _parse_string_array
+
+    assert _parse_string_array('["a","b"]') == ["a", "b"]
+    assert _parse_string_array('```json\n["x","y"]\n```') == ["x", "y"]
+    assert _parse_string_array('好的：\n["只", "中文"]\n') == ["只", "中文"]
+    assert _parse_string_array("not json") is None
+    assert _parse_string_array('[1, 2]') is None  # non-string array rejected
+
+
+@pytest.mark.asyncio
+async def test_translate_residual_layer2_preserves_info(monkeypatch):
+    from kol_monitor import summarizer
+
+    async def fake_call(messages, max_tokens):
+        # Return Chinese translations in the same order/length as input.
+        class R:
+            content = [SimpleNamespace(type="text", text='["日本央行加息至1%创31年新高", "SK海力士ADR七月上市"]')]
+        return R()
+
+    monkeypatch.setattr(summarizer, "call_claude_with_retry", fake_call)
+
+    parsed = {
+        "core_view": "强势",  # already Chinese -> not a target
+        "sentiment": "bullish",
+        "bullets": [
+            {"point": "일본은행이 기준금리를 1프로로 인상했다", "tickers": [], "tweet_url": "https://x.com/a/status/1"},
+            {"point": "SK하이닉스 ADR이 칠월에 상장된다는 소식", "tickers": [], "tweet_url": "https://x.com/a/status/2"},
+        ],
+    }
+    out = await summarizer._translate_residual_layer2(parsed)
+    assert out["bullets"][0]["point"] == "日本央行加息至1%创31年新高"
+    assert out["bullets"][1]["point"] == "SK海力士ADR七月上市"
+    # After translation, normalize keeps them instead of dropping.
+    normalized = summarizer._normalize_layer2_result(dict(out))
+    assert len(normalized["bullets"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_translate_residual_failure_leaves_bullets_for_drop(monkeypatch):
+    from kol_monitor import summarizer
+
+    async def failing_call(messages, max_tokens):
+        raise RuntimeError("backend down")
+
+    monkeypatch.setattr(summarizer, "call_claude_with_retry", failing_call)
+
+    parsed = {
+        "core_view": "x",
+        "sentiment": "bullish",
+        "bullets": [
+            {"point": "일본은행이 기준금리를 1프로로 인상했다", "tickers": [], "tweet_url": "https://x.com/a/status/1"},
+        ],
+    }
+    out = await summarizer._translate_residual_layer2(parsed)
+    # Untouched on failure; normalize then drops the residual bullet (no regression).
+    assert out["bullets"][0]["point"] == "일본은행이 기준금리를 1프로로 인상했다"
+    normalized = summarizer._normalize_layer2_result(dict(out))
+    assert len(normalized["bullets"]) == 0

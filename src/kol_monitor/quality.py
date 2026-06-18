@@ -31,6 +31,30 @@ from kol_monitor.summarizer import (
 
 DEFAULT_QUALITY_DRAFT_DIR = Path("/tmp/kol-monitor-quality-drafts")
 
+# Raw layer2 JSON fields that should never survive into rendered markdown. A leak looks
+# like a bare `"claim_type": "news",` / `"confidence": "medium)` line in the body.
+_JSON_RESIDUE_RE = re.compile(r'"\s*(?:claim_type|confidence|tickers|tweet_url|core_view|sentiment)\s*"\s*:')
+# A markdown link whose URL is corrupted by a stray quote or trailing JSON, e.g.
+# `[原推](https://x.com/foo/status/123",` — the close paren never arrives on the URL.
+_BROKEN_SOURCE_LINK_RE = re.compile(r'\]\(https?://[^)\s]*["\\][^)\s]*(?:,|$)')
+
+# SpaceX's recurring ticker confusion. The project's canonical SpaceX ticker is $SPCX;
+# $SPCE is Virgin Galactic and $SPACEX/$SPACE are invented. Flag (not auto-rewrite) when
+# one of the wrong forms appears in SpaceX context, EXCEPT a legitimate disambiguation
+# line that explicitly warns about the confusion (mentions $SPCX alongside a 误/混淆 word).
+_WRONG_SPACEX_TICKER_RE = re.compile(r"\$(?:SPCE|SPACEX|SPACE)\b")
+_SPACEX_CONTEXT_RE = re.compile(r"SpaceX|马斯克|星舰|星链|猎鹰|Starship|Starlink|Falcon", re.IGNORECASE)
+_SPACEX_DISAMBIGUATION_RE = re.compile(r"误|混淆|当作|错把|搞混|区分|不是\s*\$SPCX")
+
+
+def _line_has_suspicious_spacex_ticker_conflation(line: str) -> bool:
+    if not _WRONG_SPACEX_TICKER_RE.search(line):
+        return False
+    # Legitimate when the line is explicitly disambiguating against $SPCX.
+    if "$SPCX" in line and _SPACEX_DISAMBIGUATION_RE.search(line):
+        return False
+    return bool(_SPACEX_CONTEXT_RE.search(line) or "$SPCX" in line)
+
 
 def write_quality_draft(
     date: str,
@@ -144,6 +168,30 @@ def scan_summary_quality(markdown: str) -> dict[str, Any]:
         if not stripped:
             continue
 
+        if _JSON_RESIDUE_RE.search(line):
+            issues.append(
+                _issue(
+                    code="json_residue",
+                    severity="error",
+                    message="包含未渲染的原始 JSON 字段（疑似 layer2 序列化泄漏）",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
+        if _BROKEN_SOURCE_LINK_RE.search(line):
+            issues.append(
+                _issue(
+                    code="broken_source_link",
+                    severity="error",
+                    message="X 来源链接被破坏（URL 含引号/JSON 残留，无法点击）",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
         for marker in INTERNAL_ARTIFACT_MARKERS:
             if marker in line:
                 issues.append(
@@ -164,6 +212,18 @@ def scan_summary_quality(markdown: str) -> dict[str, Any]:
                     code="unlinked_source_label",
                     severity="error",
                     message="包含未链接的来源账号标签",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
+        if _line_has_suspicious_spacex_ticker_conflation(line):
+            issues.append(
+                _issue(
+                    code="spacex_ticker_conflation",
+                    severity="warning",
+                    message="疑似把 SpaceX 写成 $SPCE(维珍银河)/$SPACEX 等错误代码（SpaceX 应为 $SPCX）",
                     line=line_no,
                     section=current_section,
                     text=line,

@@ -438,3 +438,16 @@ def test_write_outputs_includes_html(tmp_path, monkeypatch):
     assert html_path.suffix == ".html"
     content = html_path.read_text(encoding="utf-8")
     assert "<!DOCTYPE html>" in content
+
+
+def test_invented_spacex_tickers_normalized_but_spce_preserved():
+    from kol_monitor.publisher import _format_ticker, _normalize_ticker_code
+
+    # Invented forms collapse to canonical $SPCX.
+    assert _format_ticker("SPACEX") == "$SPCX"
+    assert _format_ticker("$SPACE") == "$SPCX"
+    assert _normalize_ticker_code("spacex") == "SPCX"
+    # Real tickers are untouched, including Virgin Galactic's genuine $SPCE.
+    assert _format_ticker("SPCE") == "$SPCE"
+    assert _format_ticker("$NVDA") == "$NVDA"
+    assert _format_ticker("SPCX") == "$SPCX"

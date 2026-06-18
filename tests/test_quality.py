@@ -147,3 +147,37 @@ def test_write_quality_draft_writes_cleaned_and_report(tmp_db, tmp_path):
     assert report["selected_draft"] == "cleaned_existing"
     assert report["metrics"]["input_layer2_bullets"] == 3
     assert report["metrics"]["normalized_layer2_bullets"] == 1
+
+
+def test_scan_flags_json_residue_and_broken_links():
+    # Reproduces the 2026-06-17 leak: a malformed tweet_url swallowed trailing JSON,
+    # corrupting the [原推] link and leaving raw claim_type/confidence fields in the body.
+    md = """## 重要新闻
+
+- 作者转述：某事件 [原推](https://x.com/blazingbees/status/2067202446859145715",
+      "claim_type": "news",
+      "confidence": "medium)
+"""
+    report = scan_summary_quality(md)
+    codes = report["issue_counts_by_code"]
+    assert codes.get("json_residue", 0) >= 1
+    assert codes.get("broken_source_link", 0) >= 1
+    assert report["status"] == "fail"
+
+
+def test_scan_clean_digest_has_no_json_or_link_errors():
+    md = """## 重要新闻
+
+- 作者认为 $NVDA 强势 [@foo](https://x.com/foo/status/123)
+"""
+    report = scan_summary_quality(md)
+    codes = report["issue_counts_by_code"]
+    assert codes.get("json_residue", 0) == 0
+    assert codes.get("broken_source_link", 0) == 0
+
+
+def test_scan_spacex_ticker_conflation_warns_but_spares_disambiguation():
+    bad = "## 重要新闻\n\n- 木头姐买入 $SPCE，SpaceX 流通量少导致暴涨 [@k](https://x.com/k/status/1)\n"
+    legit = "## 重要新闻\n\n- 部分投资者误将 $SPCE 当作 $SPCX 交易后卖出 [@k](https://x.com/k/status/1)\n"
+    assert scan_summary_quality(bad)["issue_counts_by_code"].get("spacex_ticker_conflation", 0) >= 1
+    assert scan_summary_quality(legit)["issue_counts_by_code"].get("spacex_ticker_conflation", 0) == 0

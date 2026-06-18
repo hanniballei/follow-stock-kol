@@ -360,6 +360,22 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-10：第三层 `llm.onerouter.pro` 大请求曾先 429，再返回 Bedrock `temperature` / `thinking` 校验错误；固定 `temperature=1` + `thinking=disabled` 仍可能触发。已增加第三层专属兼容重试：遇到该错误时同一后端再试一次，不传 `temperature` 和 `thinking`，让 provider 走默认普通模式。不要改成 adaptive thinking 兜底，实测低 `max_tokens` 时可能先输出 thinking block，正文为空；代码已改为从所有 text blocks 提取正文，避免 thinking block 排在前面时读不到文本。
 - 2026-06-10：用户要求调换第三/第四层顺序。当前实际调用顺序是：主凭据 → 第二层备用 → `ANTHROPIC_FOURTH_*`（Packy，第三顺位）→ `ANTHROPIC_THIRD_*`（Infron，第四顺位）。注意环境变量名保留历史命名，不等同于当前调用顺位。
 - 2026-06-16：最近日报质量问题主要集中在 Layer 1/Layer 2 的可发布性：6/13 出现内部方法论污染（如“失败两次应诊断根因而非增量修补”），6/16 出现韩文残留和“OpenAI 计划发布 claude-sonnet-4-6”这类模型归属冲突。已增强提示词、Layer 2 结构化字段、确定性清理和质量扫描；新增 `kol-monitor quality-draft --date YYYY-MM-DD`，只在 `/tmp/kol-monitor-quality-drafts/<date>/` 生成 `draft.md`、`cleaned_existing.md`、`repaired_fallback.md`、`layer2_normalized.json`、`quality_report.json`，不写 DB/README/digests，也不 git publish。修旧日报前先跑这个命令看 `quality_report.json`，确认候选稿通过后再决定是否覆写历史文件。
+- 2026-06-17：评估上周日报发现**质量门控只扫 DB（summary_md / layer2_json），但读者看到的是磁盘 `.md`，两者已脱节**，导致已被检测器识别的缺陷照样进了发布文件。根因与修复：
+  - **渲染前未清洗**：`publisher.write_outputs` 之前直接把原始 `summary_md` 和原始 `layer2_json` 喂给渲染器，Layer-1 的清洗（`_prepare_layer1_markdown`）和 Layer-2 的归一化（`_normalize_layer2_result`，含韩文/残留/模型冲突过滤）都没作用到最终 `.md`。这就是 6/16 模型归属错误、6/14-6/16 整段 @blazingbees 韩文进入发布文件的原因。已改为在 `write_outputs` 里先清洗 Layer-1、先归一化 Layer-2，再交给三个渲染器（md / readme / html）。
+  - **tweet_url JSON 泄漏（6/17，最严重）**：LLM 偶尔输出缺少右引号的 `tweet_url`，relaxed JSON 解析时 `(.*?)` 贪婪吞掉后续 `","claim_type":...` 字段，导致 31 个 `[原推]` 链接损坏 + 31 处裸 JSON 进正文。已新增 `summarizer.sanitize_tweet_url`：只抽取规范的 `…/status/<数字 或 truth_数字>` URL，丢弃尾部污染；接入 `_normalize_layer2_result`、`_source_link`、`_first_bullet_source` 以及 `publisher` 三个渲染点。无法抽出合法 URL 的 bullet 会被丢弃。
+  - **发布后扫描**：`write_outputs` 写盘后会对**渲染后的 `.md`** 跑 `scan_summary_quality` 并把 error/warning 记日志（不 raise，遵守 publish-must-not-fail）。
+  - **扫描器新增检测**：`json_residue`、`broken_source_link`（catch 上面这类泄漏）、`spacex_ticker_conflation`（warning，标记把 SpaceX 写成 `$SPCE`(维珍银河)/`$SPACEX`，但放过 charliebilello 那种“误将 $SPCE 当作 $SPCX”的合法辨析行）。
+  - **artifact marker 收窄**：从 `INTERNAL_ARTIFACT_MARKERS` 移除 `Codex` 和 `工作流`——它们是 KOL 常用公共词（OpenAI Codex / “工作流”=workflow），bare 子串匹配会误删真实内容（如 6/16“与 Claude Code 和 Codex 竞争”那条），也会让渲染后扫描误报。保留 `失败两次/诊断根因/增量修补/工作原则` 等真正的内部短语。
+  - **已重生 6/11–6/17 的 `.md`/`.html`**（纯从 DB 数据走修复后的 `write_outputs` 重渲染，**没有**重新调用 LLM，没有 push），7 天 error 全部归零。
+  - **已知遗留（非阻断，需重跑 LLM 才能修）**：Layer-1 `summary_md` 内部的内容级错误仍可能存在，例如 6/16“拉赫曼防务”实为 Rheinmetall(莱茵金属)、6/16 把 $SNDK 的“月线 RSI 99”安到 $MU。这类张冠李戴/误译靠确定性清洗修不了（需要交叉核对原推文本），只能靠提示词约束或 `regen-digest`（会重新 summarize）解决。
+- 2026-06-17（内容质量层，配合上一条）：为从源头降低内容级错误，做了两件事：
+  - **提示词强约束归因**：Layer-2 和 Layer-1 prompt 都加了“归因纪律”——某条要点里的每个数字/指标/事件只能挂到它真正对应的那个 ticker 上，禁止把 A 股票的数据安到 B 股票（针对 $MU/$SNDK 这类张冠李戴）；`tickers` 只填 point 里确实出现且推文确有提及的代码；公司名用中文常用译名（Rheinmetall→莱茵金属、Virgin Galactic→维珍银河 $SPCE）不要音译生造；SpaceX 统一 $SPCX，不与 $SPCE/$SPACEX 混淆。注意这是**软约束**（靠模型遵守），不是确定性保证；真正确定性的 ticker 交叉校验（roll-up ticker 必须出现在其引用推文的 ticker 集合内）尚未做，是下一个杠杆点。
+  - **外文 bullet 改“翻译”而非“丢弃”**：新增 `summarizer._translate_residual_layer2`，在 `_normalize_layer2_result` **之前**对仍带韩文/日文残留的 `core_view`/`point` 做一次**逐条批量翻译**（一次 LLM 调用翻多条），翻成功就回填保留信息，翻失败或仍残留才退回交给 normalize 丢弃（保底行为不变，无回归）。这解决了之前整段 @blazingbees 韩文被静默删除、信息丢失的问题。原有的整段中文重试（`_layer2_needs_chinese_retry`）保留为第一道便宜尝试，新函数是精准兜底。注意 `NON_CHINESE_RETRY_CHAR_LIMIT=8` 阈值未改：≤8 个韩/日字符的短残留既不会触发翻译也不会被丢弃，属已知阈值边界（如 06/15 “买入熔断（사이드카）” 这种带中文译名+原文括注的 gloss，3 个韩字，正常保留不算残留）。
+- 2026-06-17（全 6 月回灌）：用上述修复对 6/01–6/17 全部 17 天做了分层修复，结果全部 0 errors：
+  - **Tier A（纯渲染，免费）**：6/01–6/13 + 6/17 直接走修复后的 `write_outputs` 重渲染（**不调 LLM**）。这批早期日报的 `empty_required_section` 报错其实是**旧编号标题格式**（`## 三、重要新闻`）+ 旧渲染产物的假阳性，新渲染清洗 Layer-1、归一化 Layer-2 后即归零，内容不丢（如 6/04 的污染 bullet 被去掉但 @nbblock “半导体回调健康” 观点经明细段保留）。注意：纯渲染不改写 DB 里的旧编号标题，所以这些天的 `##` 标题仍是 `一、二、三…` 编号体，与 6/14 之后的无编号体不一致，但不算错误。
+  - **Tier B（重跑 LLM）**：仅 6/14、6/15——它们的 `layer2_json` 仍有韩文残留（4 / 8 处），只有重新 summarize 才能经新翻译兜底把 @blazingbees 整段韩文转成中文保留（而非丢弃）。重跑后 0 韩文（6/15 仅剩 1 处带中文译名的括注 gloss，正常）。
+  - **marker 再收窄**：6/14 重跑后命中一条假阳性——@ArtofSpecuycky 转述 All-In 播客讲 Anthropic 的“提示词保留 30 天”政策，正文里“用户提示词/重写提示词”是**真实题材**，却被 `提示词` marker 误判。已把 `提示词`/`读代码`/`系统行为` 从 `INTERNAL_ARTIFACT_MARKERS` 移除（理由同 `Codex`：美股科技 KOL 经常正当讨论 AI 工具），只保留 `失败两次/诊断根因/增量修补/工作原则/系统原则/放弃需求/investigate_before_answering/AGENTS.md` 这些无歧义的内部短语。
+  - **残留 warning（非阻断）**：6/03/06/13/06/15 各有 1 条 `spacex_ticker_conflation`——是正文文字里 `$SPACE`/明细 ticker 标 `$SPCE` 的软提示，确定性不自动改写 $SPCE（怕误伤真维珍银河），保留为人工复核线索。
 
 ---
 
