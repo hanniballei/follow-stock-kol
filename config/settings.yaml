@@ -3,8 +3,8 @@
 
 schedule:
   timezone: Asia/Shanghai          # 固定北京时间，不随美股 DST 调整
-  hour: 21                          # 每天北京时间 21:00
-  minute: 0
+  hour: 20                          # 每天北京时间 20:30（较原 21:00 提前半小时）
+  minute: 30
   misfire_grace_seconds: 3600       # 错过触发时刻后 1h 内重启会补跑
 
 fetcher:

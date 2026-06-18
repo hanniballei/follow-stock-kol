@@ -49,7 +49,7 @@ def render_readme(
         "",
         f"最后更新：{date}",
         "",
-        f"这个仓库每天北京时间 21:00 自动抓取 X 上 {kol_count} 位美股相关 KOL 的发言，整理成一页当天市场摘要。你可以先看今日完整报告，再看下面的当日总结和各 KOL 细节。",
+        f"这个仓库每天北京时间 {settings.schedule.hour:02d}:{settings.schedule.minute:02d} 自动抓取 X 上 {kol_count} 位美股相关 KOL 的发言，整理成一页当天市场摘要。你可以先看今日完整报告，再看下面的当日总结和各 KOL 细节。",
         "",
         f"[阅读今日完整报告]({today_digest_path})",
         "",
@@ -814,7 +814,7 @@ KOL Daily &middot; Generated at {now}
 </footer>"""
 
 
-def write_outputs(date: str) -> tuple[Path, Path, Path]:
+def write_outputs(date: str) -> list[Path]:
     digest = db.get_digest(date)
     if digest is None:
         raise RuntimeError(f"missing digest for {date}")
@@ -842,23 +842,34 @@ def write_outputs(date: str) -> tuple[Path, Path, Path]:
         recent_digests=recent_digest_links(),
     )
     digest_md = render_digest_md(date, layer1_md, layer2)
-    digest_html = render_daily_html(
-        date=date,
-        layer1_md=layer1_md,
-        layer2_kols=layer2,
-        kol_list=settings.kols,
-    )
     readme_path = settings.project_root / "README.md"
     year, month, day = date.split("-")
     digest_dir = settings.project_root / "digests" / year / month
     digest_dir.mkdir(parents=True, exist_ok=True)
     md_path = digest_dir / f"{day}.md"
-    html_path = digest_dir / f"{day}.html"
     readme_path.write_text(readme, encoding="utf-8")
     md_path.write_text(digest_md, encoding="utf-8")
-    html_path.write_text(digest_html, encoding="utf-8")
     _scan_rendered_digest(date, digest_md)
-    return readme_path, md_path, html_path
+    # HTML output was retired 2026-06-18 (per-day .html no longer generated; the Markdown
+    # digest + README are the published artifacts). render_daily_html() is kept as a
+    # standalone renderer in case HTML is reinstated, but is intentionally not called here.
+    return [readme_path, md_path]
+
+
+def premarket_path(date: str) -> Path:
+    year, month, day = date.split("-")
+    return settings.project_root / "premarket" / year / month / f"{day}.md"
+
+
+def write_premarket(date: str, tweet_text: str) -> Path:
+    """Write the ready-to-post pre-market tweet draft to premarket/YYYY/MM/DD.md.
+
+    The file holds only the tweet body (no front matter) so it can be copy-pasted to X
+    directly."""
+    path = premarket_path(date)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(tweet_text.strip() + "\n", encoding="utf-8")
+    return path
 
 
 def _scan_rendered_digest(date: str, digest_md: str) -> None:

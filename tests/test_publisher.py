@@ -40,7 +40,7 @@ def test_render_readme_contains_required_sections():
     assert "## 监控的 KOL" in md
     assert "[阅读今日完整报告](digests/2026/05/29.md)" in md
     assert "## 最近 7 天" in md
-    assert "这个仓库每天北京时间 21:00 自动抓取" in md
+    assert "这个仓库每天北京时间 20:30 自动抓取" in md
     assert md.index("### 今日关键词") < md.index("## 监控的 KOL")
     assert "[@qinbafrank](https://x.com/qinbafrank)" in md
     assert "<details>" in md
@@ -403,8 +403,8 @@ def test_ticker_counts():
     assert "NVDA" in ticker_names
 
 
-def test_write_outputs_includes_html(tmp_path, monkeypatch):
-    """write_outputs should now return 3 paths including the HTML file."""
+def test_write_outputs_excludes_html(tmp_path, monkeypatch):
+    """write_outputs returns README + Markdown only; per-day HTML is no longer produced."""
     monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
     monkeypatch.setattr(publisher.settings, "kols", ["testkol"])
     monkeypatch.setattr(
@@ -430,14 +430,11 @@ def test_write_outputs_includes_html(tmp_path, monkeypatch):
     )
 
     paths = publisher.write_outputs("2026-05-29")
-    assert len(paths) == 3
+    assert [p.suffix for p in paths] == [".md", ".md"]  # README.md + DD.md
     for p in paths:
         assert p.exists()
-    # Third path is the HTML
-    html_path = paths[2]
-    assert html_path.suffix == ".html"
-    content = html_path.read_text(encoding="utf-8")
-    assert "<!DOCTYPE html>" in content
+    # No .html should be written anywhere under the digest dir.
+    assert not list((tmp_path / "digests").rglob("*.html"))
 
 
 def test_invented_spacex_tickers_normalized_but_spce_preserved():
@@ -451,3 +448,12 @@ def test_invented_spacex_tickers_normalized_but_spce_preserved():
     assert _format_ticker("SPCE") == "$SPCE"
     assert _format_ticker("$NVDA") == "$NVDA"
     assert _format_ticker("SPCX") == "$SPCX"
+
+
+def test_write_premarket_writes_pure_text(tmp_path, monkeypatch):
+    monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
+    path = publisher.write_premarket("2026-06-18", "  盘前快报正文\n非投资建议。  ")
+    assert path == tmp_path / "premarket" / "2026" / "06" / "18.md"
+    content = path.read_text(encoding="utf-8")
+    assert content == "盘前快报正文\n非投资建议。\n"
+    assert "---" not in content  # no front matter, copy-paste ready

@@ -376,6 +376,11 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
   - **Tier B（重跑 LLM）**：仅 6/14、6/15——它们的 `layer2_json` 仍有韩文残留（4 / 8 处），只有重新 summarize 才能经新翻译兜底把 @blazingbees 整段韩文转成中文保留（而非丢弃）。重跑后 0 韩文（6/15 仅剩 1 处带中文译名的括注 gloss，正常）。
   - **marker 再收窄**：6/14 重跑后命中一条假阳性——@ArtofSpecuycky 转述 All-In 播客讲 Anthropic 的“提示词保留 30 天”政策，正文里“用户提示词/重写提示词”是**真实题材**，却被 `提示词` marker 误判。已把 `提示词`/`读代码`/`系统行为` 从 `INTERNAL_ARTIFACT_MARKERS` 移除（理由同 `Codex`：美股科技 KOL 经常正当讨论 AI 工具），只保留 `失败两次/诊断根因/增量修补/工作原则/系统原则/放弃需求/investigate_before_answering/AGENTS.md` 这些无歧义的内部短语。
   - **残留 warning（非阻断）**：6/03/06/13/06/15 各有 1 条 `spacex_ticker_conflation`——是正文文字里 `$SPACE`/明细 ticker 标 `$SPCE` 的软提示，确定性不自动改写 $SPCE（怕误伤真维珍银河），保留为人工复核线索。
+- 2026-06-18（输出形态与排程调整）：
+  - **调度提前到 20:30**：`config/settings.yaml` 的 `schedule.hour/minute` 改为 `20:30`（北京时间，较原 21:00 提前半小时）。README 文案改为从 `settings.schedule` 动态读取，不再硬编码时间。改后需 `systemctl restart kol-monitor.service` 生效。
+  - **停止生成 HTML**：`write_outputs` 不再渲染/写 `digests/**/*.html`，只产出 `README.md` + 当天 `DD.md`；返回值从三元组改为 `list[Path]`。已 `git rm` 全部历史 `.html`。`render_daily_html()` 函数保留但不再被调用（如需恢复 HTML 可重新接上），其单元测试仍在。
+  - **新增盘前长推文**：每天在 digest 之后生成一篇可直接复制发到 X 的中文《美股盘前快报》，存到 `premarket/YYYY/MM/DD.md`（纯推文正文、无 front matter，便于复制）。实现：`summarizer.generate_premarket_tweet(date)` 读取已入库的 cleaned Layer-1 摘要 → LLM 成稿；`publisher.write_premarket(date, text)` 落盘；CLI `_run_once`/`_regen_digest` 里作为**尽力而为**步骤（失败只 warning，不阻断 digest 发布），并把该文件加入 git_publish 列表一起提交。新增 `kol-monitor premarket --date YYYY-MM-DD` 可单独重生（不发布）。盘前稿默认会随 digest 一起 commit/push 到 GitHub（与日报同源信息）；如需只留本地，把 `premarket/` 加入 `.gitignore` 或不加入 publish 列表即可。**目前不自动发到任何平台**（用户明确"先只存文件"）。
+  - **#2 联网/本地事实核查：已评估后暂不做**。本地 `/root/trading/data/us-stock/reference/ticker_details.parquet` 只有美股（~1.28 万），但 KOL 常发 A 股（数字码 $002384）、港股、韩股（$005930）、加密（$BTC/$ETH）等非美股代码；任何"代码不在美股库即报错"的确定性校验都会对这些合法非美股代码大量误报。故 ticker 事实性继续靠提示词归因约束 + `spacex_ticker_conflation` 软检查。若将来要做，需先有覆盖多市场的代码库。（pyarrow 已装进 venv 但当前未使用、未写入 requirements。）
 
 ---
 

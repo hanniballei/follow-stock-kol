@@ -898,6 +898,48 @@ def build_layer1_prompt(
     return [{"role": "user", "content": [{"type": "text", "text": text}]}]
 
 
+def build_premarket_prompt(date: str, layer1_md: str) -> list[dict[str, Any]]:
+    intro = (
+        "你是美股盘前简报编辑。基于下面这份『今日美股 KOL 综合摘要』，"
+        "写一篇可直接复制发布到 X(推特)的中文长推文《美股盘前快报》。要求：\n"
+        "1) 开头一句高信息密度的钩子，点明今日最重要的主线或市场情绪。\n"
+        "2) 随后用 4-7 条要点，覆盖：宏观/政策、热门板块与个股、值得注意的交易信号或多空分歧；"
+        "每条简洁有力，一到两句话。\n"
+        "3) 提及具体股票统一用 $代码 格式(如 $NVDA)；可点名关键 KOL(如 @handle)以增加可信度，但不要堆链接。\n"
+        "4) 口语化、有节奏感，像一条高质量财经博主的盘前推文；不要用 markdown 标题(#)、不要表格、不要分隔线、不要代码块。\n"
+        "5) 只能基于给定摘要，不补充外部事实、不编造数字；KOL 观点用『某某认为/称/预计』等归因表述。\n"
+        "6) 不要把 A 股/港股/加密等非美股代码写成美股；保持摘要里原有的代码与公司名，不要臆造或音译生造。\n"
+        "7) 结尾单独一行轻量风险提示，例如：以上为 KOL 观点汇总，非投资建议。\n"
+        "8) 总长度 500-1000 汉字，适合 X 长推文。直接输出推文正文，不要任何前后说明或标题行。\n"
+        f"日期：{date}\n今日综合摘要：\n"
+    )
+    text = intro + (layer1_md or "")
+    return [{"role": "user", "content": [{"type": "text", "text": text}]}]
+
+
+async def generate_premarket_tweet(date: str) -> str:
+    """Generate a ready-to-post Chinese pre-market long tweet from the day's digest.
+
+    Reads the stored layer1 summary (cleaned), asks the model to condense it into a
+    single copy-paste-ready X post. Returns the post text; raises on total LLM failure
+    so the caller can treat premarket as best-effort and skip it without breaking the
+    digest publish."""
+    digest = db.get_digest(date)
+    if digest is None:
+        raise RuntimeError(f"missing digest for {date}")
+    layer1_md = _prepare_layer1_markdown(digest.get("summary_md") or "")
+    if not layer1_md.strip():
+        raise RuntimeError(f"empty layer1 summary for {date}; cannot build premarket tweet")
+    response = await call_claude_with_retry(
+        messages=build_premarket_prompt(date, layer1_md),
+        max_tokens=settings.ai.max_tokens_layer1,
+    )
+    text = _response_text(response).strip()
+    if not text:
+        raise RuntimeError(f"premarket generation returned empty text for {date}")
+    return text
+
+
 def _fallback_layer1_markdown(
     layer2_results: list[dict[str, Any]],
     trump_summary: dict[str, Any] | None = None,

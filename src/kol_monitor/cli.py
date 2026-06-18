@@ -12,10 +12,10 @@ from kol_monitor.fetcher import backfill_incomplete, daily_fetch
 from kol_monitor.client import OpenTwitterClient
 from kol_monitor.logging_setup import setup
 from kol_monitor.media import download_pending_media
-from kol_monitor.publisher import git_publish, write_outputs
+from kol_monitor.publisher import git_publish, write_outputs, write_premarket
 from kol_monitor.quality import DEFAULT_QUALITY_DRAFT_DIR, write_quality_draft
 from kol_monitor.scheduler import run_daemon
-from kol_monitor.summarizer import summarize_day
+from kol_monitor.summarizer import generate_premarket_tweet, summarize_day
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -36,6 +36,11 @@ def build_parser() -> argparse.ArgumentParser:
     regen = sub.add_parser("regen-digest", help="regenerate digest markdown for a date")
     regen.add_argument("--date", required=True)
     regen.add_argument("--no-publish", action="store_true")
+
+    premarket = sub.add_parser(
+        "premarket", help="(re)generate the pre-market tweet draft for a date (no publish)"
+    )
+    premarket.add_argument("--date", required=True)
 
     quality_draft = sub.add_parser(
         "quality-draft",
@@ -87,6 +92,10 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "regen-digest":
         asyncio.run(_regen_digest(args.date, publish=not args.no_publish))
         return
+    if args.command == "premarket":
+        path = asyncio.run(_premarket_only(args.date))
+        print(f"premarket draft: {path}")
+        return
     if args.command == "quality-draft":
         result = write_quality_draft(args.date, output_dir=args.output_dir)
         report = result["report"]
@@ -111,6 +120,7 @@ async def _run_once(date: str, publish: bool) -> None:
     await download_pending_media(date)
     await summarize_day(date)
     files = write_outputs(date)
+    await _append_premarket(date, files)
     if publish:
         git_publish(date, list(files))
 
@@ -118,8 +128,27 @@ async def _run_once(date: str, publish: bool) -> None:
 async def _regen_digest(date: str, publish: bool) -> None:
     await summarize_day(date)
     files = write_outputs(date)
+    await _append_premarket(date, files)
     if publish:
         git_publish(date, list(files))
+
+
+async def _append_premarket(date: str, files: list[Path]) -> None:
+    """Generate the pre-market tweet draft and append its path to the publish set.
+
+    Best-effort: a failure here is logged and skipped so it never blocks the digest."""
+    import logging
+
+    try:
+        tweet = await generate_premarket_tweet(date)
+        files.append(write_premarket(date, tweet))
+    except Exception as exc:  # premarket is supplementary, never break the digest
+        logging.getLogger(__name__).warning("premarket tweet generation failed for %s: %s", date, exc)
+
+
+async def _premarket_only(date: str) -> Path:
+    tweet = await generate_premarket_tweet(date)
+    return write_premarket(date, tweet)
 
 
 async def _backfill() -> None:

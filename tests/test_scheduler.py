@@ -17,4 +17,5 @@ def test_daily_trigger_uses_configured_timezone():
 
     assert str(trigger.timezone) == "Asia/Shanghai"
     assert next_fire is not None
-    assert next_fire.astimezone(shanghai).strftime("%Y-%m-%d %H:%M") == "2026-05-31 21:00"
+    # Daily run is 20:30 Beijing; from 21:17 on the 30th the next fire is the 31st 20:30.
+    assert next_fire.astimezone(shanghai).strftime("%Y-%m-%d %H:%M") == "2026-05-31 20:30"

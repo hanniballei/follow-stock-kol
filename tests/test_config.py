@@ -16,8 +16,8 @@ def test_load_settings_reads_existing_yaml(monkeypatch):
     assert "golden_pan1" in settings.kols
     assert "rickawsb" in settings.kols
     assert "timothysykes" in settings.kols
-    assert settings.schedule.hour == 21
-    assert settings.schedule.minute == 0
+    assert settings.schedule.hour == 20
+    assert settings.schedule.minute == 30
     assert settings.schedule.timezone == "Asia/Shanghai"
     assert settings.allow_git_push is False
 

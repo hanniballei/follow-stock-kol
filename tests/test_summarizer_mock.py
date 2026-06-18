@@ -1009,3 +1009,42 @@ async def test_translate_residual_failure_leaves_bullets_for_drop(monkeypatch):
     assert out["bullets"][0]["point"] == "일본은행이 기준금리를 1프로로 인상했다"
     normalized = summarizer._normalize_layer2_result(dict(out))
     assert len(normalized["bullets"]) == 0
+
+
+def test_build_premarket_prompt_has_constraints_and_content():
+    from kol_monitor.summarizer import build_premarket_prompt
+
+    msgs = build_premarket_prompt("2026-06-18", "## 今日关键词\n\n- $NVDA 强势")
+    text = msgs[0]["content"][0]["text"]
+    assert "美股盘前快报" in text
+    assert "2026-06-18" in text
+    assert "$NVDA 强势" in text
+    assert "非投资建议" in text  # disclaimer instruction present
+
+
+@pytest.mark.asyncio
+async def test_generate_premarket_tweet_uses_cleaned_layer1(monkeypatch):
+    from kol_monitor import summarizer
+
+    captured = {}
+
+    async def fake_call(messages, max_tokens):
+        captured["text"] = messages[0]["content"][0]["text"]
+
+        class R:
+            content = [SimpleNamespace(type="text", text="盘前快报正文……\n非投资建议。")]
+
+        return R()
+
+    monkeypatch.setattr(summarizer, "call_claude_with_retry", fake_call)
+    monkeypatch.setattr(
+        summarizer.db,
+        "get_digest",
+        lambda date: {"summary_md": "## 今日关键词\n\n- 失败两次诊断根因\n- $NVDA 真实要点"},
+    )
+
+    out = await summarizer.generate_premarket_tweet("2026-06-18")
+    assert out.startswith("盘前快报正文")
+    # internal-artifact line is cleaned before being fed to the premarket prompt
+    assert "失败两次" not in captured["text"]
+    assert "$NVDA 真实要点" in captured["text"]
