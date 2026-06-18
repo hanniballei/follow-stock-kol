@@ -15,7 +15,7 @@ from kol_monitor.media import download_pending_media
 from kol_monitor.publisher import git_publish, write_outputs, write_premarket
 from kol_monitor.quality import DEFAULT_QUALITY_DRAFT_DIR, write_quality_draft
 from kol_monitor.scheduler import run_daemon
-from kol_monitor.summarizer import generate_premarket_tweet, summarize_day
+from kol_monitor.summarizer import generate_layer3_tweet, summarize_day
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -38,7 +38,8 @@ def build_parser() -> argparse.ArgumentParser:
     regen.add_argument("--no-publish", action="store_true")
 
     premarket = sub.add_parser(
-        "premarket", help="(re)generate the pre-market tweet draft for a date (no publish)"
+        "premarket",
+        help="(re)generate the Layer 3 pre-market tweet draft for a date (no publish)",
     )
     premarket.add_argument("--date", required=True)
 
@@ -134,20 +135,21 @@ async def _regen_digest(date: str, publish: bool) -> None:
 
 
 async def _append_premarket(date: str, files: list[Path]) -> None:
-    """Generate the pre-market tweet draft and append its path to the publish set.
+    """Generate the Layer 3 pre-market tweet draft and append its path to the publish set.
 
-    Best-effort: a failure here is logged and skipped so it never blocks the digest."""
+    Best-effort: a failure here is logged and skipped so it never blocks the digest
+    (Layer 1 / Layer 2)."""
     import logging
 
     try:
-        tweet = await generate_premarket_tweet(date)
+        tweet = await generate_layer3_tweet(date)
         files.append(write_premarket(date, tweet))
-    except Exception as exc:  # premarket is supplementary, never break the digest
-        logging.getLogger(__name__).warning("premarket tweet generation failed for %s: %s", date, exc)
+    except Exception as exc:  # Layer 3 is supplementary, never break the digest
+        logging.getLogger(__name__).warning("layer3 premarket generation failed for %s: %s", date, exc)
 
 
 async def _premarket_only(date: str) -> Path:
-    tweet = await generate_premarket_tweet(date)
+    tweet = await generate_layer3_tweet(date)
     return write_premarket(date, tweet)
 
 

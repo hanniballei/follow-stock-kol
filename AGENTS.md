@@ -270,11 +270,11 @@ commit message 里加 emoji 不影响 GitHub，但终端日志可能乱码。建
 
 ### 8.1 时区
 
-固定 `Asia/Shanghai`，cron `0 21 * * *`。不要因为"看起来美股开盘前应该跟 ET"就改成动态时区，**用户明确否决了 DST 调整**。
+固定 `Asia/Shanghai`，cron `30 20 * * *`（北京时间 20:30，2026-06-18 起从 21:00 提前半小时）。不要因为"看起来美股开盘前应该跟 ET"就改成动态时区，**用户明确否决了 DST 调整**。
 
 ### 8.2 misfire 处理
 
-机器宕机错过 21:00，一小时内（22:00 前）重新启动会自动补跑（`misfire_grace_time=3600`）。超过一小时不补跑，第二天正常跑。
+机器宕机错过 20:30，一小时内（21:30 前）重新启动会自动补跑（`misfire_grace_time=3600`）。超过一小时不补跑，第二天正常跑。
 
 ### 8.3 daemon 部署
 
@@ -379,7 +379,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-18（输出形态与排程调整）：
   - **调度提前到 20:30**：`config/settings.yaml` 的 `schedule.hour/minute` 改为 `20:30`（北京时间，较原 21:00 提前半小时）。README 文案改为从 `settings.schedule` 动态读取，不再硬编码时间。改后需 `systemctl restart kol-monitor.service` 生效。
   - **停止生成 HTML**：`write_outputs` 不再渲染/写 `digests/**/*.html`，只产出 `README.md` + 当天 `DD.md`；返回值从三元组改为 `list[Path]`。已 `git rm` 全部历史 `.html`。`render_daily_html()` 函数保留但不再被调用（如需恢复 HTML 可重新接上），其单元测试仍在。
-  - **新增盘前长推文**：每天在 digest 之后生成一篇可直接复制发到 X 的中文《美股盘前快报》，存到 `premarket/YYYY/MM/DD.md`（纯推文正文、无 front matter，便于复制）。实现：`summarizer.generate_premarket_tweet(date)` 读取已入库的 cleaned Layer-1 摘要 → LLM 成稿；`publisher.write_premarket(date, text)` 落盘；CLI `_run_once`/`_regen_digest` 里作为**尽力而为**步骤（失败只 warning，不阻断 digest 发布），并把该文件加入 git_publish 列表一起提交。新增 `kol-monitor premarket --date YYYY-MM-DD` 可单独重生（不发布）。盘前稿默认会随 digest 一起 commit/push 到 GitHub（与日报同源信息）；如需只留本地，把 `premarket/` 加入 `.gitignore` 或不加入 publish 列表即可。**目前不自动发到任何平台**（用户明确"先只存文件"）。
+  - **新增 Layer 3 盘前长推文**：生成管线现在是三层（流水线顺序）——**Layer 2 逐 KOL → Layer 1 综合 → Layer 3 盘前快报**（Layer 编号按抽象层级而非时间：L2 最细先跑，L3 最浓缩最后跑）。每天在 digest 之后生成一篇可直接复制发到 X 的中文《美股盘前快报》，存到 `premarket/YYYY/MM/DD.md`（纯推文正文、无 front matter，便于复制）。实现：`summarizer.build_layer3_prompt` / `summarizer.generate_layer3_tweet(date)` 读取已入库的 **cleaned Layer-1** 摘要 → LLM 成稿（用 `settings.ai.max_tokens_layer3`，默认 2000，`getattr` 兜底旧配置）；`publisher.write_premarket(date, text)` 落盘（artifact 名保留 `premarket` 便于人辨识）；CLI `_run_once`/`_regen_digest` 里作为**尽力而为**步骤（失败只 warning，不阻断 Layer 1/2 的 digest 发布），并把该文件加入 git_publish 列表一起提交。新增 `kol-monitor premarket --date YYYY-MM-DD` 可单独重生（不发布）。盘前稿默认随 digest 一起 commit/push 到 GitHub（与日报同源信息）；如需只留本地，把 `premarket/` 加入 `.gitignore` 或不加入 publish 列表即可。**目前不自动发到任何平台**（用户明确"先只存文件"）。架构详见 DESIGN §9.3 / §11.3。
   - **#2 联网/本地事实核查：已评估后暂不做**。本地 `/root/trading/data/us-stock/reference/ticker_details.parquet` 只有美股（~1.28 万），但 KOL 常发 A 股（数字码 $002384）、港股、韩股（$005930）、加密（$BTC/$ETH）等非美股代码；任何"代码不在美股库即报错"的确定性校验都会对这些合法非美股代码大量误报。故 ticker 事实性继续靠提示词归因约束 + `spacex_ticker_conflation` 软检查。若将来要做，需先有覆盖多市场的代码库。（pyarrow 已装进 venv 但当前未使用、未写入 requirements。）
 
 ---

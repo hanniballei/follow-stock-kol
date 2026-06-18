@@ -1011,10 +1011,10 @@ async def test_translate_residual_failure_leaves_bullets_for_drop(monkeypatch):
     assert len(normalized["bullets"]) == 0
 
 
-def test_build_premarket_prompt_has_constraints_and_content():
-    from kol_monitor.summarizer import build_premarket_prompt
+def test_build_layer3_prompt_has_constraints_and_content():
+    from kol_monitor.summarizer import build_layer3_prompt
 
-    msgs = build_premarket_prompt("2026-06-18", "## 今日关键词\n\n- $NVDA 强势")
+    msgs = build_layer3_prompt("2026-06-18", "## 今日关键词\n\n- $NVDA 强势")
     text = msgs[0]["content"][0]["text"]
     assert "美股盘前快报" in text
     assert "2026-06-18" in text
@@ -1023,7 +1023,7 @@ def test_build_premarket_prompt_has_constraints_and_content():
 
 
 @pytest.mark.asyncio
-async def test_generate_premarket_tweet_uses_cleaned_layer1(monkeypatch):
+async def test_generate_layer3_tweet_uses_cleaned_layer1(monkeypatch):
     from kol_monitor import summarizer
 
     captured = {}
@@ -1043,7 +1043,7 @@ async def test_generate_premarket_tweet_uses_cleaned_layer1(monkeypatch):
         lambda date: {"summary_md": "## 今日关键词\n\n- 失败两次诊断根因\n- $NVDA 真实要点"},
     )
 
-    out = await summarizer.generate_premarket_tweet("2026-06-18")
+    out = await summarizer.generate_layer3_tweet("2026-06-18")
     assert out.startswith("盘前快报正文")
     # internal-artifact line is cleaned before being fed to the premarket prompt
     assert "失败两次" not in captured["text"]

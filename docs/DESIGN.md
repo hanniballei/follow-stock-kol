@@ -4,7 +4,7 @@
 
 ## 1. 项目目标
 
-每天**北京时间 21:00**（固定不随夏令时调整），自动抓取 63 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
+每天**北京时间 20:30**（固定不随夏令时调整），自动抓取 63 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
 
 ## 2. 技术栈
 
@@ -85,7 +85,7 @@ src/kol_monitor/
 ├── db.py            # SQLite 连接池 + DAO
 ├── fetcher.py       # 抓取主流程：增量 + 防漏拉 + 回填
 ├── media.py         # 图片下载（去重、重试、按日期分目录）
-├── summarizer.py    # Claude 调用：Layer 1 综合 + Layer 2 各 KOL
+├── summarizer.py    # Claude 调用：Layer 2 各 KOL + Layer 1 综合 + Layer 3 盘前快报
 ├── quality.py       # 日报草稿修复 + 质量扫描（不写发布文件）
 ├── publisher.py     # Markdown 渲染 + README 更新 + git ops
 ├── scheduler.py     # apscheduler 入口
@@ -98,7 +98,7 @@ src/kol_monitor/
 ```
                  ┌─── config/kols.yaml ────┐
                  │                          │
-[scheduler 21:00]┼─► fetcher ─► 6551 REST ──┴──► tweets[]
+[scheduler 20:30]┼─► fetcher ─► 6551 REST ──┴──► tweets[]
                  │                          ┌──► media[]
                  │      ▼                   │
                  │   db (SQLite)  ◄─────────┘
@@ -107,7 +107,8 @@ src/kol_monitor/
                  │      ▼
                  ├─► summarizer
                  │      ├─ Layer 2: 每个 KOL 一句话+bullets+情绪+claim_type
-                 │      └─ Layer 1: 6 大维度综合
+                 │      ├─ Layer 1: 6 大维度综合（基于 Layer 2）
+                 │      └─ Layer 3: 盘前快报长推文（基于 Layer 1，尽力而为）
                  │      ▼
                  ├─► quality（手工草稿/回查用）
                  │      ├─ clean existing Layer 1
@@ -116,7 +117,8 @@ src/kol_monitor/
                  │      ▼
                  ├─► publisher
                  │      ├─ render README.md（KOL 名单 + 当日总结 + 历史索引）
-                 │      ├─ write digests/YYYY/MM/DD.md
+                 │      ├─ write digests/YYYY/MM/DD.md（不再生成 .html）
+                 │      ├─ write premarket/YYYY/MM/DD.md（Layer 3 盘前快报）
                  │      └─ git add/commit/push
                  ▼
               kol_monitor.log（rich）
@@ -185,7 +187,7 @@ src/kol_monitor/
 - 连接错误 / 读取超时 — tenacity 指数退避重试 3 次；HTTP 4xx/5xx 不对同一请求重试
 - 真实账号的 400 `no tweet` —— 走 `/open/twitter_search fromUser=<handle>` 兜底一次，不把账号直接判坏
 
-## 9. AI 总结策略（两层）
+## 9. AI 总结策略（三层）
 
 ### 9.1 Layer 2 — 每 KOL 单独总结（折叠展示）
 
@@ -227,7 +229,18 @@ Layer 2 输出必须使用简体中文；非中文推文要翻译。每条 bulle
 
 关键章节（重要新闻、宏观判断、产业/个股焦点、交易信号、投资理念）的每条 bullet 或表格行必须带 X 来源链接，链接文字显示来源账号。Layer 1 发布前会清理明显内部工作流污染、未链接来源、关键章节无来源要点、OpenAI/Claude 归属冲突，以及韩文/日文残留过多的行。
 
-### 9.3 质量草稿与门禁
+### 9.3 Layer 3 — 盘前快报长推文（独立成稿，存文件）
+
+三层生成是流水线顺序：**Layer 2（逐 KOL）→ Layer 1（综合）→ Layer 3（盘前快报）**。注意 Layer 编号按抽象层级而非时间：L2 最细（先跑），L1 综合（再跑），L3 最浓缩（最后跑）。
+
+Layer 3 读取**已清洗的 Layer 1 综合摘要**（不是原始 Layer 2），让模型把它浓缩成一篇可直接复制发到 X 的中文长推文《美股盘前快报》：钩子开头 + 4-7 条要点（宏观/政策、热门板块个股、交易信号或多空分歧）+ 结尾风险提示，$代码 格式、点名关键 @KOL，500-1000 字。
+
+- 实现：`summarizer.build_layer3_prompt` / `generate_layer3_tweet`（用 `ai.max_tokens_layer3`，默认 2000）；`publisher.write_premarket` 落盘到 `premarket/YYYY/MM/DD.md`（纯推文正文，便于复制）。
+- 编排：`run-once` / `regen-digest` 在 `write_outputs` 之后**尽力而为**地生成 Layer 3——失败只记 warning，绝不阻断 Layer 1/2 的日报发布；生成成功则随日报一起 commit/push。
+- 单独重生：`kol-monitor premarket --date YYYY-MM-DD`（不发布）。
+- **目前不自动发到任何平台**，只存文件，由人工复制发推。
+
+### 9.4 质量草稿与门禁
 
 `kol-monitor quality-draft --date YYYY-MM-DD` 用于回查或修复某天日报，不写 DB、README、历史 digest，也不触发 git。它读取 DB 中已有 digest，输出到 `/tmp/kol-monitor-quality-drafts/<date>/`：
 
@@ -239,7 +252,7 @@ Layer 2 输出必须使用简体中文；非中文推文要翻译。每条 bulle
 
 门禁关注：内部提示词/工作流污染、关键章节无来源内容、韩文/日文残留、OpenAI 与 Claude/Anthropic 的明显模型归属冲突、重复来源和重复要点。
 
-### 9.4 失败处理
+### 9.5 失败处理
 
 - 单 KOL 总结失败 → 该 KOL 标 `summary_failed`，不影响其他
 - Layer 1 失败 → 尝试多层 Claude 后端；全部失败时使用本地兜底模板，避免当天日报完全缺失
@@ -284,7 +297,20 @@ digests/
 
 每月最后一天自动生成 `digests/2026/05/README.md`（月度回顾索引），方便 GitHub 目录页直接看。
 
-### 11.3 Git 操作
+> 注：自 2026-06-18 起不再生成每日 `.html`（旧 `.html` 已删除）；只产出 `README.md` + `digests/YYYY/MM/DD.md`。
+
+### 11.3 premarket/（Layer 3 盘前快报）
+
+```
+premarket/
+  2026/
+    06/
+      18.md    # 当日盘前快报长推文（纯正文，可直接复制发 X）
+```
+
+每天 Layer 3 生成后随日报一起 commit/push；不自动发到任何平台。
+
+### 11.4 Git 操作
 
 ```bash
 git add README.md digests/2026/05/29.md
@@ -301,13 +327,13 @@ push 失败时：重试 3 次（指数退避），仍失败仅本地落盘，下
 ```python
 # scheduler.py
 sched = BlockingScheduler(timezone=ZoneInfo("Asia/Shanghai"))
-sched.add_job(daily_job, CronTrigger(hour=21, minute=0),
+sched.add_job(daily_job, CronTrigger(hour=20, minute=30),
               misfire_grace_time=3600,  # 错过 1h 内仍补跑
               coalesce=True)
 sched.start()
 ```
 
-按用户要求**固定北京时间 21:00**，不随美股 DST 调整。
+按用户要求**固定北京时间 20:30**，不随美股 DST 调整。
 
 ## 13. CLI
 

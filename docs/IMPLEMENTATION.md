@@ -267,6 +267,7 @@ async def call_claude_with_retry(messages, max_tokens) -> ClaudeResponse: ...
 - 图片走 `{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": ...}}`
 - Layer 2 prompt 要求输出 JSON，用 `response.content[0].text` 后 json.loads，失败重试一次（带"请严格按此 JSON 输出"prompt 强化）
 - Layer 1 prompt 是 markdown 输出，按 6 维度（DESIGN §9.2）
+- Layer 3 prompt（`build_layer3_prompt`）基于清洗后的 Layer 1 摘要，输出可直接发 X 的中文盘前快报长推文（DESIGN §9.3），用 `ai.max_tokens_layer3`
 - Layer 1 / Layer 2 展示文本里涉及具体股票代码时统一用 `$代码`，例如 `$NVDA`
 - token 计数累加到 `digests.input_tokens / output_tokens`
 
@@ -331,7 +332,7 @@ scheduler.py：
 def main():
     sched = BlockingScheduler(timezone=ZoneInfo("Asia/Shanghai"))
     sched.add_job(daily_job_sync_wrapper,
-                  CronTrigger(hour=21, minute=0),
+                  CronTrigger(hour=20, minute=30),
                   misfire_grace_time=3600,
                   coalesce=True)
     sched.start()

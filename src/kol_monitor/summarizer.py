@@ -898,7 +898,8 @@ def build_layer1_prompt(
     return [{"role": "user", "content": [{"type": "text", "text": text}]}]
 
 
-def build_premarket_prompt(date: str, layer1_md: str) -> list[dict[str, Any]]:
+def build_layer3_prompt(date: str, layer1_md: str) -> list[dict[str, Any]]:
+    """Build the Layer 3 prompt: condense the Layer 1 digest into a pre-market tweet."""
     intro = (
         "你是美股盘前简报编辑。基于下面这份『今日美股 KOL 综合摘要』，"
         "写一篇可直接复制发布到 X(推特)的中文长推文《美股盘前快报》。要求：\n"
@@ -917,26 +918,26 @@ def build_premarket_prompt(date: str, layer1_md: str) -> list[dict[str, Any]]:
     return [{"role": "user", "content": [{"type": "text", "text": text}]}]
 
 
-async def generate_premarket_tweet(date: str) -> str:
-    """Generate a ready-to-post Chinese pre-market long tweet from the day's digest.
+async def generate_layer3_tweet(date: str) -> str:
+    """Layer 3: generate a ready-to-post Chinese pre-market long tweet from the digest.
 
-    Reads the stored layer1 summary (cleaned), asks the model to condense it into a
-    single copy-paste-ready X post. Returns the post text; raises on total LLM failure
-    so the caller can treat premarket as best-effort and skip it without breaking the
-    digest publish."""
+    Reads the stored Layer 1 summary (cleaned) and asks the model to condense it into a
+    single copy-paste-ready X post. Returns the post text; raises on total LLM failure so
+    the caller can treat Layer 3 as best-effort and skip it without breaking the digest
+    publish (Layer 1 / Layer 2)."""
     digest = db.get_digest(date)
     if digest is None:
         raise RuntimeError(f"missing digest for {date}")
     layer1_md = _prepare_layer1_markdown(digest.get("summary_md") or "")
     if not layer1_md.strip():
-        raise RuntimeError(f"empty layer1 summary for {date}; cannot build premarket tweet")
+        raise RuntimeError(f"empty layer1 summary for {date}; cannot build layer3 tweet")
     response = await call_claude_with_retry(
-        messages=build_premarket_prompt(date, layer1_md),
-        max_tokens=settings.ai.max_tokens_layer1,
+        messages=build_layer3_prompt(date, layer1_md),
+        max_tokens=getattr(settings.ai, "max_tokens_layer3", 2000),
     )
     text = _response_text(response).strip()
     if not text:
-        raise RuntimeError(f"premarket generation returned empty text for {date}")
+        raise RuntimeError(f"layer3 generation returned empty text for {date}")
     return text
 
 
