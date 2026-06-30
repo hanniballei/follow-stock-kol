@@ -896,11 +896,10 @@ def premarket_path(date: str) -> Path:
 
 
 def write_premarket(date: str, tweet_text: str) -> Path:
-    """Write the Layer 3 pre-market tweet draft to premarket/YYYY/MM/DD.md.
+    """Legacy helper for writing a Layer 3 pre-market tweet draft.
 
-    Layer 3 is the third generation stage (Layer 2 per-KOL -> Layer 1 aggregate digest
-    -> Layer 3 pre-market tweet). The file holds only the tweet body (no front matter)
-    so it can be copy-pasted to X directly."""
+    Daily run/regen no longer call this function; keep it available for manual experiments
+    or a future reinstatement. The file holds only the tweet body (no front matter)."""
     path = premarket_path(date)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(tweet_text.strip() + "\n", encoding="utf-8")

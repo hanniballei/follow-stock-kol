@@ -1,10 +1,10 @@
 # 美股 KOL 推特监控系统 · 设计文档
 
-最后更新：2026-05-30
+最后更新：2026-06-30
 
 ## 1. 项目目标
 
-每天**北京时间 20:30**（固定不随夏令时调整），自动抓取 63 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
+每天**北京时间 20:30**（固定不随夏令时调整），自动抓取 64 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 兼容后端做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
 
 ## 2. 技术栈
 
@@ -13,7 +13,7 @@
 | 抓取 | 6551.io REST API（`https://ai.6551.io`） | 直接 httpx 调，不走 MCP 协议 |
 | 数据库 | SQLite（项目根 `kol_monitor.db`） | 单文件零维护 |
 | AI 总结 | Claude Sonnet 4.6（用户提供 base URL + key） | 走 anthropic SDK |
-| 调度 | apscheduler `BlockingScheduler`，timezone `Asia/Shanghai` | 固定 cron `0 21 * * *` |
+| 调度 | apscheduler `BlockingScheduler`，timezone `Asia/Shanghai` | 固定 cron `30 20 * * *` |
 | 发布 | git commit + push 到 GitHub 主仓库 | 仅 markdown，媒体不进 git |
 | 日志 | rich + Python logging | 控制台彩色 + 文件落盘 |
 | 语言 | Python 3.10+ | 项目机器已是 3.10.12 |
@@ -85,7 +85,7 @@ src/kol_monitor/
 ├── db.py            # SQLite 连接池 + DAO
 ├── fetcher.py       # 抓取主流程：增量 + 防漏拉 + 回填
 ├── media.py         # 图片下载（去重、重试、按日期分目录）
-├── summarizer.py    # Claude 调用：Layer 2 各 KOL + Layer 1 综合 + Layer 3 盘前快报
+├── summarizer.py    # Claude 调用：Layer 2 各 KOL + Layer 1 综合；保留遗留 Layer 3 helper
 ├── quality.py       # 日报草稿修复 + 质量扫描（不写发布文件）
 ├── publisher.py     # Markdown 渲染 + README 更新 + git ops
 ├── scheduler.py     # apscheduler 入口
@@ -107,8 +107,7 @@ src/kol_monitor/
                  │      ▼
                  ├─► summarizer
                  │      ├─ Layer 2: 每个 KOL 一句话+bullets+情绪+claim_type
-                 │      ├─ Layer 1: 6 大维度综合（基于 Layer 2）
-                 │      └─ Layer 3: 盘前快报长推文（基于 Layer 1，尽力而为）
+                 │      └─ Layer 1: 7 个章节综合（基于 Layer 2）
                  │      ▼
                  ├─► quality（手工草稿/回查用）
                  │      ├─ clean existing Layer 1
@@ -118,7 +117,6 @@ src/kol_monitor/
                  ├─► publisher
                  │      ├─ render README.md（KOL 名单 + 当日总结 + 历史索引）
                  │      ├─ write digests/YYYY/MM/DD.md（不再生成 .html）
-                 │      ├─ write premarket/YYYY/MM/DD.md（Layer 3 盘前快报）
                  │      └─ git add/commit/push
                  ▼
               kol_monitor.log（rich）
@@ -187,7 +185,7 @@ src/kol_monitor/
 - 连接错误 / 读取超时 — tenacity 指数退避重试 3 次；HTTP 4xx/5xx 不对同一请求重试
 - 真实账号的 400 `no tweet` —— 走 `/open/twitter_search fromUser=<handle>` 兜底一次，不把账号直接判坏
 
-## 9. AI 总结策略（三层）
+## 9. AI 总结策略（两层生成 + 遗留 Layer 3）
 
 ### 9.1 Layer 2 — 每 KOL 单独总结（折叠展示）
 
@@ -229,16 +227,11 @@ Layer 2 输出必须使用简体中文；非中文推文要翻译。每条 bulle
 
 关键章节（重要新闻、宏观判断、产业/个股焦点、交易信号、投资理念）的每条 bullet 或表格行必须带 X 来源链接，链接文字显示来源账号。Layer 1 发布前会清理明显内部工作流污染、未链接来源、关键章节无来源要点、OpenAI/Claude 归属冲突，以及韩文/日文残留过多的行。
 
-### 9.3 Layer 3 — 盘前快报长推文（独立成稿，存文件）
+### 9.3 Layer 3 — 盘前快报长推文（已停用）
 
-三层生成是流水线顺序：**Layer 2（逐 KOL）→ Layer 1（综合）→ Layer 3（盘前快报）**。注意 Layer 编号按抽象层级而非时间：L2 最细（先跑），L1 综合（再跑），L3 最浓缩（最后跑）。
+Layer 3 曾用于把已清洗的 Layer 1 综合摘要浓缩成可复制到 X 的中文长推文，落盘到 `premarket/YYYY/MM/DD.md`。该功能后来按用户要求停用：日常 `run-once` / `regen-digest` 不再调用，也不再写入、提交或发布 `premarket/` 文件。
 
-Layer 3 读取**已清洗的 Layer 1 综合摘要**（不是原始 Layer 2），让模型把它浓缩成一篇可直接复制发到 X 的中文长推文《美股盘前快报》：钩子开头 + 4-7 条要点（宏观/政策、热门板块个股、交易信号或多空分歧）+ 结尾风险提示，$代码 格式、点名关键 @KOL，500-1000 字。
-
-- 实现：`summarizer.build_layer3_prompt` / `generate_layer3_tweet`（用 `ai.max_tokens_layer3`，默认 2000）；`publisher.write_premarket` 落盘到 `premarket/YYYY/MM/DD.md`（纯推文正文，便于复制）。
-- 编排：`run-once` / `regen-digest` 在 `write_outputs` 之后**尽力而为**地生成 Layer 3——失败只记 warning，绝不阻断 Layer 1/2 的日报发布；生成成功则随日报一起 commit/push。
-- 单独重生：`kol-monitor premarket --date YYYY-MM-DD`（不发布）。
-- **目前不自动发到任何平台**，只存文件，由人工复制发推。
+当前代码中仍保留 `summarizer.build_layer3_prompt` / `generate_layer3_tweet` 和 `publisher.write_premarket` 作为遗留 helper，便于未来恢复或手工实验；`config/settings.yaml.ai.max_tokens_layer3` 也仅是遗留参数。不要把它当成当前发布链路的一部分。
 
 ### 9.4 质量草稿与门禁
 
@@ -250,12 +243,13 @@ Layer 3 读取**已清洗的 Layer 1 综合摘要**（不是原始 Layer 2），
 - `layer2_normalized.json` — 过滤缺来源、外文残留、明显归属冲突后的 Layer 2 JSON
 - `quality_report.json` — 质量扫描报告，记录 error/warning、行号、章节和原始片段
 
-门禁关注：内部提示词/工作流污染、关键章节无来源内容、韩文/日文残留、OpenAI 与 Claude/Anthropic 的明显模型归属冲突、重复来源和重复要点。
+门禁关注：内部提示词/工作流污染、关键章节无来源内容、韩文/日文残留、OpenAI 与 Claude/Anthropic 的明显模型归属冲突、重复来源、重复要点、破损来源链接、SpaceX ticker 混淆，以及影响可读性的长普通段落。
 
 ### 9.5 失败处理
 
 - 单 KOL 总结失败 → 该 KOL 标 `summary_failed`，不影响其他
 - Layer 1 失败 → 尝试多层 Claude 后端；全部失败时使用本地兜底模板，避免当天日报完全缺失
+- 发布前清洗后的 Layer 1 如果仍触发质量扫描 error，`publisher.write_outputs()` 会改用本地有来源兜底模板；如果兜底也失败，只记录错误并使用清洗版 Layer 1，遵守发布流程不因扫描异常中断
 
 ## 10. 媒体存储策略
 
@@ -278,7 +272,7 @@ README / digest 里展示的图片直接用 X 原 URL，**不引用本地路径*
 2. 当日完整报告入口（当天 digest 链接）
 3. 当日总结（Layer 1 全文，含“特朗普相关”独立分类）
 4. 最近 7 天入口
-5. 监控的 63 位 KOL 列表（一行一行 handle，链接到 X 主页；新增 KOL 时自动同步）
+5. 监控的 64 位 KOL 列表（一行一行 handle，链接到 X 主页；新增 KOL 时自动同步）
 6. Layer 2 各 KOL 明细折叠区
 7. 历史归档索引（最近 12 个月的链接）
 
@@ -299,16 +293,16 @@ digests/
 
 > 注：自 2026-06-18 起不再生成每日 `.html`（旧 `.html` 已删除）；只产出 `README.md` + `digests/YYYY/MM/DD.md`。
 
-### 11.3 premarket/（Layer 3 盘前快报）
+### 11.3 premarket/（已停用）
 
 ```
 premarket/
   2026/
     06/
-      18.md    # 当日盘前快报长推文（纯正文，可直接复制发 X）
+      18.md    # 历史遗留示例；当前日常流程不再生成
 ```
 
-每天 Layer 3 生成后随日报一起 commit/push；不自动发到任何平台。
+当前日常流程不再生成、提交或发布 `premarket/` 文件。历史文件已删除；如果未来恢复该功能，需要重新把生成步骤接回 CLI 编排和 publish 文件列表。
 
 ### 11.4 Git 操作
 

@@ -1,9 +1,9 @@
 # 测试策略与示例
 
-最后更新：2026-05-30
+最后更新：2026-06-30
 
 > 本项目所有测试**严禁依赖网络**。6551 / Anthropic / Git 远端调用一律 mock。
-> 运行方式：`pytest tests/ -v`
+> 运行方式：`.venv/bin/pytest`
 
 ---
 
@@ -386,6 +386,9 @@ def test_digest_md_no_collapse():
 - 关键章节的无来源 bullet / 表格行会被标为 error
 - 韩文/日文残留过多会被标为 error
 - “OpenAI 计划发布 Claude/Anthropic 模型”这类明显归属冲突会被标为 error
+- 损坏的来源链接、裸 JSON 残留、SpaceX ticker 混淆会被识别
+- Layer 1 中影响可读性的长普通段落会被标为 `long_plain_paragraph` warning
+- 发布前清洗后的 Layer 1 如果仍失败，`publisher._select_publishable_layer1()` 会改用本地兜底摘要
 - `write_quality_draft()` 只写指定草稿目录，生成 `draft.md`、`cleaned_existing.md`、`repaired_fallback.md`、`layer2_normalized.json`、`quality_report.json`
 
 测试样例使用 `tmp_db` 写入一条假 digest，再调用 `write_quality_draft()` 到 `tmp_path`，不调用真实 Claude、6551 或 git。

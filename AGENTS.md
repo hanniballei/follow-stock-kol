@@ -1,6 +1,6 @@
 # AGENTS.md · 给后续协作开发的注意事项
 
-最后更新：2026-05-30
+最后更新：2026-06-30
 项目：美股 KOL 推特监控
 配套文档：
 - 设计：[docs/DESIGN.md](docs/DESIGN.md)
@@ -16,7 +16,7 @@
 
 不要重新创建以下文件，直接复用 / 增量编辑：
 
-- `config/kols.yaml` — 63 位 KOL，按字母序，handle 大小写如 X 实际显示
+- `config/kols.yaml` — 64 位 KOL，按字母序，handle 大小写如 X 实际显示
 - `config/settings.yaml` — 全部可调参数（调度、抓取、媒体、AI、发布、保留、日志）
 - `.env.example` — 环境变量模板，复制为 `.env` 填值；本机覆盖可放 `.env.local`
 - `.gitignore` — 已正确忽略 `.env / .env.local / *.db / *.log / media/` 等
@@ -60,7 +60,7 @@ KOL_MONITOR_ALLOW_PUSH=false # 可选；默认不执行远端 git push
 
 ### 2.1 速率与计费
 
-- 文档没有公开的速率限制数字，**实测前先小心**：61 个 KOL 一轮抓取期间 KOL 之间 sleep 2-5 秒，整个 batch 约 5-10 分钟。
+- 文档没有公开的速率限制数字，**实测前先小心**：64 个 KOL 一轮抓取期间 KOL 之间 sleep 2-5 秒，整个 batch 约 5-10 分钟。
 - 计费按调用量，跑批前看一眼 [6551.io 控制台](https://6551.io/mcp) 余额。
 - token 用尽时 API 一般返回 4xx，**千万不要重试 4xx**（tenacity 装饰器只对 ConnectError / ReadTimeout 重试，不要扩到 HTTPStatusError）。
 
@@ -353,12 +353,13 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-05-30：仓库已经落地 systemd 持久化运行，服务名 `kol-monitor.service`，`ExecStart` 指向 `.venv/bin/kol-monitor daemon`。查看/重启/停止都用 `systemctl`，不要再依赖 `nohup` 作为主方案。
 - 2026-06-02：第三层 `anthropic/claude-sonnet-4.6` 后端拒绝 `temperature=0.3`，报错要求 thinking/adaptive 模式下 temperature 只能为 1。已改为主/备继续用 `settings.ai.temperature`，第三层固定 `temperature=1`。
 - 2026-06-02：Layer 1 总摘要可能因主/备 504、第三层 429 等外部 LLM 问题全失败。已增加本地兜底摘要：Layer 1 全失败时仍发布日报；单个 KOL Layer 2 全失败时从原始推文生成最小明细。
+- 注：上面两条是当时的历史命名；当前实际 LLM 顺序以后续 2026-06-30 条目为准。
 - 2026-06-04：LLM 备用链路已扩展为四层，第四层使用 `ANTHROPIC_FOURTH_*` 环境变量，当前模型名为 `claude-sonnet-4-6`，base URL 填服务根地址即可。
 - 2026-06-07：06-05 日报曾出现一条非 KOL 来源的内部工作原则污染（`investigate_before_answering`）。已清理历史 digest 和本地 DB，并在 Layer 1 发布前增加清理：移除明显内部工件或无 URL 的伪来源 bullet。
 - 2026-06-08：`realDonaldTrump` 的 6551 数据混用了普通 X 数字 ID 和 `truth_数字` ID。旧逻辑直接比较数字后缀，导致 5/22 的普通 X ID 比 6/8 的 `truth_` 后缀更大，后续 Trump 新帖被误判为旧帖。已增加 ID family 判断：同 family 才比数字，跨 family 用已入库锚点推文的 `created_at` 兜底；同时支持 Twitter 原生时间格式解析。已手动补抓 6/5-6/8 Trump 新帖并重新生成 2026-06-08 digest。
 - 2026-06-09：Layer 1 综合摘要曾在“宏观判断”中途截断，但第四层后端返回 200，旧代码直接接受，导致 `产业/个股焦点`、`交易信号`、`投资理念` 缺失仍发布。已增加 Layer 1 完整性校验：必须包含七个固定章节、各节有内容、不能以 `max_tokens` 停止或半句话结尾；校验失败会继续尝试下一层，全部失败才用本地兜底模板。
 - 2026-06-10：第三层 `llm.onerouter.pro` 大请求曾先 429，再返回 Bedrock `temperature` / `thinking` 校验错误；固定 `temperature=1` + `thinking=disabled` 仍可能触发。已增加第三层专属兼容重试：遇到该错误时同一后端再试一次，不传 `temperature` 和 `thinking`，让 provider 走默认普通模式。不要改成 adaptive thinking 兜底，实测低 `max_tokens` 时可能先输出 thinking block，正文为空；代码已改为从所有 text blocks 提取正文，避免 thinking block 排在前面时读不到文本。
-- 2026-06-10：用户要求调换第三/第四层顺序。当前实际调用顺序是：主凭据 → 第二层备用 → `ANTHROPIC_FOURTH_*`（Packy，第三顺位）→ `ANTHROPIC_THIRD_*`（Infron，第四顺位）。注意环境变量名保留历史命名，不等同于当前调用顺位。
+- 2026-06-10：用户要求调换第三/第四层顺序。环境变量名保留历史命名，不等同于当前调用顺位。
 - 2026-06-16：最近日报质量问题主要集中在 Layer 1/Layer 2 的可发布性：6/13 出现内部方法论污染（如“失败两次应诊断根因而非增量修补”），6/16 出现韩文残留和“OpenAI 计划发布 claude-sonnet-4-6”这类模型归属冲突。已增强提示词、Layer 2 结构化字段、确定性清理和质量扫描；新增 `kol-monitor quality-draft --date YYYY-MM-DD`，只在 `/tmp/kol-monitor-quality-drafts/<date>/` 生成 `draft.md`、`cleaned_existing.md`、`repaired_fallback.md`、`layer2_normalized.json`、`quality_report.json`，不写 DB/README/digests，也不 git publish。修旧日报前先跑这个命令看 `quality_report.json`，确认候选稿通过后再决定是否覆写历史文件。
 - 2026-06-17：评估上周日报发现**质量门控只扫 DB（summary_md / layer2_json），但读者看到的是磁盘 `.md`，两者已脱节**，导致已被检测器识别的缺陷照样进了发布文件。根因与修复：
   - **渲染前未清洗**：`publisher.write_outputs` 之前直接把原始 `summary_md` 和原始 `layer2_json` 喂给渲染器，Layer-1 的清洗（`_prepare_layer1_markdown`）和 Layer-2 的归一化（`_normalize_layer2_result`，含韩文/残留/模型冲突过滤）都没作用到最终 `.md`。这就是 6/16 模型归属错误、6/14-6/16 整段 @blazingbees 韩文进入发布文件的原因。已改为在 `write_outputs` 里先清洗 Layer-1、先归一化 Layer-2，再交给三个渲染器（md / readme / html）。
@@ -379,8 +380,11 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-18（输出形态与排程调整）：
   - **调度提前到 20:30**：`config/settings.yaml` 的 `schedule.hour/minute` 改为 `20:30`（北京时间，较原 21:00 提前半小时）。README 文案改为从 `settings.schedule` 动态读取，不再硬编码时间。改后需 `systemctl restart kol-monitor.service` 生效。
   - **停止生成 HTML**：`write_outputs` 不再渲染/写 `digests/**/*.html`，只产出 `README.md` + 当天 `DD.md`；返回值从三元组改为 `list[Path]`。已 `git rm` 全部历史 `.html`。`render_daily_html()` 函数保留但不再被调用（如需恢复 HTML 可重新接上），其单元测试仍在。
-  - **新增 Layer 3 盘前长推文**：生成管线现在是三层（流水线顺序）——**Layer 2 逐 KOL → Layer 1 综合 → Layer 3 盘前快报**（Layer 编号按抽象层级而非时间：L2 最细先跑，L3 最浓缩最后跑）。每天在 digest 之后生成一篇可直接复制发到 X 的中文《美股盘前快报》，存到 `premarket/YYYY/MM/DD.md`（纯推文正文、无 front matter，便于复制）。实现：`summarizer.build_layer3_prompt` / `summarizer.generate_layer3_tweet(date)` 读取已入库的 **cleaned Layer-1** 摘要 → LLM 成稿（用 `settings.ai.max_tokens_layer3`，默认 2000，`getattr` 兜底旧配置）；`publisher.write_premarket(date, text)` 落盘（artifact 名保留 `premarket` 便于人辨识）；CLI `_run_once`/`_regen_digest` 里作为**尽力而为**步骤（失败只 warning，不阻断 Layer 1/2 的 digest 发布），并把该文件加入 git_publish 列表一起提交。新增 `kol-monitor premarket --date YYYY-MM-DD` 可单独重生（不发布）。盘前稿默认随 digest 一起 commit/push 到 GitHub（与日报同源信息）；如需只留本地，把 `premarket/` 加入 `.gitignore` 或不加入 publish 列表即可。**目前不自动发到任何平台**（用户明确"先只存文件"）。架构详见 DESIGN §9.3 / §11.3。
+  - **Layer 3 盘前长推文后来已停用**：`summarizer.build_layer3_prompt` / `generate_layer3_tweet` 和 `publisher.write_premarket` 仍作为遗留 helper 保留，但 CLI 的 `run-once` / `regen-digest` 不再调用，也不再写入或发布 `premarket/YYYY/MM/DD.md`。用户后续明确要求不再制作长推文，历史 `premarket/` 文件也已删除。
   - **#2 联网/本地事实核查：已评估后暂不做**。本地 `/root/trading/data/us-stock/reference/ticker_details.parquet` 只有美股（~1.28 万），但 KOL 常发 A 股（数字码 $002384）、港股、韩股（$005930）、加密（$BTC/$ETH）等非美股代码；任何"代码不在美股库即报错"的确定性校验都会对这些合法非美股代码大量误报。故 ticker 事实性继续靠提示词归因约束 + `spacex_ticker_conflation` 软检查。若将来要做，需先有覆盖多市场的代码库。（pyarrow 已装进 venv 但当前未使用、未写入 requirements。）
+- 2026-06-30：用户要求 LLM 优先级改为 `fallback -> fourth -> third -> primary`。当前 `summarizer._anthropic_backends()` 实际顺序为：`ANTHROPIC_FALLBACK_*` → `ANTHROPIC_FOURTH_*`（Packy，普通温度）→ `ANTHROPIC_THIRD_*`（Infron，`temperature=1` + `thinking=disabled`，必要时再不传 temperature/thinking 重试）→ `ANTHROPIC_API_KEY` 主凭据。
+- 2026-06-30：为改善日报可读性，Layer 1 发布前现在会做中文标点归一化，并把非交易信号章节的普通长段落整理成 markdown bullet；质量扫描新增 `long_plain_paragraph` warning。`publisher.write_outputs()` 在清洗后的 Layer 1 仍有 error 时，会改用有来源的本地兜底模板，避免读者看到坏摘要。注意历史 digest 不应因为这些清洗逻辑被大面积无差别重写，先用 `quality-draft` 或小范围重渲染核对。
+- 2026-06-30：新增监控 `JoeAnima`，当前 `config/kols.yaml` 为 64 位 KOL；README 由下一次日报生成时自动同步，如手工加 KOL 后发现 README 仍是旧数量，可只修 README 顶部文案和 KOL 列表，不要重跑 LLM。
 
 ---
 
@@ -407,4 +411,4 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 4. **情绪时序** — 把每位 KOL 每日 sentiment 存进 `kol_sentiment_daily`，画图
 5. **Telegram 机器人** — `/today` 推送当日 digest 到 channel
 
-不要在初版就尝试以上任何一项 —— 先把 61 个 KOL 每天总结这件事跑稳一个月。
+不要在初版就尝试以上任何一项 —— 先把 64 个 KOL 每天总结这件事跑稳一个月。

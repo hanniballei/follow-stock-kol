@@ -1,6 +1,6 @@
 # 实施计划（按文件粒度的 todo）
 
-最后更新：2026-05-30
+最后更新：2026-06-30
 配套文档：
 - 设计：[DESIGN.md](DESIGN.md)
 - 注意事项：[../AGENTS.md](../AGENTS.md)
@@ -43,7 +43,7 @@
 ## 步骤 2 · 配置文件（已预先创建，仅需写加载器）
 
 文件：
-- [x] `config/kols.yaml` — 61 个 handle，已存在
+- [x] `config/kols.yaml` — 64 个 handle，已存在
 - [x] `config/settings.yaml` — 全部参数，已存在
 - [x] `src/kol_monitor/config.py` — 加载 yaml + dotenv，提供单例 `settings`
 
@@ -56,7 +56,7 @@
 **验证**：
 ```bash
 python -c "from kol_monitor.config import settings; print(len(settings.kols), settings.schedule.hour)"
-# 期望输出：61 20
+# 期望输出：64 20
 ```
 
 ---
@@ -266,8 +266,9 @@ async def call_claude_with_retry(messages, max_tokens) -> ClaudeResponse: ...
 - anthropic SDK 实例化时注入 `base_url`、`api_key`
 - 图片走 `{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": ...}}`
 - Layer 2 prompt 要求输出 JSON，用 `response.content[0].text` 后 json.loads，失败重试一次（带"请严格按此 JSON 输出"prompt 强化）
-- Layer 1 prompt 是 markdown 输出，按 6 维度（DESIGN §9.2）
-- Layer 3 prompt（`build_layer3_prompt`）基于清洗后的 Layer 1 摘要，输出可直接发 X 的中文盘前快报长推文（DESIGN §9.3），用 `ai.max_tokens_layer3`
+- Layer 1 prompt 是 markdown 输出，按 7 个章节（DESIGN §9.2）
+- 发布前对 Layer 1 做确定性清理：来源链接规范化、内部工件过滤、中文标点归一化、普通长段落整理成 bullet；清洗后仍有质量 error 时改用本地有来源兜底模板
+- Layer 3 / premarket 长推文已停用，不再接入 `run-once` / `regen-digest`；`build_layer3_prompt` 等函数仅作为遗留 helper 保留
 - Layer 1 / Layer 2 展示文本里涉及具体股票代码时统一用 `$代码`，例如 `$NVDA`
 - token 计数累加到 `digests.input_tokens / output_tokens`
 
@@ -286,7 +287,7 @@ async def call_claude_with_retry(messages, max_tokens) -> ClaudeResponse: ...
 def render_readme(date, layer1_md, layer2_kols, kol_list, history_dirs) -> str: ...
 def render_digest_md(date, layer1_md, layer2_kols) -> str: ...
 def render_monthly_index(year, month) -> str: ...
-def write_outputs(date) -> tuple[Path, Path]: ...
+def write_outputs(date) -> list[Path]: ...
 def git_publish(date, files: list[Path]) -> bool: ...
 ```
 
@@ -358,6 +359,7 @@ def main():
 - [x] `test_summarizer_mock.py` — JSON parse fallback + mock anthropic
 - [x] `test_publisher.py` — markdown snapshot
 - [x] `test_quality.py` — 日报质量门禁与草稿输出
+- [x] `test_scheduler.py` — 北京时间 20:30 调度
 
 **测试不依赖网络**。运行：`pytest tests/ -v`
 
@@ -378,7 +380,7 @@ freezegun>=1.4
 1. 用户填好 `.env`（6551、四层 LLM、可选路径覆盖等环境变量）
 2. 用户配好 git remote（`git remote add origin git@github.com:...`）
 3. 若确认要自动发布到该 remote，在 `.env.local` 设置 `KOL_MONITOR_ALLOW_PUSH=true`
-4. `kol-monitor list-kols` 校验 61 个 handle 都被加载
+4. `kol-monitor list-kols` 校验 64 个 handle 都被加载
 5. `kol-monitor validate-handles` 用 `twitter_user_info` 逐个校验拼写，失败的标 inactive 并报告
 6. `kol-monitor run-once --no-publish` 跑一次真实完整流程（首跑建议先不 push）
 7. 检查 `README.md` 和 `digests/2026/05/29.md` 输出

@@ -1,6 +1,6 @@
 # 运维与运行说明
 
-最后更新：2026-06-16
+最后更新：2026-06-30
 
 ## 1. 如何持久化运行
 
@@ -147,6 +147,7 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 - 每日完整总结：`digests/YYYY/MM/DD.md`，开启发布后会随发布流程推送 GitHub
 - README 首页：仓库根目录 `README.md`，开启发布后会随发布流程推送 GitHub
 - 每月索引：`digests/YYYY/MM/README.md`（由后续月度回顾功能生成），开启发布后会随发布流程推送 GitHub
+- 盘前长推文：`premarket/` 已停用，日常 `run-once` / `regen-digest` 不再生成或提交该目录
 
 这套结构的好处是：
 
@@ -156,19 +157,21 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 ## 6. LLM 备用机制
 
-Claude 调用按四层顺序尝试：
+Claude 调用按四层顺序尝试。环境变量名保留了历史命名，不等同于当前调用顺位：
 
-1. 主凭据：`ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`，模型用 `config/settings.yaml` 的 `ai.model`
-2. 第二层备用：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同主配置
-3. 第三顺位备用：`ANTHROPIC_FOURTH_API_KEY` + `ANTHROPIC_FOURTH_BASE_URL` + `ANTHROPIC_FOURTH_MODEL`
-4. 第四顺位备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
+1. 第一顺位备用：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同主配置
+2. 第二顺位备用：`ANTHROPIC_FOURTH_API_KEY` + `ANTHROPIC_FOURTH_BASE_URL` + `ANTHROPIC_FOURTH_MODEL`
+3. 第三顺位备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
+4. 最后兜底主凭据：`ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`，模型用 `config/settings.yaml` 的 `ai.model`
 
-四层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第三顺位模型名配置为 `claude-sonnet-4-6`，第四顺位模型名配置为 `anthropic/claude-sonnet-4.6`。
+四层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第二顺位模型名配置为 `claude-sonnet-4-6`，第三顺位模型名配置为 `anthropic/claude-sonnet-4.6`。
 
-`ANTHROPIC_THIRD_*` 这组 Infron 后端当前作为第四顺位兜底，首选使用 `temperature=1` 且显式关闭 thinking，主凭据和第二层备用仍使用 `config/settings.yaml` 的 `ai.temperature`。这是为了兼容部分 Claude 4.6 后端对 extended thinking/adaptive mode 的限制：当模型启用或走 thinking/adaptive 模式时，非 `1` 的 temperature 会被拒绝。如果该后端仍返回 Bedrock 的 temperature/thinking 校验错误，程序会对同一后端再重试一次，这次不传 `temperature` 和 `thinking`，让 provider 使用默认普通模式；实测这种模式能返回正文，而 adaptive thinking 在低 `max_tokens` 下可能先消耗 thinking block，导致正文为空。
+`ANTHROPIC_THIRD_*` 这组 Infron 后端当前作为第三顺位兜底，首选使用 `temperature=1` 且显式关闭 thinking。`ANTHROPIC_FALLBACK_*`、`ANTHROPIC_FOURTH_*` 和主凭据仍使用 `config/settings.yaml` 的 `ai.temperature`。这是为了兼容部分 Claude 4.6 后端对 extended thinking/adaptive mode 的限制：当模型启用或走 thinking/adaptive 模式时，非 `1` 的 temperature 会被拒绝。如果该后端仍返回 Bedrock 的 temperature/thinking 校验错误，程序会对同一后端再重试一次，这次不传 `temperature` 和 `thinking`，让 provider 使用默认普通模式；实测这种模式能返回正文，而 adaptive thinking 在低 `max_tokens` 下可能先消耗 thinking block，导致正文为空。
 
-`ANTHROPIC_FOURTH_*` 这组 Packy 后端当前作为第三顺位备用，按普通 Claude 兼容后端处理，使用 `config/settings.yaml` 的 `ai.temperature`，不额外发送 `thinking` 参数。
+`ANTHROPIC_FOURTH_*` 这组 Packy 后端当前作为第二顺位备用，按普通 Claude 兼容后端处理，使用 `config/settings.yaml` 的 `ai.temperature`，不额外发送 `thinking` 参数。
 
 如果 Layer 1 总摘要四层 LLM 都失败，程序会用已生成的各 KOL 结构化摘要拼出本地兜底日报，并在正文开头标注“本地兜底模板”。如果单个 KOL 的 Layer 2 摘要也失败，会从原始推文生成最小明细，避免当天 README 因单点 LLM 故障完全不更新。
 
-日报发布前会做确定性质量清理：删除明显内部提示词/工作流污染、关键章节中没有 X 来源链接的要点、未链接来源标签、韩文/日文残留过多的行，以及“OpenAI 计划发布 Claude/Anthropic 模型”这类明显归属冲突。`quality_report.json` 会把这些问题按 error/warning 记录下来，方便回查是哪一层出错。
+日报发布前会做确定性质量清理：删除明显内部提示词/工作流污染、关键章节中没有 X 来源链接的要点、未链接来源标签、韩文/日文残留过多的行，以及“OpenAI 计划发布 Claude/Anthropic 模型”这类明显归属冲突。Layer 1 还会做中文标点归一化，并把非交易信号章节里的普通长段落整理为 markdown bullet；质量扫描会用 `long_plain_paragraph` warning 标记仍影响可读性的长段落。`quality_report.json` 会把这些问题按 error/warning 记录下来，方便回查是哪一层出错。
+
+如果发布前清洗后的 Layer 1 仍触发 quality error，`publisher.write_outputs()` 会尝试用规范化后的 Layer 2 拼出本地有来源兜底摘要；该兜底摘要通过扫描时才替换发布正文。这个逻辑只保护读者可见输出，不会改写 DB 中的原始 `summary_md`。
