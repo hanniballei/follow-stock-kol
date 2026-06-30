@@ -272,6 +272,24 @@ def scan_summary_quality(markdown: str) -> dict[str, Any]:
                 )
             )
 
+        if (
+            current_section
+            and not current_section.startswith("@")
+            and not stripped.startswith(("- ", "* ", "|"))
+            and _normalize_layer1_heading("交易信号") not in current_section
+            and len(stripped) > 180
+        ):
+            issues.append(
+                _issue(
+                    code="long_plain_paragraph",
+                    severity="warning",
+                    message="Layer 1 章节包含过长普通段落，影响 Markdown 可读性",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
         urls = [match.group(0) for match in TWEET_URL_RE.finditer(line)]
         for url in urls:
             source_urls.setdefault(url, []).append(line_no)

@@ -437,6 +437,46 @@ def test_write_outputs_excludes_html(tmp_path, monkeypatch):
     assert not list((tmp_path / "digests").rglob("*.html"))
 
 
+def test_select_publishable_layer1_uses_fallback_when_scan_fails():
+    layer2 = [
+        {
+            "screen_name": "testkol",
+            "tweet_count": 1,
+            "core_view": "作者认为 $NVDA 需求仍强",
+            "bullets": [
+                {
+                    "point": "作者认为 $NVDA 需求仍强",
+                    "tickers": ["NVDA"],
+                    "tweet_url": "https://x.com/testkol/status/1",
+                    "claim_type": "opinion",
+                }
+            ],
+            "sentiment": "bullish",
+        }
+    ]
+    bad_layer1 = """## 产业/个股焦点
+
+| 板块 | 标的 |
+|------|------|
+| AI 云服务 | $CRWV、$NBIS |
+| 软件层 | $IBM |
+
+## 交易信号
+
+| 标的 | 线索 | 来源 |
+|---|---|---|
+| $NVDA | 需求仍强 | [@testkol](https://x.com/testkol/status/1) |
+
+## 投资理念
+
+- 作者认为只做有来源的交易
+"""
+    selected = publisher._select_publishable_layer1("2026-05-29", bad_layer1, layer2)
+
+    assert "本地兜底模板" in selected
+    assert "作者认为 $NVDA 需求仍强（$NVDA） [@testkol](https://x.com/testkol/status/1)" in selected
+
+
 def test_invented_spacex_tickers_normalized_but_spce_preserved():
     from kol_monitor.publisher import _format_ticker, _normalize_ticker_code
 

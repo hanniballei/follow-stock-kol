@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from kol_monitor.summarizer import (
+    _anthropic_backends,
     _anthropic_sdk_base_url,
     _clean_layer1_markdown,
     _fallback_layer1_markdown,
@@ -14,11 +15,13 @@ from kol_monitor.summarizer import (
     _layer2_needs_chinese_retry,
     _layer2_prompt,
     _normalize_layer2_result,
+    _prepare_layer1_markdown,
     _response_text,
     call_claude_with_retry,
     build_layer1_prompt,
     normalize_layer1_source_links,
     parse_layer2,
+    settings,
     summarize_one_kol,
     summarize_day,
 )
@@ -216,6 +219,113 @@ def test_layer1_validation_rejects_truncated_ending():
 """
 
     assert _is_valid_layer1_markdown(md) is False
+
+
+def test_prepare_layer1_markdown_normalizes_plain_paragraph_layout_and_punctuation():
+    md = """## 特朗普相关
+
+[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1) 称美股很好,油价下降。[@kol](https://x.com/kol/status/2) 认为 $INTC 受益;但仍需观察。
+
+## 今日关键词
+
+AI, 半导体
+
+## 重要新闻
+
+[@kol](https://x.com/kol/status/3) 称供应链紧张,价格上涨。
+
+## 宏观判断
+
+[@macro](https://x.com/macro/status/1) 认为利率仍是核心变量,但不影响长期趋势。
+
+## 产业/个股焦点
+
+[@kol](https://x.com/kol/status/4) 称 $NVDA 需求仍强。
+
+## 交易信号
+
+| 标的 | 线索 | 来源 |
+|---|---|---|
+| $NVDA | 需求仍强,关注回调 | [@kol](https://x.com/kol/status/4) |
+
+## 投资理念
+
+[@macro](https://x.com/macro/status/2) 认为不要因短期波动破坏系统。
+"""
+
+    prepared = _prepare_layer1_markdown(md)
+
+    assert "- [@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1)" in prepared
+    assert "- [@kol](https://x.com/kol/status/2)" in prepared
+    assert "- AI， 半导体" in prepared
+    assert "很好，油价下降" in prepared
+    assert "受益；但仍需观察" in prepared
+    assert "需求仍强，关注回调" in prepared
+
+
+def test_prepare_layer1_markdown_keeps_parenthetical_source_links_together():
+    md = """## 特朗普相关
+
+[@realDonaldTrump](https://x.com/realDonaldTrump/status/1) 当天推文聚焦军事行动，未直接涉及股市。不过，模型事件被多位 KOL 提及（[@nft_hu](https://x.com/nft_hu/status/2) [@LinQingV](https://x.com/LinQingV/status/3)），部分观点认为可能影响 AI 硬件链；[@jukan05](https://x.com/jukan05/status/4) 强调该事件引发主权 AI 竞赛。
+
+## 今日关键词
+
+- AI
+
+## 重要新闻
+
+- 作者认为 $NVDA 强势 [@foo](https://x.com/foo/status/123)
+
+## 宏观判断
+
+- 作者认为流动性仍是核心变量 [@foo](https://x.com/foo/status/124)
+
+## 产业/个股焦点
+
+- 作者认为 $MU 需求仍强 [@foo](https://x.com/foo/status/125)
+
+## 交易信号
+
+| 标的 | 线索 | 来源 |
+|---|---|---|
+| $NVDA | 强势延续 | [@foo](https://x.com/foo/status/126) |
+
+## 投资理念
+
+- 作者认为长期持有优于频繁交易 [@foo](https://x.com/foo/status/127)
+"""
+
+    prepared = _prepare_layer1_markdown(md)
+
+    assert "- [@nft_hu](https://x.com/nft_hu/status/2)" not in prepared
+    assert "- [@LinQingV](https://x.com/LinQingV/status/3)" not in prepared
+    assert "（[@nft_hu](https://x.com/nft_hu/status/2) [@LinQingV](https://x.com/LinQingV/status/3)）" in prepared
+    assert "- [@jukan05](https://x.com/jukan05/status/4)" in prepared
+
+
+def test_anthropic_backends_use_requested_priority(monkeypatch):
+    monkeypatch.setattr(settings, "anthropic_api_key", "primary-key", raising=False)
+    monkeypatch.setattr(settings, "anthropic_base_url", "https://primary.example/v1", raising=False)
+    monkeypatch.setattr(settings, "anthropic_fallback_api_key", "fallback-key", raising=False)
+    monkeypatch.setattr(settings, "anthropic_fallback_base_url", "https://fallback.example/v1", raising=False)
+    monkeypatch.setattr(settings, "anthropic_fourth_api_key", "fourth-key", raising=False)
+    monkeypatch.setattr(settings, "anthropic_fourth_base_url", "https://fourth.example/v1", raising=False)
+    monkeypatch.setattr(settings, "anthropic_fourth_model", "fourth-model", raising=False)
+    monkeypatch.setattr(settings, "anthropic_third_api_key", "third-key", raising=False)
+    monkeypatch.setattr(settings, "anthropic_third_base_url", "https://third.example/v1", raising=False)
+    monkeypatch.setattr(settings, "anthropic_third_model", "third-model", raising=False)
+
+    backends = _anthropic_backends()
+
+    assert [backend.label for backend in backends] == ["fallback", "fourth", "third", "primary"]
+    assert [backend.model for backend in backends] == [
+        settings.ai.model,
+        "fourth-model",
+        "third-model",
+        settings.ai.model,
+    ]
+    assert backends[2].temperature == 1
+    assert backends[2].thinking == {"type": "disabled"}
 
 
 @pytest.mark.asyncio
@@ -423,12 +533,12 @@ async def test_summarize_one_kol_uses_next_backend_when_json_parse_fails(monkeyp
 
         async def _create(self, **kwargs):
             events.append(self.api_key)
-            if self.api_key == "primary":
+            if self.api_key == "fallback":
                 return SimpleNamespace(content=[SimpleNamespace(text="not json")])
             return SimpleNamespace(
                 content=[
                     SimpleNamespace(
-                        text='{"core_view":"fallback ok","bullets":[],"sentiment":"neutral"}'
+                        text='{"core_view":"primary ok","bullets":[],"sentiment":"neutral"}'
                     )
                 ],
                 usage=SimpleNamespace(input_tokens=10, output_tokens=5),
@@ -457,8 +567,8 @@ async def test_summarize_one_kol_uses_next_backend_when_json_parse_fails(monkeyp
         media_files=[],
     )
 
-    assert events == ["primary", "primary", "fallback"]
-    assert res["core_view"] == "fallback ok"
+    assert events == ["fallback", "fallback", "primary"]
+    assert res["core_view"] == "primary ok"
     assert res["input_tokens"] == 10
 
 
@@ -533,15 +643,13 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     )
 
     assert response.content[0].text == "ok-third"
-    assert [event[0] for event in events] == ["primary", "fallback", "third"]
+    assert [event[0] for event in events] == ["fallback", "third"]
     assert events[0][2] == "claude-sonnet-4-6"
     assert events[0][3] == 0.3
-    assert events[1][2] == "claude-sonnet-4-6"
-    assert events[1][3] == 0.3
-    assert events[2][1] == "https://third.example"
-    assert events[2][2] == "anthropic/claude-sonnet-4.6"
-    assert events[2][3] == 1
-    assert events[2][4] == {"type": "disabled"}
+    assert events[1][1] == "https://third.example"
+    assert events[1][2] == "anthropic/claude-sonnet-4.6"
+    assert events[1][3] == 1
+    assert events[1][4] == {"type": "disabled"}
 
 
 @pytest.mark.asyncio
@@ -633,11 +741,11 @@ async def test_call_claude_falls_through_to_fourth_client(monkeypatch):
     )
 
     assert response.content[0].text == "ok-fourth"
-    assert [event[0] for event in events] == ["primary", "fallback", "fourth"]
-    assert events[2][1] == "https://fourth.example"
-    assert events[2][2] == "claude-sonnet-4-6"
-    assert events[2][3] == 0.3
-    assert events[2][4] is None
+    assert [event[0] for event in events] == ["fallback", "fourth"]
+    assert events[1][1] == "https://fourth.example"
+    assert events[1][2] == "claude-sonnet-4-6"
+    assert events[1][3] == 0.3
+    assert events[1][4] is None
 
 
 @pytest.mark.asyncio
@@ -683,14 +791,14 @@ async def test_call_claude_uses_third_after_fourth_fails(monkeypatch):
     )
 
     assert response.content[0].text == "ok-third"
-    assert [event[0] for event in events] == ["primary", "fallback", "fourth", "third"]
-    assert events[2][1] == "https://fourth.example"
-    assert events[2][3] == 0.3
-    assert events[2][4] is None
-    assert events[3][1] == "https://third.example"
-    assert events[3][2] == "anthropic/claude-sonnet-4.6"
-    assert events[3][3] == 1
-    assert events[3][4] == {"type": "disabled"}
+    assert [event[0] for event in events] == ["fallback", "fourth", "third"]
+    assert events[1][1] == "https://fourth.example"
+    assert events[1][3] == 0.3
+    assert events[1][4] is None
+    assert events[2][1] == "https://third.example"
+    assert events[2][2] == "anthropic/claude-sonnet-4.6"
+    assert events[2][3] == 1
+    assert events[2][4] == {"type": "disabled"}
 
 
 def test_anthropic_sdk_base_url_keeps_clean_provider_root():

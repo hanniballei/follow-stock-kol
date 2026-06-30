@@ -14,6 +14,7 @@ import markdown as md_lib
 from kol_monitor import db
 from kol_monitor.config import settings
 from kol_monitor.summarizer import (
+    _fallback_layer1_markdown,
     _normalize_layer2_result,
     _prepare_layer1_markdown,
     sanitize_tweet_url,
@@ -828,11 +829,9 @@ def write_outputs(date: str) -> list[Path]:
         for item in raw_layer2
         if isinstance(item, dict)
     ]
-    # Clean the layer1 summary (strip internal-methodology artifacts, model-attribution
-    # conflicts, non-Chinese residue) before it reaches any renderer. Previously the raw
-    # summary_md was rendered verbatim, so flagged content (e.g. the OpenAI/claude model
-    # mix-up) leaked into the published .md even though the DB scan caught it.
-    layer1_md = _prepare_layer1_markdown(digest["summary_md"] or "")
+    # Clean the layer1 summary before it reaches any renderer, and fall back to the local
+    # sourced template if older DB summaries do not satisfy the current publishability gate.
+    layer1_md = _select_publishable_layer1(date, digest["summary_md"] or "", layer2)
     readme = render_readme(
         date=date,
         layer1_md=layer1_md,
@@ -854,6 +853,41 @@ def write_outputs(date: str) -> list[Path]:
     # digest + README are the published artifacts). render_daily_html() is kept as a
     # standalone renderer in case HTML is reinstated, but is intentionally not called here.
     return [readme_path, md_path]
+
+
+def _select_publishable_layer1(date: str, raw_layer1: str, layer2: list[dict]) -> str:
+    cleaned = _prepare_layer1_markdown(raw_layer1)
+    if not _layer1_has_quality_errors(cleaned):
+        return cleaned
+
+    trump_summary = next(
+        (
+            item
+            for item in layer2
+            if str(item.get("screen_name") or "").lower() == "realdonaldtrump"
+        ),
+        None,
+    )
+    fallback = _prepare_layer1_markdown(
+        _fallback_layer1_markdown(layer2, trump_summary=trump_summary)
+    )
+    if not _layer1_has_quality_errors(fallback):
+        logger.warning("layer1 %s failed publish scan; using local fallback summary", date)
+        return fallback
+
+    logger.error("layer1 %s and local fallback both failed publish scan; using cleaned layer1", date)
+    return cleaned
+
+
+def _layer1_has_quality_errors(markdown: str) -> bool:
+    try:
+        from kol_monitor.quality import scan_summary_quality
+
+        report = scan_summary_quality(markdown)
+    except Exception:
+        logger.exception("layer1 quality scan failed")
+        return False
+    return bool(report.get("error_count"))
 
 
 def premarket_path(date: str) -> Path:

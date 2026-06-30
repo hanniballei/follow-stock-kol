@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 
 from kol_monitor import db
-from kol_monitor.quality import scan_layer2_quality, scan_summary_quality, write_quality_draft
+from kol_monitor.quality import (
+    scan_layer2_quality,
+    scan_summary_quality,
+    write_quality_draft,
+)
 
 
 def test_scan_summary_quality_flags_known_bad_patterns():
@@ -174,6 +178,41 @@ def test_scan_clean_digest_has_no_json_or_link_errors():
     codes = report["issue_counts_by_code"]
     assert codes.get("json_residue", 0) == 0
     assert codes.get("broken_source_link", 0) == 0
+
+
+def test_scan_summary_quality_warns_on_long_plain_paragraph():
+    md = """## 特朗普相关
+
+[@realDonaldTrump 原文](https://x.com/realDonaldTrump/status/truth_1) 称美股继续上涨，市场情绪改善。[@kol](https://x.com/kol/status/2) 认为半导体和军工板块会继续受益，同时指出如果关税谈判反复，供应链波动也会重新加剧，因此需要继续观察后续表态和执行层面的变化，并且这类影响可能同时传导到大型科技股、工业股和防务相关板块。
+
+## 今日关键词
+
+- AI
+
+## 重要新闻
+
+- 作者认为 $NVDA 强势 [@foo](https://x.com/foo/status/123)
+
+## 宏观判断
+
+- 作者认为流动性仍是核心变量 [@foo](https://x.com/foo/status/124)
+
+## 产业/个股焦点
+
+- 作者认为 $MU 需求仍强 [@foo](https://x.com/foo/status/125)
+
+## 交易信号
+
+| 标的 | 线索 | 来源 |
+|---|---|---|
+| $NVDA | 强势延续 | [@foo](https://x.com/foo/status/126) |
+
+## 投资理念
+
+- 作者认为长期持有优于频繁交易 [@foo](https://x.com/foo/status/127)
+"""
+    report = scan_summary_quality(md)
+    assert report["issue_counts_by_code"].get("long_plain_paragraph", 0) >= 1
 
 
 def test_scan_spacex_ticker_conflation_warns_but_spares_disambiguation():

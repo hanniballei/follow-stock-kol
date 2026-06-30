@@ -333,7 +333,201 @@ def _is_markdown_table_header_or_separator(stripped: str) -> bool:
 
 
 def _prepare_layer1_markdown(markdown: str) -> str:
-    return _clean_layer1_markdown(normalize_layer1_source_links(markdown)).strip()
+    cleaned = _clean_layer1_markdown(normalize_layer1_source_links(markdown))
+    cleaned = _normalize_chinese_markdown_punctuation(cleaned)
+    cleaned = _normalize_layer1_list_layout(cleaned)
+    return cleaned.strip()
+
+
+def _normalize_chinese_markdown_punctuation(markdown: str) -> str:
+    return "\n".join(_normalize_chinese_punctuation_line(line) for line in markdown.splitlines())
+
+
+def _normalize_chinese_punctuation_line(line: str) -> str:
+    parts = re.split(r"(https?://[^)\s]+)", line)
+    return "".join(
+        part if part.startswith(("http://", "https://")) else _normalize_chinese_punctuation_segment(part)
+        for part in parts
+    )
+
+
+def _normalize_chinese_punctuation_segment(text: str) -> str:
+    chars: list[str] = []
+    for index, char in enumerate(text):
+        prev_char = text[index - 1] if index > 0 else ""
+        next_char = text[index + 1] if index + 1 < len(text) else ""
+        if char == "," and not (prev_char.isdigit() and next_char.isdigit()):
+            chars.append("，")
+        elif char == ";":
+            chars.append("；")
+        else:
+            chars.append(char)
+    return "".join(chars)
+
+
+def _normalize_layer1_list_layout(markdown: str) -> str:
+    lines = markdown.splitlines()
+    output: list[str] = []
+    section_heading = ""
+    section_body: list[str] = []
+
+    def flush_section() -> None:
+        nonlocal section_body
+        if section_heading:
+            output.extend(_normalize_layer1_section_body(section_heading, section_body))
+        else:
+            output.extend(section_body)
+        section_body = []
+
+    for line in lines:
+        heading = re.match(r"^\s{0,3}##\s+(.+?)\s*$", line)
+        if heading:
+            flush_section()
+            section_heading = _normalize_layer1_heading(heading.group(1))
+            output.append(line)
+            continue
+        section_body.append(line)
+    flush_section()
+    return "\n".join(output)
+
+
+def _normalize_layer1_section_body(normalized_heading: str, body_lines: list[str]) -> list[str]:
+    if not _layer1_section_prefers_bullets(normalized_heading):
+        return body_lines
+
+    output: list[str] = []
+    paragraph: list[str] = []
+
+    def flush_paragraph() -> None:
+        if not paragraph:
+            return
+        text = " ".join(part.strip() for part in paragraph if part.strip())
+        paragraph.clear()
+        if not text:
+            return
+        for bullet in _split_layer1_paragraph(text):
+            output.append(f"- {bullet}")
+
+    for line in body_lines:
+        stripped = line.strip()
+        if not stripped:
+            flush_paragraph()
+            if output and output[-1] != "":
+                output.append("")
+            continue
+        if stripped.startswith(("- ", "* ")) or stripped.startswith("|"):
+            flush_paragraph()
+            output.append(line)
+            continue
+        paragraph.append(stripped)
+
+    flush_paragraph()
+    while output and output[-1] == "":
+        output.pop()
+    if output and output[0] != "":
+        output.insert(0, "")
+    if output and output[-1] != "":
+        output.append("")
+    return output
+
+
+def _layer1_section_prefers_bullets(normalized_heading: str) -> bool:
+    if _normalize_layer1_heading("交易信号") in normalized_heading:
+        return False
+    return any(
+        _normalize_layer1_heading(section) in normalized_heading
+        for section in REQUIRED_LAYER1_SECTIONS
+    )
+
+
+def _split_layer1_paragraph(text: str) -> list[str]:
+    text = re.sub(r"\s+", " ", text).strip()
+    if not text:
+        return []
+
+    chunks: list[str] = []
+    for pipe_part in re.split(r"\s+\|\s+", text):
+        chunks.extend(_split_layer1_source_runs(pipe_part.strip()))
+
+    bullets: list[str] = []
+    for chunk in chunks:
+        if not chunk:
+            continue
+        if len(chunk) <= 260:
+            bullets.append(chunk)
+        else:
+            bullets.extend(_split_layer1_long_sentence_run(chunk))
+    return [bullet for bullet in bullets if bullet]
+
+
+def _split_layer1_source_runs(text: str) -> list[str]:
+    if not text:
+        return []
+    matches = list(re.finditer(r"\[@[^\]]+\]\(https?://[^)\s]+\)", text))
+    if len(matches) < 2:
+        return [text]
+
+    chunks: list[str] = []
+    split_starts: list[int] = []
+    for match in matches:
+        prefix = text[: match.start()].rstrip()
+        if not prefix or prefix[-1] in "。！？；;":
+            split_starts.append(match.start())
+
+    if len(split_starts) < 2:
+        return [text]
+
+    starts = split_starts + [len(text)]
+    if starts[0] > 0:
+        prefix = text[: starts[0]].strip()
+        if prefix:
+            chunks.append(prefix)
+    for index, start in enumerate(starts[:-1]):
+        end = starts[index + 1]
+        chunk = text[start:end].strip()
+        if chunk:
+            chunks.append(chunk)
+    return chunks or [text]
+
+
+def _split_layer1_long_sentence_run(text: str) -> list[str]:
+    sentences = _layer1_sentences(text)
+    if len(sentences) <= 1:
+        return [text]
+
+    chunks: list[str] = []
+    current = ""
+    for sentence in sentences:
+        candidate = (current + sentence).strip()
+        if current and len(candidate) > 260 and TWEET_URL_RE.search(current):
+            chunks.append(current.strip())
+            current = sentence
+        else:
+            current = candidate
+        if len(current) >= 180 and TWEET_URL_RE.search(current):
+            chunks.append(current.strip())
+            current = ""
+    if current.strip():
+        if chunks and not TWEET_URL_RE.search(current):
+            chunks[-1] = (chunks[-1] + current).strip()
+        else:
+            chunks.append(current.strip())
+    return chunks or [text]
+
+
+def _layer1_sentences(text: str) -> list[str]:
+    sentences: list[str] = []
+    start = 0
+    for index, char in enumerate(text):
+        if char in "。！？":
+            sentence = text[start : index + 1].strip()
+            if sentence:
+                sentences.append(sentence)
+            start = index + 1
+    rest = text[start:].strip()
+    if rest:
+        sentences.append(rest)
+    return sentences
 
 
 def _is_valid_layer1_markdown(markdown: str, stop_reason: str | None = None) -> bool:
@@ -560,16 +754,6 @@ def _should_retry_third_temperature_thinking_error(backend: ClaudeBackend, exc: 
 
 def _anthropic_backends() -> list[ClaudeBackend]:
     backends: list[ClaudeBackend] = []
-    if settings.anthropic_api_key:
-        backends.append(
-            ClaudeBackend(
-                label="primary",
-                api_key=settings.anthropic_api_key,
-                base_url=settings.anthropic_base_url,
-                model=settings.ai.model,
-                temperature=settings.ai.temperature,
-            )
-        )
     if getattr(settings, "anthropic_fallback_api_key", None):
         backends.append(
             ClaudeBackend(
@@ -600,6 +784,16 @@ def _anthropic_backends() -> list[ClaudeBackend]:
                 model=getattr(settings, "anthropic_third_model", None) or settings.ai.model,
                 temperature=1,
                 thinking={"type": "disabled"},
+            )
+        )
+    if settings.anthropic_api_key:
+        backends.append(
+            ClaudeBackend(
+                label="primary",
+                api_key=settings.anthropic_api_key,
+                base_url=settings.anthropic_base_url,
+                model=settings.ai.model,
+                temperature=settings.ai.temperature,
             )
         )
     return backends
@@ -874,6 +1068,8 @@ def build_layer1_prompt(
         "把 SpaceX 统一写 $SPCX，不要写 $SPACEX/$SPACE，也不要与维珍银河 $SPCE 混淆；公司名沿用源 JSON 里的中文译名，不要另行音译生造。"
         "总长度控制在 1800-2600 汉字，每条 bullet 尽量不超过 70 汉字，"
         "交易信号表格的“线索”列尽量不超过 30 汉字；严禁扩写背景知识。"
+        "除交易信号使用 markdown 表格外，其余六个章节必须使用以“- ”开头的 markdown bullet，"
+        "不要输出普通长段落。中文正文使用中文逗号和分号，不要混用英文 , 或 ;（URL、股票代码、英文术语除外）。"
         "篇幅控制：特朗普相关 2-4 条；今日关键词用 6-8 个普通 bullet，不要表格；"
         "重要新闻 4-6 条；宏观判断 3-5 条；产业/个股焦点 5-8 条；"
         "交易信号最多 6 行 markdown 表格；投资理念 3-5 条。"
