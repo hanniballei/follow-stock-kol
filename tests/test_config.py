@@ -9,11 +9,12 @@ def test_load_settings_reads_existing_yaml(monkeypatch):
 
     settings = load_settings()
 
-    assert len(settings.kols) == 63
+    assert len(settings.kols) == 64
     assert "168X_Fortune" in settings.kols
     assert "blazingbees" in settings.kols
     assert "Franktradinglog" in settings.kols
     assert "golden_pan1" in settings.kols
+    assert "JoeAnima" in settings.kols
     assert "rickawsb" in settings.kols
     assert "timothysykes" in settings.kols
     assert settings.schedule.hour == 20
