@@ -40,6 +40,7 @@ def sanitize_tweet_url(raw: object) -> str:
     match = CANONICAL_TWEET_URL_RE.search(text)
     return match.group(0) if match else ""
 UNLINKED_SOURCE_LABEL_RE = re.compile(r"\[@[^\]]+\](?!\()")
+ANONYMOUS_KOL_RE = re.compile(r"某\s*(?:位\s*)?KOL")
 SUSPICIOUS_MODEL_COMPANY_RE = re.compile(
     r"OpenAI[^。！？\n]{0,40}(?:计划|将|将于|发布|推出|release|launch)"
     r"[^。！？\n]{0,40}(?:Claude|claude[-_.a-z0-9]*|Anthropic)",
@@ -213,6 +214,28 @@ def normalize_layer1_source_links(markdown: str) -> str:
     return re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", replace, markdown)
 
 
+def _replace_anonymous_kol_mentions(markdown: str) -> str:
+    """Replace vague "某KOL" wording with the sourced handle when the line has one."""
+
+    def replace_line(line: str) -> str:
+        if not ANONYMOUS_KOL_RE.search(line):
+            return line
+        handles = [match.group(1) for match in TWEET_URL_RE.finditer(line)]
+        if not handles:
+            return line
+        index = 0
+
+        def replace(_match: re.Match[str]) -> str:
+            nonlocal index
+            handle = handles[min(index, len(handles) - 1)]
+            index += 1
+            return f"@{handle}"
+
+        return ANONYMOUS_KOL_RE.sub(replace, line)
+
+    return "\n".join(replace_line(line) for line in markdown.splitlines())
+
+
 def _clean_layer1_markdown(markdown: str) -> str:
     cleaned = []
     current_section = ""
@@ -333,7 +356,8 @@ def _is_markdown_table_header_or_separator(stripped: str) -> bool:
 
 
 def _prepare_layer1_markdown(markdown: str) -> str:
-    cleaned = _clean_layer1_markdown(normalize_layer1_source_links(markdown))
+    cleaned = _replace_anonymous_kol_mentions(normalize_layer1_source_links(markdown))
+    cleaned = _clean_layer1_markdown(cleaned)
     cleaned = _normalize_chinese_markdown_punctuation(cleaned)
     cleaned = _normalize_layer1_list_layout(cleaned)
     return cleaned.strip()
@@ -1060,7 +1084,7 @@ def build_layer1_prompt(
         "## 产业/个股焦点、## 交易信号、## 投资理念。"
         "不要遗漏任何标题；如果某节信息不足，写一条“暂无高质量信号。”，也必须保留该标题。"
         "先合并重复信息，再写结论，避免逐条复述同一账号的相似推文。"
-        "除非输入明确来自官方公告或客观市场数据，否则使用“某 KOL 称/认为/转述/推测”等归因表达。"
+        "除非输入明确来自官方公告或客观市场数据，否则使用“@handle 称/认为/转述/推测”等可追溯归因表达，不要写“某 KOL”。"
         "如果信息互相冲突，保留“分歧”表述，不要强行合并成单一事实。"
         "归因纪律（重要）：合并多个 KOL 的要点时，每个数字/指标/事件只能挂到它在源 JSON 里真正对应的那个股票代码上；"
         "不要把某条要点里 A 股票的数据（价格、RSI、目标价、财报数字等）写成 B 股票的数据。"
@@ -1377,7 +1401,7 @@ def _fallback_layer2_summary(kol: dict[str, Any], tweets: list[dict[str, Any]]) 
 
 
 def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
-    parsed["core_view"] = str(parsed.get("core_view") or "").strip()
+    parsed["core_view"] = _replace_anonymous_kol_text(str(parsed.get("core_view") or "")).strip()
     parsed["sentiment"] = str(parsed.get("sentiment") or "unclear").strip().lower()
     if parsed["sentiment"] not in {"bullish", "bearish", "neutral", "unclear"}:
         parsed["sentiment"] = "unclear"
@@ -1385,7 +1409,7 @@ def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
     for bullet in parsed.get("bullets") or []:
         if not isinstance(bullet, dict):
             continue
-        point = str(bullet.get("point") or "").strip()
+        point = _replace_anonymous_kol_text(str(bullet.get("point") or "")).strip()
         tweet_url = sanitize_tweet_url(bullet.get("tweet_url"))
         if not point or not tweet_url:
             continue
@@ -1423,6 +1447,10 @@ def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
             else "无市场相关内容"
         )
     return parsed
+
+
+def _replace_anonymous_kol_text(text: str) -> str:
+    return ANONYMOUS_KOL_RE.sub("作者", text)
 
 
 def _layer2_needs_chinese_retry(parsed: dict[str, Any]) -> bool:

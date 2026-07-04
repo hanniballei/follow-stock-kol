@@ -45,6 +45,7 @@ def render_readme(
 ) -> str:
     today_digest_path = _digest_rel_path(date)
     kol_count = len(kol_list)
+    top_highlights = _render_top_highlights(layer2_kols)
     parts = [
         "# 美股KOL每日摘要",
         "",
@@ -68,6 +69,8 @@ def render_readme(
         "- 只想本地验证流程，可以运行 `kol-monitor run-once --no-publish`。",
         "",
         f"## {date} 当日总结",
+        "",
+        top_highlights,
         "",
         layer1_md.strip(),
         "",
@@ -95,8 +98,11 @@ def render_readme(
 
 
 def render_digest_md(date: str, layer1_md: str, layer2_kols: list[dict]) -> str:
+    top_highlights = _render_top_highlights(layer2_kols)
     parts = [
         f"# {date} 美股 KOL 每日总结",
+        "",
+        top_highlights,
         "",
         layer1_md.strip(),
         "",
@@ -106,6 +112,96 @@ def render_digest_md(date: str, layer1_md: str, layer2_kols: list[dict]) -> str:
         "",
     ]
     return "\n".join(parts)
+
+
+def _render_top_highlights(layer2_kols: list[dict], limit: int = 5) -> str:
+    rows = _top_highlight_rows(layer2_kols, limit=limit)
+    if not rows:
+        return "## 今日最重要 5 条\n\n- 暂无有来源的高质量要点。"
+    lines = ["## 今日最重要 5 条", ""]
+    for row in rows:
+        ticker_text = (
+            f"**{', '.join(row['tickers'])}**："
+            if row["tickers"]
+            else ""
+        )
+        lines.append(
+            f"- {ticker_text}{row['point']} "
+            f"[@{row['handle']}]({row['tweet_url']})"
+        )
+    return "\n".join(lines)
+
+
+def _top_highlight_rows(layer2_kols: list[dict], limit: int = 5) -> list[dict]:
+    candidates: list[tuple[int, int, dict]] = []
+    seen_urls: set[str] = set()
+    seen_points: set[str] = set()
+    handle_counts: Counter = Counter()
+    order = 0
+    for item in layer2_kols:
+        handle = str(item.get("screen_name") or "").strip()
+        if not handle:
+            continue
+        for bullet in item.get("bullets") or []:
+            if not isinstance(bullet, dict):
+                continue
+            point = " ".join(str(bullet.get("point") or "").split())
+            url = sanitize_tweet_url(bullet.get("tweet_url"))
+            if not point or not url:
+                continue
+            claim_type = str(bullet.get("claim_type") or "opinion").strip().lower()
+            if claim_type in {"personal", "irrelevant"}:
+                continue
+            point_key = re.sub(r"\s+", "", point)[:80]
+            if url in seen_urls or point_key in seen_points:
+                continue
+            seen_urls.add(url)
+            seen_points.add(point_key)
+            tickers = []
+            for ticker in bullet.get("tickers") or []:
+                formatted = _format_ticker(ticker)
+                if formatted:
+                    tickers.append(formatted)
+            row = {
+                "handle": handle,
+                "point": point,
+                "tickers": tickers[:5],
+                "tweet_url": url,
+                "claim_type": claim_type,
+                "confidence": str(bullet.get("confidence") or "medium").strip().lower(),
+            }
+            candidates.append((_highlight_score(row), order, row))
+            order += 1
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    selected: list[dict] = []
+    for _score, _order, row in candidates:
+        handle = row["handle"]
+        if handle_counts[handle] >= 2:
+            continue
+        selected.append(row)
+        handle_counts[handle] += 1
+        if len(selected) >= limit:
+            break
+    return selected
+
+
+def _highlight_score(row: dict) -> int:
+    claim_scores = {
+        "news": 80,
+        "policy": 76,
+        "earnings": 72,
+        "market_data": 68,
+        "trade_signal": 64,
+        "opinion": 52,
+        "personal": 10,
+        "irrelevant": 0,
+    }
+    confidence_scores = {"high": 8, "medium": 4, "low": 0}
+    return (
+        claim_scores.get(str(row.get("claim_type") or "opinion"), 52)
+        + confidence_scores.get(str(row.get("confidence") or "medium"), 4)
+        + min(len(row.get("tickers") or []), 3) * 3
+    )
 
 
 def render_monthly_index(year: int, month: int) -> str:

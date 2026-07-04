@@ -15,6 +15,7 @@ from kol_monitor.summarizer import (
     SOURCE_REQUIRED_LAYER1_SECTIONS,
     TWEET_URL_RE,
     UNLINKED_SOURCE_LABEL_RE,
+    ANONYMOUS_KOL_RE,
     _fallback_layer1_markdown,
     _is_empty_market_core_view,
     _is_layer1_placeholder,
@@ -212,6 +213,18 @@ def scan_summary_quality(markdown: str) -> dict[str, Any]:
                     code="unlinked_source_label",
                     severity="error",
                     message="包含未链接的来源账号标签",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
+        if ANONYMOUS_KOL_RE.search(line):
+            issues.append(
+                _issue(
+                    code="anonymous_kol_reference",
+                    severity="error",
+                    message="包含匿名 KOL 表述，应使用可追溯的 @handle",
                     line=line_no,
                     section=current_section,
                     text=line,

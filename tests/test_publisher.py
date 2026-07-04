@@ -37,6 +37,8 @@ def test_render_readme_contains_required_sections():
     assert "## 你会看到什么" in md
     assert "## 自己运行" in md
     assert "KOL_MONITOR_ALLOW_PUSH=true" in md
+    assert "## 今日最重要 5 条" in md
+    assert "$AMAT" in md
     assert "## 监控的 KOL" in md
     assert "[阅读今日完整报告](digests/2026/05/29.md)" in md
     assert "## 最近 7 天" in md
@@ -59,6 +61,7 @@ def test_digest_md_no_collapse():
 
     assert "<details>" not in md
     assert "2026-05-29" in md
+    assert "## 今日最重要 5 条" in md
 
 
 def test_git_publish_does_not_push_without_explicit_allow(monkeypatch, tmp_path):
@@ -401,6 +404,47 @@ def test_ticker_counts():
     ticker_names = [t[0] for t in tickers]
     assert "AAPL" in ticker_names
     assert "NVDA" in ticker_names
+
+
+def test_top_highlights_prioritize_sourced_news_and_limit_to_five():
+    kols = [
+        {
+            "screen_name": "low",
+            "bullets": [
+                {
+                    "point": "作者分享个人生活",
+                    "tickers": [],
+                    "tweet_url": "https://x.com/low/status/1",
+                    "claim_type": "personal",
+                }
+            ],
+        },
+        *[
+            {
+                "screen_name": f"news{idx}",
+                "bullets": [
+                    {
+                        "point": f"第 {idx} 条重要新闻",
+                        "tickers": ["NVDA"],
+                        "tweet_url": f"https://x.com/news{idx}/status/{idx}",
+                        "claim_type": "news",
+                        "confidence": "high",
+                    }
+                ],
+            }
+            for idx in range(1, 7)
+        ],
+    ]
+
+    md = publisher._render_top_highlights(kols)
+
+    assert md.startswith("## 今日最重要 5 条")
+    assert md.count("\n- ") == 5
+    assert "第 1 条重要新闻" in md
+    assert "第 5 条重要新闻" in md
+    assert "第 6 条重要新闻" not in md
+    assert "作者分享个人生活" not in md
+    assert "**$NVDA**" in md
 
 
 def test_write_outputs_excludes_html(tmp_path, monkeypatch):

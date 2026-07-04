@@ -9,6 +9,7 @@ from kol_monitor.quality import (
     scan_summary_quality,
     write_quality_draft,
 )
+from kol_monitor.summarizer import _prepare_layer1_markdown
 
 
 def test_scan_summary_quality_flags_known_bad_patterns():
@@ -220,3 +221,29 @@ def test_scan_spacex_ticker_conflation_warns_but_spares_disambiguation():
     legit = "## 重要新闻\n\n- 部分投资者误将 $SPCE 当作 $SPCX 交易后卖出 [@k](https://x.com/k/status/1)\n"
     assert scan_summary_quality(bad)["issue_counts_by_code"].get("spacex_ticker_conflation", 0) >= 1
     assert scan_summary_quality(legit)["issue_counts_by_code"].get("spacex_ticker_conflation", 0) == 0
+
+
+def test_scan_summary_quality_flags_anonymous_kol_reference():
+    md = """## 宏观判断
+
+- 某KOL认为流动性仍支撑科技股 [@foo](https://x.com/foo/status/123)
+"""
+
+    report = scan_summary_quality(md)
+
+    assert report["status"] == "fail"
+    assert report["issue_counts_by_code"]["anonymous_kol_reference"] == 1
+
+
+def test_prepare_layer1_replaces_anonymous_kol_when_source_is_present():
+    md = """## 宏观判断
+
+- 某KOL认为流动性仍支撑科技股 [@foo](https://x.com/foo/status/123)
+"""
+
+    cleaned = _prepare_layer1_markdown(md)
+
+    assert "某KOL" not in cleaned
+    assert "@foo认为流动性仍支撑科技股" in cleaned
+    report = scan_summary_quality(cleaned)
+    assert report["issue_counts_by_code"].get("anonymous_kol_reference", 0) == 0
