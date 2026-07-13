@@ -75,7 +75,13 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(0)
 
     if args.command == "run-once":
-        asyncio.run(_run_once(args.date or _today_shanghai(), publish=not args.no_publish))
+        asyncio.run(
+            _run_once(
+                args.date or _today_shanghai(),
+                publish=not args.no_publish,
+                trigger="manual",
+            )
+        )
         return
     if args.command == "fetch-only":
         asyncio.run(daily_fetch(trigger="manual"))
@@ -105,8 +111,8 @@ def main(argv: list[str] | None = None) -> None:
         return
 
 
-async def _run_once(date: str, publish: bool) -> None:
-    fetch_stats = await daily_fetch(trigger="manual")
+async def _run_once(date: str, publish: bool, trigger: str) -> None:
+    fetch_stats = await daily_fetch(trigger=trigger)
     if fetch_stats.kols_ok == 0:
         raise RuntimeError("tweet fetch failed for all KOLs; aborting digest generation")
     await download_pending_media(date)

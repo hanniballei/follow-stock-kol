@@ -1,6 +1,6 @@
 # 测试策略与示例
 
-最后更新：2026-06-30
+最后更新：2026-07-13
 
 > 本项目所有测试**严禁依赖网络**。6551 / Anthropic / Git 远端调用一律 mock。
 > 运行方式：`.venv/bin/pytest`
@@ -83,6 +83,8 @@ def make_tweet(sample_tweet):
 ---
 
 ## 3. `tests/test_db.py` — schema + DAO round-trip
+
+除基本 CRUD 外，必须覆盖日报滚动窗口：按配置时区把 `(前一日 20:30, 当日 20:30]` 转成 UTC，混合 `+00:00` / `+08:00` 时间仍应落入同一窗口；左边界排除、右边界包含。`tweets_on_date()`、`pending_media_for_date()` 和 `downloaded_media_for_date()` 必须返回一致窗口的数据。
 
 ```python
 from datetime import datetime
@@ -387,11 +389,14 @@ def test_digest_md_no_collapse():
 - 韩文/日文残留过多会被标为 error
 - “OpenAI 计划发布 Claude/Anthropic 模型”这类明显归属冲突会被标为 error
 - 损坏的来源链接、裸 JSON 残留、SpaceX ticker 混淆会被识别
+- 裸 `t.co`、被渲染成 `- ---` 的水平分隔线、京东方 A 被误写为美股 `$BOE` 会被识别
 - Layer 1 中影响可读性的长普通段落会被标为 `long_plain_paragraph` warning
 - 发布前清洗后的 Layer 1 如果仍失败，`publisher._select_publishable_layer1()` 会改用本地兜底摘要
 - `write_quality_draft()` 只写指定草稿目录，生成 `draft.md`、`cleaned_existing.md`、`repaired_fallback.md`、`layer2_normalized.json`、`quality_report.json`
 
 测试样例使用 `tmp_db` 写入一条假 digest，再调用 `write_quality_draft()` 到 `tmp_path`，不调用真实 Claude、6551 或 git。
+
+`tests/test_summarizer_mock.py` 还需验证：每个临时 `AsyncAnthropic` 后端客户端都会关闭；已下载且本地存在的图片会传给对应 KOL；`t.co` 可从 URL 元数据展开；京东方 A 只在明确上下文中归一化为 `$000725`，不误改真实美股 `$BOE`。
 
 ---
 

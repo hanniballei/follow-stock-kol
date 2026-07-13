@@ -58,6 +58,8 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 这会生成本地 `README.md` 和 `digests/`，但不会推 GitHub。验证结束如果不想保留这些产物，直接删除即可。
 
+日报使用调度时刻之间的滚动 24 小时窗口。当前 `20:30` 调度下，日期为 `YYYY-MM-DD` 的日报覆盖“前一日 20:30（不含）到当日 20:30（含）”；这能确保晚间推文不会因 UTC/北京时间日期边界而永远漏出日报。
+
 如果只是回查或修复某天日报质量，不要用 `regen-digest` 或 `run-once --no-publish`，因为它们会写发布文件。先用：
 
 ```bash

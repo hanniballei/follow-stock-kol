@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import inspect
 import json
 import logging
 import re
@@ -25,6 +26,7 @@ TWEET_URL_RE = re.compile(r"https?://(?:www\.)?(?:x|twitter)\.com/([^/]+)/status
 CANONICAL_TWEET_URL_RE = re.compile(
     r"https?://(?:www\.)?(?:x|twitter)\.com/[A-Za-z0-9_]+/status/(?:truth_)?\d+"
 )
+TCO_URL_RE = re.compile(r"https?://t\.co/[A-Za-z0-9]+")
 
 
 def sanitize_tweet_url(raw: object) -> str:
@@ -358,9 +360,20 @@ def _is_markdown_table_header_or_separator(stripped: str) -> bool:
 def _prepare_layer1_markdown(markdown: str) -> str:
     cleaned = _replace_anonymous_kol_mentions(normalize_layer1_source_links(markdown))
     cleaned = _clean_layer1_markdown(cleaned)
+    cleaned = _normalize_known_ticker_conflicts_markdown(cleaned)
     cleaned = _normalize_chinese_markdown_punctuation(cleaned)
     cleaned = _normalize_layer1_list_layout(cleaned)
     return cleaned.strip()
+
+
+def _normalize_known_ticker_conflicts_markdown(markdown: str) -> str:
+    return "\n".join(_normalize_known_ticker_conflicts(line) for line in markdown.splitlines())
+
+
+def _normalize_known_ticker_conflicts(text: str) -> str:
+    if "京东方" in text:
+        return re.sub(r"\$BOE\b", "$000725", text, flags=re.IGNORECASE)
+    return text
 
 
 def _normalize_chinese_markdown_punctuation(markdown: str) -> str:
@@ -438,6 +451,9 @@ def _normalize_layer1_section_body(normalized_heading: str, body_lines: list[str
             flush_paragraph()
             if output and output[-1] != "":
                 output.append("")
+            continue
+        if stripped == "---":
+            flush_paragraph()
             continue
         if stripped.startswith(("- ", "* ")) or stripped.startswith("|"):
             flush_paragraph()
@@ -722,28 +738,43 @@ async def _call_claude_backend(
         base_url=_anthropic_sdk_base_url(backend.base_url),
     )
     try:
-        return await client.messages.create(
-            **_claude_request(
-                backend=backend,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=backend.temperature,
-                thinking=backend.thinking,
+        try:
+            return await client.messages.create(
+                **_claude_request(
+                    backend=backend,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=backend.temperature,
+                    thinking=backend.thinking,
+                )
             )
-        )
+        except Exception as exc:
+            if not _should_retry_third_temperature_thinking_error(backend, exc):
+                raise
+            logger.warning("Retrying third Claude backend with provider default temperature/thinking")
+            return await client.messages.create(
+                **_claude_request(
+                    backend=backend,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=None,
+                    thinking=None,
+                )
+            )
+    finally:
+        await _close_anthropic_client(client)
+
+
+async def _close_anthropic_client(client: Any) -> None:
+    close = getattr(client, "close", None)
+    if close is None:
+        return
+    try:
+        result = close()
+        if inspect.isawaitable(result):
+            await result
     except Exception as exc:
-        if not _should_retry_third_temperature_thinking_error(backend, exc):
-            raise
-        logger.warning("Retrying third Claude backend with provider default temperature/thinking")
-        return await client.messages.create(
-            **_claude_request(
-                backend=backend,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=None,
-                thinking=None,
-            )
-        )
+        logger.warning("Claude client close failed: %s", exc)
 
 
 def _claude_request(
@@ -1052,6 +1083,7 @@ def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media:
         "尤其禁止把 A 股票的数据安到 B 股票上（例如某推说 $SNDK 的 RSI，就不能写成 $MU 的 RSI）。",
         "专有名词翻译要准确：公司名先用中文常用译名再视情况附原文，例如 Rheinmetall→莱茵金属、Virgin Galactic→维珍银河（$SPCE）；不确定就保留原文，不要音译生造。",
         "SpaceX 的展示代码统一写 $SPCX；不要写成 $SPACEX/$SPACE，也不要和维珍银河 $SPCE 混淆。",
+        "京东方 A 的代码是 $000725；不要把公司英文简称 BOE 当成美股代码 $BOE。",
         "无市场相关内容时，bullets 输出 []，core_view 写“无市场相关内容”，sentiment 写 unclear。",
         "涉及具体股票代码时，展示文本统一使用 $股票代码 格式，例如 $NVDA；tickers 字段仍只填不带 $ 的代码。",
         "每条 bullet 必须保留对应 tweet_url；无法关联原推的内容不要写入 bullets。",
@@ -1063,13 +1095,55 @@ def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media:
     for tweet in tweets:
         lines.append(
             "- "
-            f"{tweet.get('text', '')} "
+            f"{_expand_tco_urls(tweet.get('text', ''), tweet)} "
             f"(likes={tweet.get('favorite_count', 0)}, retweets={tweet.get('retweet_count', 0)}, "
             f"url={tweet.get('url')})"
         )
     if had_media:
         lines.append("部分推文包含配图；若图片缺失或无法解读，不要臆测。")
     return "\n".join(lines)
+
+
+def _expand_tco_urls(text: object, tweet: dict[str, Any]) -> str:
+    expanded = str(text or "")
+    entities = _tweet_url_entities(tweet)
+    replacements: list[tuple[str, str]] = []
+    for entity in entities:
+        short_url = str(entity.get("url") or "").strip()
+        display_url = str(
+            entity.get("display_url")
+            or entity.get("displayUrl")
+            or entity.get("expanded_url")
+            or entity.get("expandedUrl")
+            or ""
+        ).strip()
+        if display_url and not TCO_URL_RE.fullmatch(display_url):
+            replacements.append((short_url, display_url))
+            if short_url:
+                expanded = expanded.replace(short_url, display_url)
+
+    remaining = TCO_URL_RE.findall(expanded)
+    unique_replacements = {replacement for _short, replacement in replacements}
+    if len(remaining) == 1 and len(unique_replacements) == 1:
+        expanded = expanded.replace(remaining[0], next(iter(unique_replacements)))
+    return expanded
+
+
+def _tweet_url_entities(tweet: dict[str, Any]) -> list[dict[str, Any]]:
+    urls = tweet.get("urls")
+    if isinstance(urls, list):
+        return [item for item in urls if isinstance(item, dict)]
+    raw_json = tweet.get("raw_json")
+    if not raw_json:
+        return []
+    try:
+        raw = json.loads(raw_json)
+    except (TypeError, ValueError):
+        return []
+    urls = raw.get("urls") if isinstance(raw, dict) else None
+    if not isinstance(urls, list) and isinstance(raw, dict) and isinstance(raw.get("raw"), dict):
+        urls = raw["raw"].get("urls")
+    return [item for item in (urls or []) if isinstance(item, dict)]
 
 
 def build_layer1_prompt(
@@ -1401,7 +1475,9 @@ def _fallback_layer2_summary(kol: dict[str, Any], tweets: list[dict[str, Any]]) 
 
 
 def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
-    parsed["core_view"] = _replace_anonymous_kol_text(str(parsed.get("core_view") or "")).strip()
+    parsed["core_view"] = _normalize_known_ticker_conflicts(
+        _replace_anonymous_kol_text(str(parsed.get("core_view") or ""))
+    ).strip()
     parsed["sentiment"] = str(parsed.get("sentiment") or "unclear").strip().lower()
     if parsed["sentiment"] not in {"bullish", "bearish", "neutral", "unclear"}:
         parsed["sentiment"] = "unclear"
@@ -1409,7 +1485,9 @@ def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
     for bullet in parsed.get("bullets") or []:
         if not isinstance(bullet, dict):
             continue
-        point = _replace_anonymous_kol_text(str(bullet.get("point") or "")).strip()
+        point = _normalize_known_ticker_conflicts(
+            _replace_anonymous_kol_text(str(bullet.get("point") or ""))
+        ).strip()
         tweet_url = sanitize_tweet_url(bullet.get("tweet_url"))
         if not point or not tweet_url:
             continue
@@ -1423,14 +1501,17 @@ def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
         confidence = str(bullet.get("confidence") or "medium").strip().lower()
         if confidence not in {"high", "medium", "low"}:
             confidence = "medium"
+        tickers = [
+            str(ticker).strip().lstrip("$").upper()
+            for ticker in bullet.get("tickers") or []
+            if str(ticker).strip()
+        ]
+        if "京东方" in point:
+            tickers = ["000725" if ticker == "BOE" else ticker for ticker in tickers]
         normalized_bullets.append(
             {
                 "point": point,
-                "tickers": [
-                    str(ticker).strip().lstrip("$").upper()
-                    for ticker in bullet.get("tickers") or []
-                    if str(ticker).strip()
-                ],
+                "tickers": tickers,
                 "tweet_url": tweet_url,
                 "claim_type": claim_type,
                 "confidence": confidence,
@@ -1495,12 +1576,19 @@ async def summarize_day(date: str) -> dict[str, Any]:
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for tweet in tweets:
         grouped[tweet["screen_name"]].append(tweet)
+    media_by_kol: dict[str, list[Path]] = defaultdict(list)
+    for media in db.downloaded_media_for_date(date):
+        path = Path(media.get("local_path") or "")
+        if path.is_file():
+            media_by_kol[media["screen_name"]].append(path)
 
     layer2_results = []
     for screen_name, kol_tweets in grouped.items():
         kol = {"screen_name": screen_name, "id": kol_tweets[0]["kol_id"]}
         try:
-            layer2_results.append(await summarize_one_kol(kol, kol_tweets, media_files=[]))
+            layer2_results.append(
+                await summarize_one_kol(kol, kol_tweets, media_files=media_by_kol[screen_name])
+            )
         except Exception as exc:
             logger.warning(
                 "Layer2 Claude summary failed for @%s; using raw tweet fallback: %s",

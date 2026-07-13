@@ -181,6 +181,24 @@ def test_scan_clean_digest_has_no_json_or_link_errors():
     assert codes.get("broken_source_link", 0) == 0
 
 
+def test_scan_warns_on_raw_tco_and_malformed_horizontal_rule():
+    md = "## 今日关键词\n\n- 公司 https://t.co/abc\n\n- ---\n"
+
+    report = scan_summary_quality(md)
+
+    assert report["issue_counts_by_code"]["raw_tco_url"] == 1
+    assert report["issue_counts_by_code"]["malformed_horizontal_rule"] == 1
+
+
+def test_scan_warns_on_boe_jingdongfang_conflation():
+    report = scan_summary_quality(
+        "## 产业/个股焦点\n\n"
+        "- $BOE（京东方 A）获机构调研 [@foo](https://x.com/foo/status/1)\n"
+    )
+
+    assert report["issue_counts_by_code"]["boe_ticker_conflation"] == 1
+
+
 def test_scan_summary_quality_warns_on_long_plain_paragraph():
     md = """## 特朗普相关
 

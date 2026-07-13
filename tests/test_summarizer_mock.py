@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -9,6 +10,7 @@ from kol_monitor.summarizer import (
     _anthropic_backends,
     _anthropic_sdk_base_url,
     _clean_layer1_markdown,
+    _expand_tco_urls,
     _fallback_layer1_markdown,
     _is_valid_layer1_markdown,
     _line_has_suspicious_model_company_conflict,
@@ -263,6 +265,37 @@ AI, 半导体
     assert "需求仍强，关注回调" in prepared
 
 
+def test_prepare_layer1_markdown_drops_model_horizontal_rules():
+    prepared = _prepare_layer1_markdown(
+        "## 今日关键词\n\n- AI\n\n---\n\n## 重要新闻\n\n"
+        "- 作者称需求强 [@foo](https://x.com/foo/status/1)"
+    )
+
+    assert "- ---" not in prepared
+    assert "\n---\n" not in prepared
+
+
+def test_prepare_layer1_markdown_fixes_boe_ticker_only_in_jingdongfang_context():
+    prepared = _prepare_layer1_markdown(
+        "## 产业/个股焦点\n\n"
+        "- $BOE（京东方 A）获机构调研 [@foo](https://x.com/foo/status/1)\n"
+        "- 美股 $BOE 保持原样 [@bar](https://x.com/bar/status/2)"
+    )
+
+    assert "$000725（京东方 A）" in prepared
+    assert "美股 $BOE 保持原样" in prepared
+
+
+def test_expand_tco_urls_uses_raw_json_display_url_when_provider_key_differs():
+    tweet = {
+        "raw_json": json.dumps(
+            {"urls": [{"url": "https://t.co/other", "displayUrl": "Z.ai"}]}
+        )
+    }
+
+    assert _expand_tco_urls("Zhipu https://t.co/opaque and Minimax", tweet) == "Zhipu Z.ai and Minimax"
+
+
 def test_prepare_layer1_markdown_keeps_parenthetical_source_links_together():
     md = """## 特朗普相关
 
@@ -329,8 +362,10 @@ def test_anthropic_backends_use_requested_priority(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_summarize_day_saves_digest_when_layer1_fails(monkeypatch):
+async def test_summarize_day_saves_digest_when_layer1_fails(monkeypatch, tmp_path):
     saved = {}
+    image_path = tmp_path / "chart.jpg"
+    image_path.write_bytes(b"image")
 
     monkeypatch.setattr(
         "kol_monitor.summarizer.db.tweets_on_date",
@@ -344,8 +379,13 @@ async def test_summarize_day_saves_digest_when_layer1_fails(monkeypatch):
             }
         ],
     )
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.downloaded_media_for_date",
+        lambda _date: [{"screen_name": "macroKOL", "local_path": str(image_path)}],
+    )
 
     async def fake_summarize_one_kol(kol, tweets, media_files):
+        assert media_files == [image_path]
         return {
             "screen_name": kol["screen_name"],
             "tweet_count": len(tweets),
@@ -397,6 +437,9 @@ async def test_summarize_day_uses_fallback_when_layer1_is_incomplete(monkeypatch
                 "url": "https://x.com/macroKOL/status/1",
             }
         ],
+    )
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.downloaded_media_for_date", lambda _date: []
     )
 
     async def fake_summarize_one_kol(kol, tweets, media_files):
@@ -462,6 +505,9 @@ async def test_summarize_day_saves_digest_when_layer2_and_layer1_fail(monkeypatc
                 "url": "https://x.com/macroKOL/status/1",
             }
         ],
+    )
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.downloaded_media_for_date", lambda _date: []
     )
 
     async def failing_summarize_one_kol(*_args, **_kwargs):
@@ -600,6 +646,40 @@ async def test_call_claude_uses_fallback_client(monkeypatch):
     )
 
     assert response.content[0].text == "ok"
+
+
+@pytest.mark.asyncio
+async def test_call_claude_closes_each_backend_client(monkeypatch):
+    closed = []
+
+    class FakeClient:
+        def __init__(self, api_key, base_url):
+            self.api_key = api_key
+            self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
+
+        async def _create(self, **kwargs):
+            if self.api_key == "fallback":
+                raise RuntimeError("fallback failed")
+            return SimpleNamespace(content=[SimpleNamespace(text="ok")])
+
+        async def close(self):
+            closed.append(self.api_key)
+
+    monkeypatch.setattr("kol_monitor.summarizer._client", None)
+    monkeypatch.setattr("kol_monitor.summarizer.AsyncAnthropic", FakeClient)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_api_key", "primary")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_base_url", "https://primary.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_api_key", "fallback")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fallback_base_url", "https://fallback.example")
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", None)
+    monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
+
+    await call_claude_with_retry(
+        messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
+        max_tokens=10,
+    )
+
+    assert closed == ["fallback", "primary"]
 
 
 @pytest.mark.asyncio
@@ -966,6 +1046,25 @@ def test_normalize_layer2_result_filters_missing_urls_and_defaults_metadata():
     assert normalized["bullets"][0]["tickers"] == ["NVDA"]
     assert normalized["bullets"][0]["claim_type"] == "opinion"
     assert normalized["bullets"][0]["confidence"] == "medium"
+
+
+def test_normalize_layer2_result_fixes_boe_ticker_for_jingdongfang():
+    normalized = _normalize_layer2_result(
+        {
+            "core_view": "作者关注京东方",
+            "sentiment": "neutral",
+            "bullets": [
+                {
+                    "point": "作者称 $BOE（京东方 A）获机构调研",
+                    "tickers": ["BOE"],
+                    "tweet_url": "https://x.com/a/status/1",
+                }
+            ],
+        }
+    )
+
+    assert normalized["bullets"][0]["point"] == "作者称 $000725（京东方 A）获机构调研"
+    assert normalized["bullets"][0]["tickers"] == ["000725"]
 
 
 def test_normalize_layer2_result_filters_non_chinese_and_company_conflict():

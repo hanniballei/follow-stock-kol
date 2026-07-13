@@ -3,11 +3,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from kol_monitor.db import (
+    downloaded_media_for_date,
     get_kol,
     init_db,
     insert_tweet,
     list_active_kols,
     pending_media_for_date,
+    report_window_bounds,
+    mark_media_downloaded,
     tweets_on_date,
     update_kol_anchor,
     upsert_kol,
@@ -31,10 +34,16 @@ def test_insert_tweet_idempotent_and_media(tmp_db, sample_tweet):
 
     assert inserted1 is True
     assert inserted2 is False
-    assert len(tweets_on_date("2026-05-29")) == 1
-    media = pending_media_for_date("2026-05-29")
+    assert len(tweets_on_date("2026-05-30")) == 1
+    media = pending_media_for_date("2026-05-30")
     assert len(media) == 1
     assert media[0]["orig_url"] == "https://pbs.twimg.com/media/abc.jpg"
+
+    mark_media_downloaded(media[0]["id"], "/tmp/sample.jpg")
+    downloaded = downloaded_media_for_date("2026-05-30")
+    assert len(downloaded) == 1
+    assert downloaded[0]["screen_name"] == "qinbafrank"
+    assert downloaded[0]["local_path"] == "/tmp/sample.jpg"
 
 
 def test_insert_tweet_normalizes_twitter_created_at(tmp_db, sample_tweet):
@@ -49,7 +58,7 @@ def test_insert_tweet_normalizes_twitter_created_at(tmp_db, sample_tweet):
         }
     )
 
-    tweets = tweets_on_date("2026-05-30")
+    tweets = tweets_on_date("2026-05-31")
     assert len(tweets) == 1
     assert tweets[0]["created_at"] == "2026-05-30T13:00:00+00:00"
 
@@ -75,9 +84,44 @@ def test_init_db_normalizes_existing_twitter_created_at(tmp_db, sample_tweet):
 
     init_db(tmp_db)
 
-    tweets = tweets_on_date("2026-05-30")
+    tweets = tweets_on_date("2026-05-31")
     assert len(tweets) == 1
     assert tweets[0]["created_at"] == "2026-05-30T14:00:00+00:00"
+
+
+def test_report_window_uses_configured_shanghai_schedule():
+    assert report_window_bounds("2026-05-30") == (
+        "2026-05-29T12:30:00+00:00",
+        "2026-05-30T12:30:00+00:00",
+    )
+
+
+def test_report_window_handles_mixed_offsets_and_boundaries(tmp_db, sample_tweet):
+    kid = upsert_kol("qinbafrank")
+    timestamps = [
+        ("101", "2026-05-29T12:30:00+00:00"),
+        ("102", "2026-05-29T12:30:01+00:00"),
+        ("103", "2026-05-30T20:29:59+08:00"),
+        ("104", "2026-05-30T20:30:00+08:00"),
+        ("105", "2026-05-30T20:30:01+08:00"),
+    ]
+    for tweet_id, created_at in timestamps:
+        insert_tweet(
+            {
+                **sample_tweet,
+                "id": tweet_id,
+                "kol_id": kid,
+                "createdAt": created_at,
+            }
+        )
+
+    tweets = tweets_on_date("2026-05-30")
+    assert {tweet["tweet_id"] for tweet in tweets} == {"102", "103", "104"}
+    assert {row["tweet_id"] for row in pending_media_for_date("2026-05-30")} == {
+        "102",
+        "103",
+        "104",
+    }
 
 
 def test_anchor_update_and_active_filter(tmp_db):

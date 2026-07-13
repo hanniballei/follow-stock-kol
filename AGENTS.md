@@ -385,6 +385,7 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
 - 2026-06-30：用户要求 LLM 优先级改为 `fallback -> fourth -> third -> primary`。当前 `summarizer._anthropic_backends()` 实际顺序为：`ANTHROPIC_FALLBACK_*` → `ANTHROPIC_FOURTH_*`（Packy，普通温度）→ `ANTHROPIC_THIRD_*`（Infron，`temperature=1` + `thinking=disabled`，必要时再不传 temperature/thinking 重试）→ `ANTHROPIC_API_KEY` 主凭据。
 - 2026-06-30：为改善日报可读性，Layer 1 发布前现在会做中文标点归一化，并把非交易信号章节的普通长段落整理成 markdown bullet；质量扫描新增 `long_plain_paragraph` warning。`publisher.write_outputs()` 在清洗后的 Layer 1 仍有 error 时，会改用有来源的本地兜底模板，避免读者看到坏摘要。注意历史 digest 不应因为这些清洗逻辑被大面积无差别重写，先用 `quality-draft` 或小范围重渲染核对。
 - 2026-06-30：新增监控 `JoeAnima`，当前 `config/kols.yaml` 为 64 位 KOL；README 由下一次日报生成时自动同步，如手工加 KOL 后发现 README 仍是旧数量，可只修 README 顶部文案和 KOL 列表，不要重跑 LLM。
+- 2026-07-12：审计最近两周发现旧版 `tweets_on_date` / `pending_media_for_date` 直接用 `substr(created_at, 1, 10)` 分日，但 6551 数据混合 `+00:00` 与 `+08:00`，且 20:30 后推文要到次日才抓取，导致 6/29–7/12 日报只纳入当时可用滚动窗口数据的 51.5%（1609/3123），媒体也持续留在 pending；同时发现 `summarize_day()` 始终传 `media_files=[]`，已下载图片实际从未送入 Layer 2。现统一改为按配置时区和调度时刻计算 `(前一日 20:30, 当日 20:30]` 滚动窗口，推文、按 KOL 汇总和媒体共用该边界，并把窗口内已下载且存在的图片传给对应 KOL；同时修复每次创建的 `AsyncAnthropic` 未关闭导致下一轮报 `Event loop is closed`、定时运行误记为 `manual`、模型分隔线被整理成 `- ---`、裸 `t.co` 未展开等问题。历史日报不会自动重跑；回补前先核对两周审计结果，再分批 `regen-digest --no-publish`。
 
 ---
 

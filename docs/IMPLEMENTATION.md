@@ -144,10 +144,12 @@ DAO 函数清单（最低必需）：
 - `update_kol_anchor(kol_id, last_seen_tweet_id, last_fetched_at, incomplete) -> None`
 - `mark_kol_inactive(screen_name, reason) -> None`
 - `insert_tweet(tweet_dict) -> bool`（INSERT OR IGNORE，返回是否真实插入）
+- `report_window_bounds(date) -> (start_utc, end_utc)`（按配置时区与调度时刻计算滚动 24 小时窗口，左开右闭）
 - `tweets_by_kol_on_date(kol_id, date) -> list[dict]`
 - `tweets_on_date(date) -> list[dict]`
 - `insert_media(...)`
 - `pending_media_for_date(date) -> list[dict]`
+- `downloaded_media_for_date(date) -> list[dict]`（Layer 2 读取同一日报窗口内已落盘图片）
 - `mark_media_downloaded(media_id, local_path) -> None`
 - `save_digest(date, summary_md, layer2_json, ...) -> None`
 - `start_run(trigger) -> run_id`
@@ -244,7 +246,7 @@ def validate_image(path: Path) -> bool: ...  # PIL Image.verify
 - 失败不抛异常，标 `download_status='failed'`
 - 限并发（asyncio.Semaphore(8)）
 
-**输入**：当日 pending media 列表
+**输入**：日报滚动窗口内的 pending media 列表；窗口与 `tweets_on_date()` 完全一致
 **输出**：`media/2026-05-29/<handle>/<tweet_id>_<idx>.jpg`
 **验证**：可以用一组真实 X 图片 URL 跑一遍（保留 1-2 个测试用 URL）
 
@@ -264,6 +266,7 @@ async def call_claude_with_retry(messages, max_tokens) -> ClaudeResponse: ...
 
 实现要点：
 - anthropic SDK 实例化时注入 `base_url`、`api_key`
+- 每次创建的 `AsyncAnthropic` 客户端必须在 `finally` 中关闭，daemon 跨日运行时不能把连接留给下一事件循环回收
 - 图片走 `{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": ...}}`
 - Layer 2 prompt 要求输出 JSON，用 `response.content[0].text` 后 json.loads，失败重试一次（带"请严格按此 JSON 输出"prompt 强化）
 - Layer 1 prompt 是 markdown 输出，按 7 个章节（DESIGN §9.2）

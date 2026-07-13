@@ -16,7 +16,7 @@ def daily_job_sync_wrapper() -> None:
     from kol_monitor.cli import _run_once
 
     logger.info("starting scheduled KOL monitor job")
-    asyncio.run(_run_once(_today(), publish=True))
+    asyncio.run(_run_once(_today(), publish=True, trigger="scheduled"))
 
 
 def run_daemon() -> None:

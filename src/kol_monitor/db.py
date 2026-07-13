@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 class DatabaseError(RuntimeError):
     pass
@@ -351,37 +352,60 @@ def insert_media(tweet_id: str, media: dict[str, Any]) -> None:
         insert_media_row(conn, tweet_id, media)
 
 
+def report_window_bounds(date: str) -> tuple[str, str]:
+    from kol_monitor.config import settings
+
+    report_date = datetime.strptime(date, "%Y-%m-%d").date()
+    report_timezone = ZoneInfo(settings.schedule.timezone)
+    window_end = datetime.combine(
+        report_date,
+        time(settings.schedule.hour, settings.schedule.minute),
+        tzinfo=report_timezone,
+    )
+    window_start = window_end - timedelta(days=1)
+    return (
+        window_start.astimezone(timezone.utc).isoformat(),
+        window_end.astimezone(timezone.utc).isoformat(),
+    )
+
+
 def tweets_on_date(date: str) -> list[dict[str, Any]]:
+    window_start, window_end = report_window_bounds(date)
     with _connect() as conn:
         rows = conn.execute(
             """
             SELECT tweets.*, kols.screen_name
             FROM tweets
             JOIN kols ON kols.id = tweets.kol_id
-            WHERE substr(tweets.created_at, 1, 10) = ?
+            WHERE julianday(tweets.created_at) > julianday(?)
+              AND julianday(tweets.created_at) <= julianday(?)
             ORDER BY tweets.created_at DESC, CAST(tweets.tweet_id AS INTEGER) DESC
             """,
-            (date,),
+            (window_start, window_end),
         ).fetchall()
     return [dict(row) for row in rows]
 
 
 def tweets_by_kol_on_date(kol_id: int, date: str) -> list[dict[str, Any]]:
+    window_start, window_end = report_window_bounds(date)
     with _connect() as conn:
         rows = conn.execute(
             """
             SELECT tweets.*, kols.screen_name
             FROM tweets
             JOIN kols ON kols.id = tweets.kol_id
-            WHERE tweets.kol_id = ? AND substr(tweets.created_at, 1, 10) = ?
+            WHERE tweets.kol_id = ?
+              AND julianday(tweets.created_at) > julianday(?)
+              AND julianday(tweets.created_at) <= julianday(?)
             ORDER BY tweets.created_at DESC, CAST(tweets.tweet_id AS INTEGER) DESC
             """,
-            (kol_id, date),
+            (kol_id, window_start, window_end),
         ).fetchall()
     return [dict(row) for row in rows]
 
 
 def pending_media_for_date(date: str) -> list[dict[str, Any]]:
+    window_start, window_end = report_window_bounds(date)
     with _connect() as conn:
         rows = conn.execute(
             """
@@ -389,11 +413,32 @@ def pending_media_for_date(date: str) -> list[dict[str, Any]]:
             FROM media
             JOIN tweets ON tweets.tweet_id = media.tweet_id
             JOIN kols ON kols.id = tweets.kol_id
-            WHERE substr(tweets.created_at, 1, 10) = ?
+            WHERE julianday(tweets.created_at) > julianday(?)
+              AND julianday(tweets.created_at) <= julianday(?)
               AND media.download_status = 'pending'
             ORDER BY tweets.created_at DESC, media.id
             """,
-            (date,),
+            (window_start, window_end),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def downloaded_media_for_date(date: str) -> list[dict[str, Any]]:
+    window_start, window_end = report_window_bounds(date)
+    with _connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT media.*, tweets.created_at, kols.screen_name
+            FROM media
+            JOIN tweets ON tweets.tweet_id = media.tweet_id
+            JOIN kols ON kols.id = tweets.kol_id
+            WHERE julianday(tweets.created_at) > julianday(?)
+              AND julianday(tweets.created_at) <= julianday(?)
+              AND media.download_status = 'done'
+              AND media.local_path IS NOT NULL
+            ORDER BY tweets.created_at DESC, media.id
+            """,
+            (window_start, window_end),
         ).fetchall()
     return [dict(row) for row in rows]
 

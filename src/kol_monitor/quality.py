@@ -38,6 +38,9 @@ _JSON_RESIDUE_RE = re.compile(r'"\s*(?:claim_type|confidence|tickers|tweet_url|c
 # A markdown link whose URL is corrupted by a stray quote or trailing JSON, e.g.
 # `[原推](https://x.com/foo/status/123",` — the close paren never arrives on the URL.
 _BROKEN_SOURCE_LINK_RE = re.compile(r'\]\(https?://[^)\s]*["\\][^)\s]*(?:,|$)')
+_RAW_TCO_RE = re.compile(r"https?://t\.co/[A-Za-z0-9]+")
+_MALFORMED_HORIZONTAL_RULE_RE = re.compile(r"^\s*[-*]\s+---\s*$")
+_BOE_TICKER_CONFLATION_RE = re.compile(r"\$BOE\b.*京东方|京东方.*\$BOE\b", re.IGNORECASE)
 
 # SpaceX's recurring ticker confusion. The project's canonical SpaceX ticker is $SPCX;
 # $SPCE is Virgin Galactic and $SPACEX/$SPACE are invented. Flag (not auto-rewrite) when
@@ -187,6 +190,42 @@ def scan_summary_quality(markdown: str) -> dict[str, Any]:
                     code="broken_source_link",
                     severity="error",
                     message="X 来源链接被破坏（URL 含引号/JSON 残留，无法点击）",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
+        if _RAW_TCO_RE.search(line):
+            issues.append(
+                _issue(
+                    code="raw_tco_url",
+                    severity="warning",
+                    message="包含未展开的 t.co 短链，可能遮蔽公司或文章名称",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
+        if _MALFORMED_HORIZONTAL_RULE_RE.fullmatch(line):
+            issues.append(
+                _issue(
+                    code="malformed_horizontal_rule",
+                    severity="warning",
+                    message="水平分隔线被渲染成空列表项",
+                    line=line_no,
+                    section=current_section,
+                    text=line,
+                )
+            )
+
+        if _BOE_TICKER_CONFLATION_RE.search(line):
+            issues.append(
+                _issue(
+                    code="boe_ticker_conflation",
+                    severity="warning",
+                    message="疑似把京东方 A 写成美股 $BOE；京东方代码应为 $000725",
                     line=line_no,
                     section=current_section,
                     text=line,
