@@ -568,6 +568,45 @@ async def test_summarize_one_kol_builds_message(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_summarize_one_kol_skips_images_when_limit_is_zero(monkeypatch, tmp_path):
+    fake = SimpleNamespace()
+    fake.messages = SimpleNamespace(
+        create=AsyncMock(
+            return_value=SimpleNamespace(
+                content=[
+                    SimpleNamespace(text='{"core_view":"v","bullets":[],"sentiment":"neutral"}')
+                ],
+                usage=SimpleNamespace(input_tokens=10, output_tokens=2),
+            )
+        )
+    )
+    image_path = tmp_path / "chart.jpg"
+    image_path.write_bytes(b"image")
+    monkeypatch.setattr("kol_monitor.summarizer._client", fake)
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.settings.media.max_photos_per_kol_for_ai", 0
+    )
+
+    await summarize_one_kol(
+        kol={"screen_name": "qinbafrank", "id": 1},
+        tweets=[
+            {
+                "tweet_id": "1",
+                "text": "hi",
+                "url": "https://x.com/qinbafrank/status/1",
+                "favorite_count": 1,
+                "retweet_count": 0,
+            }
+        ],
+        media_files=[image_path],
+    )
+
+    content = fake.messages.create.call_args.kwargs["messages"][0]["content"]
+    assert [block["type"] for block in content] == ["text"]
+    assert "部分推文包含配图" not in content[0]["text"]
+
+
+@pytest.mark.asyncio
 async def test_summarize_one_kol_uses_next_backend_when_json_parse_fails(monkeypatch):
     events = []
 

@@ -65,8 +65,8 @@ WSS 实时事件（`wss://ai.6551.io/open/twitter_wss?token=...`）暂不接，�
 ## 4. AI 模型选型
 
 - **主选 Claude Sonnet 4.6**（用户指定）
-- 价格：$1/M 输入、$5/M 输出（截至 2026-05-29）
-- 多模态：原生支持图片输入，单图最大 8000×8000，base64 inline 进 message
+- 价格：$3/M 输入、$15/M 输出（Anthropic 官方标准价，截至 2026-07-14；兼容后端以实际扣费为准）
+- 多模态：模型支持图片输入，但当前为控制 token 成本默认关闭（`media.max_photos_per_kol_for_ai=0`）；需要时可设为正整数恢复
 - 视频：不支持原生输入，本系统也只存 URL 不喂 AI
 
 走 anthropic SDK，构造时支持注入 `base_url`：

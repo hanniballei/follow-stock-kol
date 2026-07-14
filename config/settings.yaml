@@ -21,7 +21,7 @@ media:
   download_photos: true
   download_gif: true
   download_videos: false            # 视频只存 URL，不下载
-  max_photos_per_kol_for_ai: 8      # 单个 KOL 喂给 AI 的最大图片数
+  max_photos_per_kol_for_ai: 0      # 默认不把图片喂给 AI；需要恢复时改为正整数
   download_retry: 2
   download_timeout: 30
   download_concurrency: 8           # asyncio.Semaphore 并发上限

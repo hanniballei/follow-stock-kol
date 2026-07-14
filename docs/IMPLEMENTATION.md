@@ -267,7 +267,7 @@ async def call_claude_with_retry(messages, max_tokens) -> ClaudeResponse: ...
 实现要点：
 - anthropic SDK 实例化时注入 `base_url`、`api_key`
 - 每次创建的 `AsyncAnthropic` 客户端必须在 `finally` 中关闭，daemon 跨日运行时不能把连接留给下一事件循环回收
-- 图片走 `{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": ...}}`
+- `media.max_photos_per_kol_for_ai=0` 时不向 AI 发送图片；如需恢复，设为正整数后图片走 `{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": ...}}`
 - Layer 2 prompt 要求输出 JSON，用 `response.content[0].text` 后 json.loads，失败重试一次（带"请严格按此 JSON 输出"prompt 强化）
 - Layer 1 prompt 是 markdown 输出，按 7 个章节（DESIGN §9.2）
 - 发布前对 Layer 1 做确定性清理：来源链接规范化、内部工件过滤、中文标点归一化、普通长段落整理成 bullet；清洗后仍有质量 error 时改用本地有来源兜底模板

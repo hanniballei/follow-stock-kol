@@ -869,13 +869,17 @@ async def summarize_one_kol(
     media_files: list[Path],
 ) -> dict[str, Any]:
     content: list[dict[str, Any]] = []
-    for path in media_files[: settings.media.max_photos_per_kol_for_ai]:
-        if path.exists():
-            content.append(_image_block(path))
-    content.append({"type": "text", "text": _layer2_prompt(kol, tweets, bool(media_files))})
+    selected_media = [
+        path
+        for path in media_files[: settings.media.max_photos_per_kol_for_ai]
+        if path.exists()
+    ]
+    for path in selected_media:
+        content.append(_image_block(path))
+    content.append({"type": "text", "text": _layer2_prompt(kol, tweets, bool(selected_media))})
     messages = [{"role": "user", "content": content}]
     retry_text = "请严格输出 JSON，不要包含 markdown 或解释。\n\n" + _layer2_prompt(
-        kol, tweets, bool(media_files)
+        kol, tweets, bool(selected_media)
     )
     retry_messages = [{"role": "user", "content": [{"type": "text", "text": retry_text}]}]
     parsed, response = await _call_layer2_until_parsed(messages, retry_messages)
@@ -883,7 +887,7 @@ async def summarize_one_kol(
         chinese_retry = (
             "上次输出仍包含较多非中文内容。请把所有 core_view 和 bullets.point 翻译成简体中文，"
             "专有名词和股票代码可保留原文；仍然严格输出 JSON。\n\n"
-            + _layer2_prompt(kol, tweets, bool(media_files))
+            + _layer2_prompt(kol, tweets, bool(selected_media))
         )
         parsed_retry, response_retry = await _call_layer2_until_parsed(
             [{"role": "user", "content": [{"type": "text", "text": chinese_retry}]}],
