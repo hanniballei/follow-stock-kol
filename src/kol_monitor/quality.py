@@ -28,6 +28,7 @@ from kol_monitor.summarizer import (
     _normalize_layer1_heading,
     _normalize_layer2_result,
     _prepare_layer1_markdown,
+    sanitize_tweet_url,
 )
 
 DEFAULT_QUALITY_DRAFT_DIR = Path("/tmp/kol-monitor-quality-drafts")
@@ -87,8 +88,8 @@ def write_quality_draft(
     )
 
     reports = {
-        "cleaned_existing": scan_summary_quality(cleaned_existing),
-        "repaired_fallback": scan_summary_quality(repaired_fallback),
+        "cleaned_existing": scan_summary_quality(cleaned_existing, normalized_layer2),
+        "repaired_fallback": scan_summary_quality(repaired_fallback, normalized_layer2),
         "input_layer2": scan_layer2_quality(raw_layer2),
         "normalized_layer2": scan_layer2_quality(normalized_layer2),
     }
@@ -156,11 +157,18 @@ def _select_draft(
     return None, cleaned_existing or repaired_fallback
 
 
-def scan_summary_quality(markdown: str) -> dict[str, Any]:
+def scan_summary_quality(
+    markdown: str,
+    layer2_results: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     issues: list[dict[str, Any]] = []
     current_section = ""
     source_urls: dict[str, list[int]] = {}
     content_fingerprints: dict[str, list[int]] = {}
+    allowed_sources = _layer2_source_urls(layer2_results)
+    allowed_sources_by_id = {
+        _tweet_source_id(url): url for url in (allowed_sources or set())
+    }
 
     lines = markdown.splitlines()
     for line_no, line in enumerate(lines, start=1):
@@ -345,6 +353,28 @@ def scan_summary_quality(markdown: str) -> dict[str, Any]:
         urls = [match.group(0) for match in TWEET_URL_RE.finditer(line)]
         for url in urls:
             source_urls.setdefault(url, []).append(line_no)
+            if allowed_sources is not None:
+                canonical_url = sanitize_tweet_url(url)
+                expected_url = allowed_sources_by_id.get(_tweet_source_id(canonical_url))
+                if canonical_url not in allowed_sources:
+                    issues.append(
+                        _issue(
+                            code=(
+                                "source_url_mismatch"
+                                if expected_url
+                                else "source_not_in_layer2"
+                            ),
+                            severity="error",
+                            message=(
+                                f"来源 URL 与 Layer2 不一致，应为：{expected_url}"
+                                if expected_url
+                                else "来源 tweet ID 不存在于当天 Layer2 数据"
+                            ),
+                            line=line_no,
+                            section=current_section,
+                            text=url,
+                        )
+                    )
         if urls:
             fingerprint = _content_fingerprint(line)
             if fingerprint:
@@ -353,6 +383,30 @@ def scan_summary_quality(markdown: str) -> dict[str, Any]:
     _add_section_issues(markdown, issues)
     _add_duplicate_issues(source_urls, content_fingerprints, issues)
     return _quality_report(issues)
+
+
+def _layer2_source_urls(
+    layer2_results: list[dict[str, Any]] | None,
+) -> set[str] | None:
+    if layer2_results is None:
+        return None
+    urls: set[str] = set()
+    for item in layer2_results:
+        if not isinstance(item, dict):
+            continue
+        for bullet in item.get("bullets") or []:
+            if not isinstance(bullet, dict):
+                continue
+            url = sanitize_tweet_url(bullet.get("tweet_url"))
+            if url:
+                urls.add(url)
+    return urls
+
+
+def _tweet_source_id(url: str) -> str:
+    if "/status/" not in url:
+        return ""
+    return url.rsplit("/status/", 1)[1]
 
 
 def scan_layer2_quality(layer2_results: list[dict[str, Any]]) -> dict[str, Any]:

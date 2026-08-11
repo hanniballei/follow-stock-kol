@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import subprocess
 
+import pytest
+
 from kol_monitor import publisher
 from kol_monitor.publisher import render_digest_md, render_readme
 
@@ -451,6 +453,7 @@ def test_write_outputs_excludes_html(tmp_path, monkeypatch):
     """write_outputs returns README + Markdown only; per-day HTML is no longer produced."""
     monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
     monkeypatch.setattr(publisher.settings, "kols", ["testkol"])
+    monkeypatch.setattr(publisher.settings, "digest_archive_dir", None)
     monkeypatch.setattr(
         publisher.db,
         "get_digest",
@@ -479,6 +482,63 @@ def test_write_outputs_excludes_html(tmp_path, monkeypatch):
         assert p.exists()
     # No .html should be written anywhere under the digest dir.
     assert not list((tmp_path / "digests").rglob("*.html"))
+
+
+def test_write_outputs_archives_daily_markdown(tmp_path, monkeypatch):
+    project_root = tmp_path / "repo"
+    archive_root = tmp_path / "archive"
+    monkeypatch.setattr(publisher.settings, "project_root", project_root)
+    monkeypatch.setattr(publisher.settings, "kols", ["testkol"])
+    monkeypatch.setattr(publisher.settings, "digest_archive_dir", archive_root)
+    monkeypatch.setattr(
+        publisher.db,
+        "get_digest",
+        lambda date: {
+            "date": date,
+            "summary_md": "## 今日关键词\n\n- 测试",
+            "layer2_json": "[]",
+            "kol_count": 1,
+            "tweet_count": 0,
+        },
+    )
+    monkeypatch.setattr(publisher, "history_dirs", lambda: [])
+    monkeypatch.setattr(publisher, "recent_digest_links", lambda: [])
+
+    archive_path = archive_root / "2026" / "05" / "29.md"
+    archive_path.parent.mkdir(parents=True)
+    archive_path.write_text("旧内容", encoding="utf-8")
+    paths = publisher.write_outputs("2026-05-29")
+
+    assert archive_path.read_bytes() == paths[1].read_bytes()
+    assert archive_path not in paths
+    assert not list(archive_path.parent.glob(".*.tmp"))
+
+
+def test_write_outputs_propagates_archive_failure(tmp_path, monkeypatch):
+    monkeypatch.setattr(publisher.settings, "project_root", tmp_path)
+    monkeypatch.setattr(publisher.settings, "kols", ["testkol"])
+    monkeypatch.setattr(publisher.settings, "digest_archive_dir", tmp_path / "archive")
+    monkeypatch.setattr(
+        publisher.db,
+        "get_digest",
+        lambda date: {
+            "date": date,
+            "summary_md": "## 今日关键词\n\n- 测试",
+            "layer2_json": "[]",
+            "kol_count": 1,
+            "tweet_count": 0,
+        },
+    )
+    monkeypatch.setattr(publisher, "history_dirs", lambda: [])
+    monkeypatch.setattr(publisher, "recent_digest_links", lambda: [])
+
+    def fail_archive(*_args):
+        raise OSError("archive unavailable")
+
+    monkeypatch.setattr(publisher, "_archive_digest", fail_archive)
+
+    with pytest.raises(OSError, match="archive unavailable"):
+        publisher.write_outputs("2026-05-29")
 
 
 def test_select_publishable_layer1_uses_fallback_when_scan_fails():
@@ -519,6 +579,40 @@ def test_select_publishable_layer1_uses_fallback_when_scan_fails():
 
     assert "本地兜底模板" in selected
     assert "作者认为 $NVDA 需求仍强（$NVDA） [@testkol](https://x.com/testkol/status/1)" in selected
+
+
+def test_select_publishable_layer1_uses_fallback_for_invented_source_url():
+    layer2 = [
+        {
+            "screen_name": "testkol",
+            "tweet_count": 1,
+            "core_view": "作者认为 $NVDA 需求仍强",
+            "bullets": [
+                {
+                    "point": "作者认为 $NVDA 需求仍强",
+                    "tickers": ["NVDA"],
+                    "tweet_url": "https://x.com/testkol/status/1",
+                    "claim_type": "opinion",
+                }
+            ],
+            "sentiment": "bullish",
+        }
+    ]
+    valid = (
+        "## 特朗普相关\n\n- 暂无高质量信号。\n\n"
+        "## 今日关键词\n\n- AI\n\n"
+        "## 重要新闻\n\n- 作者认为需求强 [@wrong](https://x.com/wrong/status/1)\n\n"
+        "## 宏观判断\n\n- 作者认为需求强 [@wrong](https://x.com/wrong/status/1)\n\n"
+        "## 产业/个股焦点\n\n- 作者认为 $NVDA 需求强 [@wrong](https://x.com/wrong/status/1)\n\n"
+        "## 交易信号\n\n| 标的 | 线索 | 来源 |\n|---|---|---|\n"
+        "| $NVDA | 需求强 | [@wrong](https://x.com/wrong/status/1) |\n\n"
+        "## 投资理念\n\n- 作者认为长期持有更重要 [@wrong](https://x.com/wrong/status/1)\n"
+    )
+
+    selected = publisher._select_publishable_layer1("2026-05-29", valid, layer2)
+
+    assert "本地兜底模板" in selected
+    assert "https://x.com/wrong/status/1" not in selected
 
 
 def test_invented_spacex_tickers_normalized_but_spce_preserved():

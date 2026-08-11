@@ -52,6 +52,7 @@
 - 用 `python-dotenv` 加载 `.env`
 - 暴露 `settings` 对象，属性访问（`settings.fetcher.max_rounds`），用 dataclass 或 SimpleNamespace
 - 环境变量优先级 > yaml（如 `KOL_MONITOR_DB` 覆盖默认 SQLite 路径）
+- `KOL_MONITOR_DIGEST_ARCHIVE_DIR` 可选；配置后把最终日报 Markdown 镜像到独立数据目录
 
 **验证**：
 ```bash
@@ -301,10 +302,11 @@ def git_publish(date, files: list[Path]) -> bool: ...
 - Layer 2 的 `tickers` 渲染为 `$代码`，即使模型返回不带 `$` 的 `NVDA` 也要显示为 `$NVDA`
 - 推文链接：`https://x.com/{handle}/status/{tweet_id}`
 - 历史归档区：列出 `digests/` 下最近 12 个月的目录链接
+- 配置 `KOL_MONITOR_DIGEST_ARCHIVE_DIR` 时，质量扫描后的日报要原子写入 `YYYY/MM/DD.md`；镜像路径不能加入 git 文件列表
 - 远端 push 必须同时满足 `publish.git_push=true` 和 `KOL_MONITOR_ALLOW_PUSH=true`，公开 clone 默认不 push 原仓库
 
 **输入**：当日 digest 数据
-**输出**：`README.md` 覆写 + `digests/2026/05/29.md` 新增；git commit；显式允许时再 push
+**输出**：`README.md` 覆写 + `digests/2026/05/29.md` 新增；可选同步本地数据归档；git commit；显式允许时再 push
 **验证**：`tests/test_publisher.py` 检查渲染结果（snapshot test）
 
 ---

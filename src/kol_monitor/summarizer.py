@@ -904,6 +904,7 @@ async def summarize_one_kol(
     # the worst case is no worse than before.
     parsed = await _translate_residual_layer2(parsed)
     parsed = _normalize_layer2_result(parsed)
+    parsed = _ground_layer2_sources(parsed, tweets)
 
     usage = getattr(response, "usage", None) if response else None
     parsed.update(
@@ -915,6 +916,44 @@ async def summarize_one_kol(
         }
     )
     return parsed
+
+
+def _ground_layer2_sources(
+    parsed: dict[str, Any],
+    tweets: list[dict[str, Any]],
+) -> dict[str, Any]:
+    allowed_by_id: dict[str, str] = {}
+    for tweet in tweets:
+        url = sanitize_tweet_url(
+            tweet.get("url")
+            or f"https://x.com/{_tweet_screen_name(tweet)}/status/{tweet.get('tweet_id')}"
+        )
+        if url:
+            allowed_by_id[url.rsplit("/status/", 1)[1]] = url
+
+    grounded = []
+    for bullet in parsed.get("bullets") or []:
+        if not isinstance(bullet, dict):
+            continue
+        url = sanitize_tweet_url(bullet.get("tweet_url"))
+        tweet_id = url.rsplit("/status/", 1)[1] if "/status/" in url else ""
+        expected_url = allowed_by_id.get(tweet_id)
+        if expected_url is None:
+            logger.warning("dropping layer2 bullet with unknown source URL: %s", url or "<empty>")
+            continue
+        bullet["tweet_url"] = expected_url
+        grounded.append(bullet)
+    parsed["bullets"] = grounded
+    return parsed
+
+
+def _tweet_screen_name(tweet: dict[str, Any]) -> str:
+    return str(
+        tweet.get("screen_name")
+        or tweet.get("userScreenName")
+        or tweet.get("user_screen_name")
+        or ""
+    )
 
 
 def _text_has_foreign_residue(text: str) -> bool:
@@ -1091,6 +1130,7 @@ def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media:
         "无市场相关内容时，bullets 输出 []，core_view 写“无市场相关内容”，sentiment 写 unclear。",
         "涉及具体股票代码时，展示文本统一使用 $股票代码 格式，例如 $NVDA；tickers 字段仍只填不带 $ 的代码。",
         "每条 bullet 必须保留对应 tweet_url；无法关联原推的内容不要写入 bullets。",
+        "tweet_url 必须逐字符复制输入推文括号中的 url，禁止改写 handle、status ID，禁止截短或自行拼接。",
         "claim_type 只能填 news|opinion|trade_signal|market_data|policy|earnings|personal|irrelevant；confidence 只能填 high|medium|low。",
         "输出严格 JSON，格式：",
         '{"core_view":"≤30字一句话","bullets":[{"point":"作者认为 $NVDA ...","tickers":["NVDA"],"tweet_url":"https://x.com/...","claim_type":"opinion","confidence":"medium"}],"sentiment":"bullish|bearish|neutral|unclear"}',
@@ -1182,6 +1222,7 @@ def build_layer1_prompt(
         "所有涉及具体股票代码的 markdown 文本必须使用 $代码 格式，例如 $TSLA，不要只写 TSLA。"
         "来源链接不要使用 [来源]、[链接]、[原文] 这类泛称；综合正文和交易信号表格中，"
         "链接文字必须显示来源账号，例如 [@screen_name](tweet_url)。"
+        "所有来源 URL 必须逐字符复制源 JSON 中已有的 tweet_url，禁止改写 handle、status ID，禁止自行拼接或猜测 URL。"
         "同一账号多条来源可写 [@screen_name · 1](tweet_url)、[@screen_name · 2](tweet_url)。"
         "特朗普本人发言使用 [@realDonaldTrump 原文](tweet_url)；其他账号对特朗普事件的解读使用 [@screen_name](tweet_url)。"
         "最后必须写完 ## 投资理念 后自然结束，不要在前几节耗尽篇幅。"
@@ -1194,6 +1235,34 @@ def build_layer1_prompt(
     parts.append(json.dumps(layer2_results, ensure_ascii=False))
     text = "\n\n".join(parts)
     return [{"role": "user", "content": [{"type": "text", "text": text}]}]
+
+
+def _layer1_source_validation_error(
+    markdown: str,
+    layer2_results: list[dict[str, Any]],
+) -> str | None:
+    allowed_urls: set[str] = set()
+    allowed_by_id: dict[str, str] = {}
+    for item in layer2_results:
+        for bullet in item.get("bullets") or []:
+            if not isinstance(bullet, dict):
+                continue
+            url = sanitize_tweet_url(bullet.get("tweet_url"))
+            if not url:
+                continue
+            allowed_urls.add(url)
+            allowed_by_id[url.rsplit("/status/", 1)[1]] = url
+
+    for match in TWEET_URL_RE.finditer(markdown):
+        url = sanitize_tweet_url(match.group(0))
+        if url in allowed_urls:
+            continue
+        tweet_id = url.rsplit("/status/", 1)[1] if "/status/" in url else ""
+        expected = allowed_by_id.get(tweet_id)
+        if expected:
+            return f"layer1 source URL mismatch: {url} (expected {expected})"
+        return f"layer1 source URL not found in layer2: {url or match.group(0)}"
+    return None
 
 
 def build_layer3_prompt(date: str, layer1_md: str) -> list[dict[str, Any]]:
@@ -1619,6 +1688,25 @@ async def summarize_day(date: str) -> dict[str, Any]:
         )
         if validation_error:
             raise ValueError(validation_error)
+        source_error = _layer1_source_validation_error(summary_md, layer2_results)
+        if source_error:
+            retry_messages = build_layer1_prompt(
+                layer2_results,
+                trump_summary=trump_summary,
+            )
+            retry_messages[0]["content"][0]["text"] = (
+                "上次输出的来源链接未逐字符复制输入 JSON。"
+                f"错误：{source_error}。请重新生成全文，并确保每个来源 URL 都与输入 tweet_url 完全一致。\n\n"
+                + retry_messages[0]["content"][0]["text"]
+            )
+            layer1_response = await call_layer1_with_validation(
+                messages=retry_messages,
+                max_tokens=settings.ai.max_tokens_layer1,
+            )
+            summary_md = _prepare_layer1_markdown(_response_text(layer1_response))
+            source_error = _layer1_source_validation_error(summary_md, layer2_results)
+            if source_error:
+                raise ValueError(source_error)
     except Exception as exc:
         logger.warning("Layer1 Claude summary failed; using local fallback: %s", exc)
         summary_md = _fallback_layer1_markdown(layer2_results, trump_summary=trump_summary)

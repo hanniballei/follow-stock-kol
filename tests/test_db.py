@@ -4,12 +4,14 @@ from datetime import datetime, timezone
 
 from kol_monitor.db import (
     downloaded_media_for_date,
+    get_digest,
     get_kol,
     init_db,
     insert_tweet,
     list_active_kols,
     pending_media_for_date,
     report_window_bounds,
+    save_digest,
     mark_media_downloaded,
     tweets_on_date,
     update_kol_anchor,
@@ -61,6 +63,32 @@ def test_insert_tweet_normalizes_twitter_created_at(tmp_db, sample_tweet):
     tweets = tweets_on_date("2026-05-31")
     assert len(tweets) == 1
     assert tweets[0]["created_at"] == "2026-05-30T13:00:00+00:00"
+
+
+def test_new_tweet_marks_existing_digest_stale_but_duplicate_does_not(tmp_db, sample_tweet):
+    kid = upsert_kol("qinbafrank")
+    save_digest(
+        date="2026-05-30",
+        summary_md="summary",
+        layer2_json="[]",
+        kol_count=0,
+        tweet_count=0,
+        model="test",
+    )
+
+    assert insert_tweet({**sample_tweet, "kol_id": kid}) is True
+    assert get_digest("2026-05-30")["status"] == "stale"
+
+    save_digest(
+        date="2026-05-30",
+        summary_md="updated",
+        layer2_json="[]",
+        kol_count=1,
+        tweet_count=1,
+        model="test",
+    )
+    assert insert_tweet({**sample_tweet, "kol_id": kid}) is False
+    assert get_digest("2026-05-30")["status"] == "ok"
 
 
 def test_init_db_normalizes_existing_twitter_created_at(tmp_db, sample_tweet):

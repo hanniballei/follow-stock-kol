@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
 import time
 from collections import Counter
 from pathlib import Path
@@ -944,16 +945,45 @@ def write_outputs(date: str) -> list[Path]:
     md_path = digest_dir / f"{day}.md"
     readme_path.write_text(readme, encoding="utf-8")
     md_path.write_text(digest_md, encoding="utf-8")
-    _scan_rendered_digest(date, digest_md)
+    _scan_rendered_digest(date, digest_md, layer2)
+    _archive_digest(date, digest_md)
     # HTML output was retired 2026-06-18 (per-day .html no longer generated; the Markdown
     # digest + README are the published artifacts). render_daily_html() is kept as a
     # standalone renderer in case HTML is reinstated, but is intentionally not called here.
     return [readme_path, md_path]
 
 
+def _archive_digest(date: str, digest_md: str) -> Path | None:
+    archive_root = settings.digest_archive_dir
+    if archive_root is None:
+        return None
+    year, month, day = date.split("-")
+    archive_path = Path(archive_root) / year / month / f"{day}.md"
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=archive_path.parent,
+            prefix=f".{archive_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temp_file:
+            temp_file.write(digest_md)
+            temp_file.flush()
+            os.fsync(temp_file.fileno())
+            temp_path = Path(temp_file.name)
+        os.replace(temp_path, archive_path)
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
+    return archive_path
+
+
 def _select_publishable_layer1(date: str, raw_layer1: str, layer2: list[dict]) -> str:
     cleaned = _prepare_layer1_markdown(raw_layer1)
-    if not _layer1_has_quality_errors(cleaned):
+    if not _layer1_has_quality_errors(cleaned, layer2):
         return cleaned
 
     trump_summary = next(
@@ -967,7 +997,7 @@ def _select_publishable_layer1(date: str, raw_layer1: str, layer2: list[dict]) -
     fallback = _prepare_layer1_markdown(
         _fallback_layer1_markdown(layer2, trump_summary=trump_summary)
     )
-    if not _layer1_has_quality_errors(fallback):
+    if not _layer1_has_quality_errors(fallback, layer2):
         logger.warning("layer1 %s failed publish scan; using local fallback summary", date)
         return fallback
 
@@ -975,11 +1005,11 @@ def _select_publishable_layer1(date: str, raw_layer1: str, layer2: list[dict]) -
     return cleaned
 
 
-def _layer1_has_quality_errors(markdown: str) -> bool:
+def _layer1_has_quality_errors(markdown: str, layer2: list[dict]) -> bool:
     try:
         from kol_monitor.quality import scan_summary_quality
 
-        report = scan_summary_quality(markdown)
+        report = scan_summary_quality(markdown, layer2)
     except Exception:
         logger.exception("layer1 quality scan failed")
         return False
@@ -1002,7 +1032,7 @@ def write_premarket(date: str, tweet_text: str) -> Path:
     return path
 
 
-def _scan_rendered_digest(date: str, digest_md: str) -> None:
+def _scan_rendered_digest(date: str, digest_md: str, layer2: list[dict]) -> None:
     """Scan the final rendered markdown (what readers actually see) and log any defects.
 
     The DB-level layer1/layer2 gates run earlier, but rendering can still introduce
@@ -1013,7 +1043,7 @@ def _scan_rendered_digest(date: str, digest_md: str) -> None:
     try:
         from kol_monitor.quality import scan_summary_quality
 
-        report = scan_summary_quality(digest_md)
+        report = scan_summary_quality(digest_md, layer2)
     except Exception:  # never let the gate break publishing
         logger.exception("rendered digest scan failed for %s", date)
         return

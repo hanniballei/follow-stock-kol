@@ -1,6 +1,6 @@
 # 运维与运行说明
 
-最后更新：2026-06-30
+最后更新：2026-08-11
 
 ## 1. 如何持久化运行
 
@@ -144,9 +144,10 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 
 ## 5. 数据和归档放在哪里
 
-- 原始和结构化数据：`kol_monitor.db`，只保存在本地，不推送 GitHub
+- 原始和结构化数据：默认是项目根目录 `kol_monitor.db`；可用 `KOL_MONITOR_DB` 覆盖到独立数据目录，只保存在本地，不推送 GitHub
 - 图片和 GIF：`media/YYYY-MM-DD/<handle>/<tweet_id>_<idx>.<ext>`
 - 每日完整总结：`digests/YYYY/MM/DD.md`，开启发布后会随发布流程推送 GitHub
+- 本地日报镜像：配置 `KOL_MONITOR_DIGEST_ARCHIVE_DIR` 后，同步为归档根目录下的 `YYYY/MM/DD.md`，不进入 git
 - README 首页：仓库根目录 `README.md`，开启发布后会随发布流程推送 GitHub
 - 每月索引：`digests/YYYY/MM/README.md`（由后续月度回顾功能生成），开启发布后会随发布流程推送 GitHub
 - 盘前长推文：`premarket/` 已停用，日常 `run-once` / `regen-digest` 不再生成或提交该目录
@@ -156,6 +157,15 @@ nohup .venv/bin/kol-monitor daemon >> kol_monitor.log 2>&1 &
 1. 原始数据和总结分离，避免主页越跑越长。
 2. 日报文件按年月日分层，方便 GitHub 目录页直接浏览。
 3. 媒体不进 git，但本地路径稳定，后续可以重建摘要。
+
+当前机器实际配置放在被 git 忽略的 `.env.local`：
+
+```bash
+KOL_MONITOR_DB=/root/trading/data/us-stock/kol-monitor/state/kol_monitor.db
+KOL_MONITOR_DIGEST_ARCHIVE_DIR=/root/trading/data/us-stock/kol-monitor/digests
+```
+
+日报镜像发生在最终渲染和质量扫描之后，并使用同目录临时文件加原子替换。镜像失败时本次流程会在 git 发布前停止，避免 GitHub 日报与本地长期归档静默分叉；修复目录权限后重跑当期日报即可。
 
 ## 6. LLM 备用机制
 

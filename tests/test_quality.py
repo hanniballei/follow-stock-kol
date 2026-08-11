@@ -181,6 +181,30 @@ def test_scan_clean_digest_has_no_json_or_link_errors():
     assert codes.get("broken_source_link", 0) == 0
 
 
+def test_scan_flags_sources_not_copied_exactly_from_layer2():
+    layer2 = [
+        {
+            "screen_name": "right",
+            "bullets": [
+                {
+                    "point": "作者认为 $NVDA 需求强",
+                    "tweet_url": "https://x.com/right/status/123",
+                }
+            ],
+        }
+    ]
+    md = (
+        "## 重要新闻\n\n"
+        "- 作者认为 $NVDA 需求强 [@wrong](https://x.com/wrong/status/123)\n"
+        "- 作者认为 $NVDA 需求强 [@right](https://x.com/right/status/999)\n"
+    )
+
+    report = scan_summary_quality(md, layer2)
+
+    assert report["issue_counts_by_code"]["source_url_mismatch"] == 1
+    assert report["issue_counts_by_code"]["source_not_in_layer2"] == 1
+
+
 def test_scan_warns_on_raw_tco_and_malformed_horizontal_rule():
     md = "## 今日关键词\n\n- 公司 https://t.co/abc\n\n- ---\n"
 

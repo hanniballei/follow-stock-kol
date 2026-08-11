@@ -59,15 +59,28 @@ def test_env_local_overrides_env_file(tmp_path):
 
 
 def test_env_overrides_paths(monkeypatch, tmp_path):
+    monkeypatch.setattr("kol_monitor.config.load_dotenv", lambda *_args, **_kwargs: None)
     db_path = tmp_path / "custom.db"
     media_dir = tmp_path / "custom_media"
+    digest_archive_dir = tmp_path / "digest_archive"
     monkeypatch.setenv("KOL_MONITOR_DB", str(db_path))
     monkeypatch.setenv("KOL_MONITOR_MEDIA_DIR", str(media_dir))
+    monkeypatch.setenv("KOL_MONITOR_DIGEST_ARCHIVE_DIR", str(digest_archive_dir))
 
     settings = load_settings()
 
     assert settings.db_path == db_path
     assert settings.media_dir == media_dir
+    assert settings.digest_archive_dir == digest_archive_dir
+
+
+def test_digest_archive_is_disabled_by_default(monkeypatch):
+    monkeypatch.setattr("kol_monitor.config.load_dotenv", lambda *_args, **_kwargs: None)
+    monkeypatch.delenv("KOL_MONITOR_DIGEST_ARCHIVE_DIR", raising=False)
+
+    settings = load_settings()
+
+    assert settings.digest_archive_dir is None
 
 
 def test_anthropic_fallback_env(monkeypatch):

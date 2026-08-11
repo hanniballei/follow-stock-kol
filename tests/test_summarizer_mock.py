@@ -25,6 +25,8 @@ from kol_monitor.summarizer import (
     parse_layer2,
     settings,
     summarize_one_kol,
+    _ground_layer2_sources,
+    _layer1_source_validation_error,
     summarize_day,
 )
 
@@ -42,6 +44,130 @@ def test_parse_markdown_fenced():
 def test_parse_text_with_prelude():
     raw = '好的，我来分析：\n\n{"core_view":"x","bullets":[],"sentiment":"bearish"}\n\n说明'
     assert parse_layer2(raw)["sentiment"] == "bearish"
+
+
+def test_ground_layer2_sources_repairs_handle_and_drops_unknown_id():
+    parsed = {
+        "bullets": [
+            {
+                "point": "作者认为 $NVDA 需求强",
+                "tweet_url": "https://x.com/wrong/status/123",
+            },
+            {
+                "point": "作者认为 $AMD 需求强",
+                "tweet_url": "https://x.com/right/status/999",
+            },
+        ]
+    }
+    tweets = [
+        {
+            "screen_name": "right",
+            "tweet_id": "123",
+            "url": "https://x.com/right/status/123",
+        }
+    ]
+
+    grounded = _ground_layer2_sources(parsed, tweets)
+
+    assert grounded["bullets"] == [
+        {
+            "point": "作者认为 $NVDA 需求强",
+            "tweet_url": "https://x.com/right/status/123",
+        }
+    ]
+
+
+def test_layer1_source_validation_requires_exact_layer2_url():
+    layer2 = [
+        {
+            "bullets": [
+                {
+                    "point": "作者认为 $NVDA 需求强",
+                    "tweet_url": "https://x.com/right/status/123",
+                }
+            ]
+        }
+    ]
+
+    assert _layer1_source_validation_error(
+        "- [@right](https://x.com/right/status/123)", layer2
+    ) is None
+    assert "expected https://x.com/right/status/123" in _layer1_source_validation_error(
+        "- [@wrong](https://x.com/wrong/status/123)", layer2
+    )
+    assert "not found in layer2" in _layer1_source_validation_error(
+        "- [@right](https://x.com/right/status/999)", layer2
+    )
+
+
+@pytest.mark.asyncio
+async def test_summarize_day_retries_layer1_source_mismatch(monkeypatch):
+    saved = {}
+    calls = {"count": 0}
+    correct_url = "https://x.com/macroKOL/status/1"
+
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.tweets_on_date",
+        lambda _date: [
+            {
+                "screen_name": "macroKOL",
+                "kol_id": 1,
+                "tweet_id": "1",
+                "text": "$NVDA demand supports AI",
+                "url": correct_url,
+            }
+        ],
+    )
+    monkeypatch.setattr("kol_monitor.summarizer.db.downloaded_media_for_date", lambda _date: [])
+
+    async def fake_summarize_one_kol(*_args, **_kwargs):
+        return {
+            "screen_name": "macroKOL",
+            "tweet_count": 1,
+            "core_view": "作者认为 $NVDA 需求仍强",
+            "bullets": [
+                {
+                    "point": "作者认为 $NVDA 需求仍强",
+                    "tickers": ["NVDA"],
+                    "tweet_url": correct_url,
+                    "claim_type": "opinion",
+                }
+            ],
+            "sentiment": "bullish",
+            "input_tokens": 10,
+            "output_tokens": 5,
+        }
+
+    def layer1(url: str) -> str:
+        return (
+            "## 特朗普相关\n\n- 暂无高质量信号。\n\n"
+            "## 今日关键词\n\n- AI\n\n"
+            f"## 重要新闻\n\n- 作者认为需求强 [@macroKOL]({url})\n\n"
+            f"## 宏观判断\n\n- 作者认为需求强 [@macroKOL]({url})\n\n"
+            f"## 产业/个股焦点\n\n- 作者认为 $NVDA 需求强 [@macroKOL]({url})\n\n"
+            "## 交易信号\n\n| 标的 | 线索 | 来源 |\n|---|---|---|\n"
+            f"| $NVDA | 需求强 | [@macroKOL]({url}) |\n\n"
+            f"## 投资理念\n\n- 作者认为长期持有更重要 [@macroKOL]({url})。"
+        )
+
+    async def fake_layer1(*_args, **_kwargs):
+        calls["count"] += 1
+        url = "https://x.com/wrong/status/1" if calls["count"] == 1 else correct_url
+        return SimpleNamespace(
+            content=[SimpleNamespace(text=layer1(url))],
+            usage=SimpleNamespace(input_tokens=100, output_tokens=100),
+            stop_reason="end_turn",
+        )
+
+    monkeypatch.setattr("kol_monitor.summarizer.summarize_one_kol", fake_summarize_one_kol)
+    monkeypatch.setattr("kol_monitor.summarizer.call_layer1_with_validation", fake_layer1)
+    monkeypatch.setattr("kol_monitor.summarizer.db.save_digest", lambda **kwargs: saved.update(kwargs))
+
+    await summarize_day("2026-06-02")
+
+    assert calls["count"] == 2
+    assert "https://x.com/wrong/status/1" not in saved["summary_md"]
+    assert correct_url in saved["summary_md"]
 
 
 def test_parse_layer2_repairs_unescaped_quotes_in_point():

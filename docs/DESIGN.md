@@ -295,6 +295,8 @@ digests/
 
 > 注：自 2026-06-18 起不再生成每日 `.html`（旧 `.html` 已删除）；只产出 `README.md` + `digests/YYYY/MM/DD.md`。
 
+配置 `KOL_MONITOR_DIGEST_ARCHIVE_DIR` 后，最终日报还会按相同年月日结构原子镜像到本地数据目录。该镜像不加入 git 发布文件列表，历史 `regen-digest` 会覆盖同一期归档。
+
 ### 11.3 premarket/（已停用）
 
 ```

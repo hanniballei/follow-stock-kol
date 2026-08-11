@@ -324,9 +324,43 @@ def insert_tweet(tweet_dict: dict[str, Any]) -> bool:
             tweet,
         )
         inserted = cur.rowcount == 1
+        if inserted:
+            _mark_digest_stale_for_tweet(conn, tweet["created_at"])
         for item in tweet_dict.get("media") or []:
             insert_media_row(conn, tweet["tweet_id"], item)
     return inserted
+
+
+def _mark_digest_stale_for_tweet(conn: sqlite3.Connection, created_at: str) -> None:
+    report_date = _report_date_for_timestamp(created_at)
+    conn.execute(
+        """
+        UPDATE digests
+        SET status = 'stale'
+        WHERE date = ?
+          AND status <> 'stale'
+        """,
+        (report_date,),
+    )
+
+
+def _report_date_for_timestamp(value: Any) -> str:
+    from kol_monitor.config import settings
+
+    parsed = datetime.fromisoformat(_as_iso(value))
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    report_timezone = ZoneInfo(settings.schedule.timezone)
+    local_time = parsed.astimezone(report_timezone)
+    cutoff = datetime.combine(
+        local_time.date(),
+        time(settings.schedule.hour, settings.schedule.minute),
+        tzinfo=report_timezone,
+    )
+    report_date = local_time.date()
+    if local_time > cutoff:
+        report_date += timedelta(days=1)
+    return report_date.isoformat()
 
 
 def insert_media_row(conn: sqlite3.Connection, tweet_id: str, media: dict[str, Any]) -> None:
