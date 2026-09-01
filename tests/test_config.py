@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from kol_monitor.config import load_settings
+import pytest
+
+from kol_monitor.config import ConfigError, load_settings
 
 
 def test_load_settings_reads_existing_yaml(monkeypatch):
@@ -20,6 +22,8 @@ def test_load_settings_reads_existing_yaml(monkeypatch):
     assert settings.schedule.hour == 20
     assert settings.schedule.minute == 30
     assert settings.schedule.timezone == "Asia/Shanghai"
+    assert settings.ai.max_tokens_layer2 == 384000
+    assert settings.ai.max_tokens_layer1 == 384000
     assert settings.allow_git_push is False
 
 
@@ -108,3 +112,40 @@ def test_anthropic_fallback_env(monkeypatch):
     assert settings.anthropic_fourth_api_key == "fourth"
     assert settings.anthropic_fourth_base_url == "https://fourth.example"
     assert settings.anthropic_fourth_model == "claude-sonnet-4-6"
+
+
+def test_deepseek_env_uses_official_defaults(monkeypatch):
+    monkeypatch.setattr("kol_monitor.config.load_dotenv", lambda *_args, **_kwargs: None)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "deepseek")
+    monkeypatch.delenv("DEEPSEEK_BASE_URL", raising=False)
+    monkeypatch.delenv("DEEPSEEK_MODEL", raising=False)
+    monkeypatch.delenv("DEEPSEEK_REASONING_EFFORT", raising=False)
+
+    settings = load_settings()
+
+    assert settings.deepseek_api_key == "deepseek"
+    assert settings.deepseek_base_url == "https://api.deepseek.com/anthropic"
+    assert settings.deepseek_model == "deepseek-v4-pro"
+    assert settings.deepseek_reasoning_effort == "max"
+
+
+def test_deepseek_reasoning_effort_rejects_invalid_value(monkeypatch):
+    monkeypatch.setattr("kol_monitor.config.load_dotenv", lambda *_args, **_kwargs: None)
+    monkeypatch.setenv("DEEPSEEK_REASONING_EFFORT", "ultra")
+
+    with pytest.raises(ConfigError, match="DEEPSEEK_REASONING_EFFORT"):
+        load_settings()
+
+
+def test_layer2_concurrency_must_be_positive(tmp_path, monkeypatch):
+    monkeypatch.setattr("kol_monitor.config.load_dotenv", lambda *_args, **_kwargs: None)
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "settings.yaml").write_text(
+        "ai:\n  layer2_concurrency: 0\n",
+        encoding="utf-8",
+    )
+    (config_dir / "kols.yaml").write_text("kols: []\n", encoding="utf-8")
+
+    with pytest.raises(ConfigError, match="layer2_concurrency"):
+        load_settings(tmp_path)

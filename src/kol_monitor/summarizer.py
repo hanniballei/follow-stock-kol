@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import base64
+import asyncio
 import inspect
 import json
 import logging
 import re
 from collections import defaultdict
+from contextvars import ContextVar
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from anthropic import AsyncAnthropic
 
@@ -27,6 +29,229 @@ CANONICAL_TWEET_URL_RE = re.compile(
     r"https?://(?:www\.)?(?:x|twitter)\.com/[A-Za-z0-9_]+/status/(?:truth_)?\d+"
 )
 TCO_URL_RE = re.compile(r"https?://t\.co/[A-Za-z0-9]+")
+MARKET_SYMBOL_TEXT_RE = re.compile(r"\$([A-Z]{1,8}(?:\.[A-Z])?|\d{4,6})(?![A-Z0-9])")
+PAREN_MARKET_SYMBOL_RE = re.compile(r"[\uff08(](\d{4,6})[\uff09)]")
+BARE_MARKET_SYMBOL_RE = re.compile(
+    r"(?<![A-Za-z0-9$])([A-Z]{2,6}(?:\.[A-Z])?)(?![A-Za-z0-9])"
+)
+KNOWN_BARE_MARKET_SYMBOLS = {
+    "AAOI",
+    "AEHR",
+    "AI",
+    "AIRO",
+    "ALAB",
+    "AMAT",
+    "AMKR",
+    "AMZN",
+    "APP",
+    "ARM",
+    "ASML",
+    "ASTS",
+    "AVAV",
+    "AVGO",
+    "AXTI",
+    "BABA",
+    "BAC",
+    "BE",
+    "BNB",
+    "BTC",
+    "CIFR",
+    "COHR",
+    "COIN",
+    "CRCL",
+    "CRDO",
+    "CRWV",
+    "DELL",
+    "DIA",
+    "DJI",
+    "DXY",
+    "ETH",
+    "ETOR",
+    "EWY",
+    "FLNC",
+    "GFS",
+    "GLW",
+    "GOOG",
+    "GOOGL",
+    "HIMS",
+    "HOOD",
+    "IBIT",
+    "IBKR",
+    "INTC",
+    "IQE",
+    "IREN",
+    "JBL",
+    "LASR",
+    "LITE",
+    "LLY",
+    "LPTH",
+    "FN",
+    "GE",
+    "GLD",
+    "GS",
+    "IBM",
+    "IWM",
+    "JPM",
+    "KO",
+    "LTC",
+    "META",
+    "MRNA",
+    "MRVL",
+    "MSFT",
+    "MSTR",
+    "MTSI",
+    "MU",
+    "NBIS",
+    "NDX",
+    "NFLX",
+    "NVO",
+    "NVDA",
+    "NOK",
+    "NOW",
+    "ON",
+    "ONDS",
+    "ORCL",
+    "OSS",
+    "PDD",
+    "PLTR",
+    "POET",
+    "PYPL",
+    "QCOM",
+    "QQQ",
+    "RDDT",
+    "RGTI",
+    "RKLB",
+    "RUT",
+    "SIVE",
+    "SLV",
+    "SMH",
+    "SMCI",
+    "SNDK",
+    "SNAP",
+    "SOI",
+    "SOL",
+    "SOXX",
+    "SPCX",
+    "SPX",
+    "SPY",
+    "STX",
+    "TSEM",
+    "TSLA",
+    "TLT",
+    "TSM",
+    "UGL",
+    "UBER",
+    "VIX",
+    "VLN",
+    "VPG",
+    "WDC",
+    "WTI",
+    "WULF",
+    "XLE",
+    "XLU",
+    "XRP",
+}
+UNAMBIGUOUS_SHORT_BARE_MARKET_SYMBOLS = {
+    "BNB",
+    "BTC",
+    "DJI",
+    "DXY",
+    "ETH",
+    "GLD",
+    "IWM",
+    "LTC",
+    "NDX",
+    "QQQ",
+    "RUT",
+    "SLV",
+    "SMH",
+    "SOL",
+    "SPX",
+    "SPY",
+    "TLT",
+    "VIX",
+    "WTI",
+    "XRP",
+}
+NON_BARE_MARKET_SYMBOLS = {
+    "BIT",
+    "GOLD",
+    "JOBS",
+    "MSCI",
+}
+NON_SYMBOL_ACRONYMS = {
+    "AI",
+    "API",
+    "ASIC",
+    "ATH",
+    "AWS",
+    "CAPEX",
+    "CEO",
+    "CPI",
+    "CPO",
+    "CPU",
+    "CXL",
+    "DRAM",
+    "EBITDA",
+    "EMA",
+    "EPS",
+    "ETF",
+    "FCF",
+    "FDA",
+    "FOMC",
+    "GDP",
+    "GPU",
+    "GPT",
+    "HBM",
+    "IPO",
+    "IV",
+    "KRW",
+    "KOSPI",
+    "LG",
+    "LLM",
+    "MLCC",
+    "NAND",
+    "NFP",
+    "NPO",
+    "PCE",
+    "PCB",
+    "PE",
+    "PMI",
+    "PPI",
+    "PTFE",
+    "RSI",
+    "SAAS",
+    "TAM",
+    "TPU",
+    "USD",
+    "VWAP",
+    "YTD",
+    "AMAZON",
+    "BOEING",
+    "CNBC",
+    "FORD",
+    "GOOGLE",
+    "INTEL",
+    "MICRON",
+    "NVIDIA",
+    "SPACEX",
+    "TESLA",
+    "TSMC",
+    "AND",
+    "BUY",
+    "FOR",
+    "FROM",
+    "LONG",
+    "SELL",
+    "SHORT",
+    "SHHS",
+    "SHS",
+    "SK",
+    "THE",
+    "THIS",
+    "US",
+    "WITH",
+}
 
 
 def sanitize_tweet_url(raw: object) -> str:
@@ -96,16 +321,53 @@ REQUIRED_LAYER1_SECTIONS = (
     "投资理念",
 )
 LAYER1_VALID_END_CHARS = set("。！？.!?)]）】」』”’…|")
+MARKET_SYMBOL_SCOPE_RULES = (
+    "tickers 表示原推明确出现的‘市场交易标识符’，不只是美股："
+    "可包括美股/全球股票、ETF、指数与波动率符号、加密资产，"
+    "以及原推明确写成交易符号的商品或外汇。"
+    "历史语境示例：美股/ETF/指数 $NVDA、$MU、$QQQ、$SPY、$SPX、$VIX；"
+    "A 股 $688981、$601899、$002594；韩股 $005930、$000660；"
+    "台股 $2330、$3363、$6451；日股 $8035、$6857、$6315；"
+    "港股 $03308；加密资产 $BTC、$ETH、$SOL、$USDC；"
+    "商品/外汇交易符号 $WTI、$XAUUSD、$DXY、$USDJPY。"
+    "这些只是分类示例，不是允许补写的清单；当日输入未出现时严禁引入。"
+    "非美股数字代码必须同时保留市场或公司语境，不得改写为同名美股；"
+    "任何已识别为市场标识符的纯数字代码在正文也必须加 `$`；"
+    "例如原文‘三星电子（005930）’应展示为‘三星电子（$005930）’，禁止裸写 `005930`。"
+    "加密资产不得描述为公司股票。"
+    "AI、GPU、HBM、DRAM、CPO、ASIC、MLCC、PCB、SaaS、LLM、ETF、"
+    "CPI、PPI、PCE、GDP、PMI、FOMC、NFP、USD、KRW、PE、EPS、FCF、"
+    "EBITDA、RSI、EMA、VWAP、ATH、YTD、TAM、CAPEX、IV、IPO 等通常是"
+    "行业/宏观/技术缩写，不能仅因大写或随手加 `$` 就当作 ticker；"
+    "只有同一原推语境明确将其作为可交易标的时才可保留，"
+    "例如明确讨论 C3.ai 股票时的 $AI。"
+    "公司名、产品名或常识映射不能作为补 ticker 的依据；"
+    "除项目已明确规定的 SpaceX 展示代码 $SPCX 外，禁止由名称推导代码。"
+)
 
 
 @dataclass(frozen=True)
-class ClaudeBackend:
+class LLMBackend:
     label: str
     api_key: str
     base_url: str | None
     model: str
-    temperature: float
+    temperature: float | None
     thinking: dict[str, Any] | None = None
+    output_config: dict[str, Any] | None = None
+    timeout_seconds: float | None = None
+    max_tokens_cap: int | None = None
+
+
+@dataclass
+class LLMTokenUsage:
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
+_llm_usage_accumulator: ContextVar[LLMTokenUsage | None] = ContextVar(
+    "llm_usage_accumulator", default=None
+)
 
 
 def parse_layer2(text: str) -> dict[str, Any] | None:
@@ -655,37 +917,27 @@ def _has_unbalanced_quotes(text: str) -> bool:
     )
 
 
-def _get_client() -> Any:
-    global _client
-    if _client is None:
-        if not settings.anthropic_api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY is required")
-        _client = AsyncAnthropic(
-            api_key=settings.anthropic_api_key,
-            base_url=settings.anthropic_base_url,
-        )
-    return _client
-
-
-async def call_claude_with_retry(messages: list[dict[str, Any]], max_tokens: int) -> Any:
+async def call_llm_with_retry(messages: list[dict[str, Any]], max_tokens: int) -> Any:
     if _client is not None:
-        return await _client.messages.create(
+        response = await _client.messages.create(
             model=settings.ai.model,
             max_tokens=max_tokens,
             temperature=settings.ai.temperature,
             messages=messages,
         )
+        _record_response_usage(response)
+        return response
 
     last_error: Exception | None = None
-    for backend in _anthropic_backends():
+    for backend in _llm_backends():
         try:
-            return await _call_claude_backend(backend, messages, max_tokens)
+            return await _call_llm_backend(backend, messages, max_tokens)
         except Exception as exc:
             last_error = exc
-            logger.warning("Claude request failed via %s credentials: %s", backend.label, exc)
+            logger.warning("LLM request failed via %s credentials: %s", backend.label, exc)
     if last_error:
         raise last_error
-    raise RuntimeError("ANTHROPIC_API_KEY is required")
+    raise RuntimeError("at least one LLM API key is required")
 
 
 async def call_layer1_with_validation(messages: list[dict[str, Any]], max_tokens: int) -> Any:
@@ -696,21 +948,22 @@ async def call_layer1_with_validation(messages: list[dict[str, Any]], max_tokens
             temperature=settings.ai.temperature,
             messages=messages,
         )
+        _record_response_usage(response)
         _raise_for_invalid_layer1(response)
         return response
 
     last_error: Exception | None = None
-    for backend in _anthropic_backends():
+    for backend in _llm_backends():
         try:
-            response = await _call_claude_backend(backend, messages, max_tokens)
+            response = await _call_llm_backend(backend, messages, max_tokens)
             _raise_for_invalid_layer1(response)
             return response
         except Exception as exc:
             last_error = exc
-            logger.warning("Claude layer1 request failed via %s credentials: %s", backend.label, exc)
+            logger.warning("LLM layer1 request failed via %s credentials: %s", backend.label, exc)
     if last_error:
         raise last_error
-    raise RuntimeError("ANTHROPIC_API_KEY is required")
+    raise RuntimeError("at least one LLM API key is required")
 
 
 def _raise_for_invalid_layer1(response: Any) -> None:
@@ -728,44 +981,86 @@ def _response_text(response: Any) -> str:
     return "\n".join(text for text in texts if text)
 
 
-async def _call_claude_backend(
-    backend: ClaudeBackend,
+def _usage_input_tokens(usage: Any) -> int:
+    if usage is None:
+        return 0
+    return sum(
+        int(getattr(usage, field, 0) or 0)
+        for field in (
+            "input_tokens",
+            "cache_read_input_tokens",
+            "cache_creation_input_tokens",
+        )
+    )
+
+
+def _record_response_usage(response: Any) -> None:
+    accumulator = _llm_usage_accumulator.get()
+    if accumulator is None:
+        return
+    usage = getattr(response, "usage", None)
+    accumulator.input_tokens += _usage_input_tokens(usage)
+    accumulator.output_tokens += int(getattr(usage, "output_tokens", 0) or 0)
+
+
+def _preferred_model_name() -> str:
+    if getattr(settings, "deepseek_api_key", None):
+        return settings.deepseek_model
+    return settings.ai.model
+
+
+async def _call_llm_backend(
+    backend: LLMBackend,
     messages: list[dict[str, Any]],
     max_tokens: int,
 ) -> Any:
-    client = AsyncAnthropic(
-        api_key=backend.api_key,
-        base_url=_anthropic_sdk_base_url(backend.base_url),
+    backend_max_tokens = (
+        min(max_tokens, backend.max_tokens_cap)
+        if backend.max_tokens_cap is not None
+        else max_tokens
     )
+    client_kwargs = dict(
+        api_key=backend.api_key,
+        base_url=_llm_sdk_base_url(backend.base_url),
+    )
+    if backend.timeout_seconds is not None:
+        client_kwargs["timeout"] = backend.timeout_seconds
+    client = AsyncAnthropic(**client_kwargs)
     try:
         try:
-            return await client.messages.create(
-                **_claude_request(
+            response = await client.messages.create(
+                **_llm_request(
                     backend=backend,
                     messages=messages,
-                    max_tokens=max_tokens,
+                    max_tokens=backend_max_tokens,
                     temperature=backend.temperature,
                     thinking=backend.thinking,
+                    output_config=backend.output_config,
                 )
             )
+            _record_response_usage(response)
+            return response
         except Exception as exc:
             if not _should_retry_third_temperature_thinking_error(backend, exc):
                 raise
             logger.warning("Retrying third Claude backend with provider default temperature/thinking")
-            return await client.messages.create(
-                **_claude_request(
+            response = await client.messages.create(
+                **_llm_request(
                     backend=backend,
                     messages=messages,
-                    max_tokens=max_tokens,
+                    max_tokens=backend_max_tokens,
                     temperature=None,
                     thinking=None,
+                    output_config=backend.output_config,
                 )
             )
+            _record_response_usage(response)
+            return response
     finally:
-        await _close_anthropic_client(client)
+        await _close_llm_client(client)
 
 
-async def _close_anthropic_client(client: Any) -> None:
+async def _close_llm_client(client: Any) -> None:
     close = getattr(client, "close", None)
     if close is None:
         return
@@ -777,12 +1072,13 @@ async def _close_anthropic_client(client: Any) -> None:
         logger.warning("Claude client close failed: %s", exc)
 
 
-def _claude_request(
-    backend: ClaudeBackend,
+def _llm_request(
+    backend: LLMBackend,
     messages: list[dict[str, Any]],
     max_tokens: int,
     temperature: float | None,
     thinking: dict[str, Any] | None,
+    output_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     request = {
         "model": backend.model,
@@ -793,10 +1089,12 @@ def _claude_request(
         request["temperature"] = temperature
     if thinking is not None:
         request["thinking"] = thinking
+    if output_config is not None:
+        request["output_config"] = output_config
     return request
 
 
-def _should_retry_third_temperature_thinking_error(backend: ClaudeBackend, exc: Exception) -> bool:
+def _should_retry_third_temperature_thinking_error(backend: LLMBackend, exc: Exception) -> bool:
     if backend.label != "third":
         return False
     message = str(exc).lower()
@@ -807,54 +1105,71 @@ def _should_retry_third_temperature_thinking_error(backend: ClaudeBackend, exc: 
     )
 
 
-def _anthropic_backends() -> list[ClaudeBackend]:
-    backends: list[ClaudeBackend] = []
+def _llm_backends() -> list[LLMBackend]:
+    backends: list[LLMBackend] = []
+    if getattr(settings, "deepseek_api_key", None):
+        backends.append(
+            LLMBackend(
+                label="deepseek",
+                api_key=settings.deepseek_api_key,
+                base_url=settings.deepseek_base_url,
+                model=settings.deepseek_model,
+                temperature=None,
+                thinking={"type": "enabled", "budget_tokens": 1024},
+                output_config={"effort": settings.deepseek_reasoning_effort},
+                timeout_seconds=10800,
+            )
+        )
     if getattr(settings, "anthropic_fallback_api_key", None):
         backends.append(
-            ClaudeBackend(
+            LLMBackend(
                 label="fallback",
                 api_key=settings.anthropic_fallback_api_key,
                 base_url=getattr(settings, "anthropic_fallback_base_url", None)
                 or settings.anthropic_base_url,
                 model=settings.ai.model,
                 temperature=settings.ai.temperature,
+                max_tokens_cap=8000,
             )
         )
     if getattr(settings, "anthropic_fourth_api_key", None):
         backends.append(
-            ClaudeBackend(
+            LLMBackend(
                 label="fourth",
                 api_key=settings.anthropic_fourth_api_key,
                 base_url=getattr(settings, "anthropic_fourth_base_url", None),
                 model=getattr(settings, "anthropic_fourth_model", None) or settings.ai.model,
                 temperature=settings.ai.temperature,
+                max_tokens_cap=8000,
             )
         )
     if getattr(settings, "anthropic_third_api_key", None):
         backends.append(
-            ClaudeBackend(
+            LLMBackend(
                 label="third",
                 api_key=settings.anthropic_third_api_key,
                 base_url=getattr(settings, "anthropic_third_base_url", None),
                 model=getattr(settings, "anthropic_third_model", None) or settings.ai.model,
                 temperature=1,
                 thinking={"type": "disabled"},
+                max_tokens_cap=8000,
             )
         )
     if settings.anthropic_api_key:
         backends.append(
-            ClaudeBackend(
+            LLMBackend(
                 label="primary",
                 api_key=settings.anthropic_api_key,
                 base_url=settings.anthropic_base_url,
                 model=settings.ai.model,
                 temperature=settings.ai.temperature,
+                max_tokens_cap=8000,
             )
         )
     return backends
 
 
-def _anthropic_sdk_base_url(base_url: str | None) -> str | None:
+def _llm_sdk_base_url(base_url: str | None) -> str | None:
     if base_url is None:
         return None
     stripped = base_url.rstrip("/")
@@ -863,7 +1178,223 @@ def _anthropic_sdk_base_url(base_url: str | None) -> str | None:
     return stripped
 
 
+def _normalize_market_symbol(raw: object) -> str:
+    return str(raw or "").strip().lstrip("$").upper().rstrip(".")
+
+
+def _source_market_symbols(tweet: dict[str, Any]) -> set[str]:
+    text = str(tweet.get("text") or "")
+    upper = text.upper()
+    explicit_candidates = set(MARKET_SYMBOL_TEXT_RE.findall(upper))
+    parenthesized_candidates = set(PAREN_MARKET_SYMBOL_RE.findall(upper))
+    bare_candidates = set(BARE_MARKET_SYMBOL_RE.findall(text))
+    eligible_bare_candidates = {
+        candidate
+        for candidate in bare_candidates
+        if _normalize_market_symbol(candidate) in KNOWN_BARE_MARKET_SYMBOLS
+        and (
+            len(_normalize_market_symbol(candidate)) >= 4
+            or _normalize_market_symbol(candidate)
+            in UNAMBIGUOUS_SHORT_BARE_MARKET_SYMBOLS
+        )
+    }
+    candidates = explicit_candidates | parenthesized_candidates | eligible_bare_candidates
+    normalized: set[str] = set()
+    for candidate in candidates:
+        symbol = _normalize_market_symbol(candidate)
+        if not symbol:
+            continue
+        if (
+            symbol.isdigit()
+            and len(symbol) == 4
+            and 1900 <= int(symbol) <= 2100
+            and symbol not in explicit_candidates
+        ):
+            continue
+        if symbol == "AI" and (
+            symbol in explicit_candidates or re.search(r"C3\.AI", upper)
+        ):
+            normalized.add(symbol)
+            continue
+        if symbol in NON_SYMBOL_ACRONYMS:
+            continue
+        if (
+            symbol in NON_BARE_MARKET_SYMBOLS
+            and symbol not in explicit_candidates
+            and symbol not in parenthesized_candidates
+        ):
+            continue
+        normalized.add(symbol)
+    if re.search(r"\bSpaceX\b", text, re.IGNORECASE):
+        normalized.add("SPCX")
+    return normalized
+
+
+def _layer2_source_symbol_whitelist(tweets: list[dict[str, Any]]) -> dict[str, list[str]]:
+    whitelist: dict[str, list[str]] = {}
+    for tweet in tweets:
+        url = sanitize_tweet_url(tweet.get("url"))
+        if url:
+            whitelist[url] = sorted(_source_market_symbols(tweet))
+    return whitelist
+
+
+def _layer2_symbol_validation_error(
+    parsed: dict[str, Any],
+    tweets: list[dict[str, Any]],
+    require_dollar_display: bool = False,
+) -> str | None:
+    whitelist = _layer2_source_symbol_whitelist(tweets)
+    violations = []
+    allowed_for_kol = {
+        symbol for symbols in whitelist.values() for symbol in symbols
+    }
+    core_symbols = _source_market_symbols(
+        {"text": str(parsed.get("core_view") or "")}
+    )
+    unexpected_core = sorted(core_symbols - allowed_for_kol)
+    displayed_core = {
+        _normalize_market_symbol(symbol)
+        for symbol in MARKET_SYMBOL_TEXT_RE.findall(
+            str(parsed.get("core_view") or "").upper()
+        )
+    }
+    missing_core_display = sorted(core_symbols - displayed_core)
+    if unexpected_core or (require_dollar_display and missing_core_display):
+        violations.append(
+            {
+                "field": "core_view",
+                "unexpected": unexpected_core,
+                "missing_dollar_display": (
+                    missing_core_display if require_dollar_display else []
+                ),
+                "allowed": sorted(allowed_for_kol),
+            }
+        )
+    for bullet in parsed.get("bullets") or []:
+        if not isinstance(bullet, dict):
+            continue
+        url = sanitize_tweet_url(bullet.get("tweet_url"))
+        allowed = set(whitelist.get(url) or [])
+        tickers = {
+            _normalize_market_symbol(ticker)
+            for ticker in bullet.get("tickers") or []
+            if _normalize_market_symbol(ticker)
+        }
+        point = str(bullet.get("point") or "")
+        mentioned = _source_market_symbols({"text": point})
+        unexpected = sorted((tickers | mentioned) - allowed)
+        displayed = {
+            _normalize_market_symbol(symbol)
+            for symbol in MARKET_SYMBOL_TEXT_RE.findall(point.upper())
+        }
+        missing_display = sorted(mentioned - displayed)
+        if unexpected or (require_dollar_display and missing_display):
+            violations.append(
+                {
+                    "tweet_url": url,
+                    "unexpected": unexpected,
+                    "missing_dollar_display": (
+                        missing_display if require_dollar_display else []
+                    ),
+                    "allowed": sorted(allowed),
+                }
+            )
+    if not violations:
+        return None
+    return "layer2 market-symbol violations: " + json.dumps(violations, ensure_ascii=False)
+
+
+def _sanitize_layer2_symbols_to_sources(
+    parsed: dict[str, Any], tweets: list[dict[str, Any]]
+) -> dict[str, Any]:
+    whitelist = _layer2_source_symbol_whitelist(tweets)
+    allowed_for_kol = {
+        symbol for symbols in whitelist.values() for symbol in symbols
+    }
+    core_view = str(parsed.get("core_view") or "")
+    unexpected_core = _source_market_symbols({"text": core_view}) - allowed_for_kol
+    sanitized_bullets = []
+    for bullet in parsed.get("bullets") or []:
+        if not isinstance(bullet, dict):
+            continue
+        url = sanitize_tweet_url(bullet.get("tweet_url"))
+        allowed = set(whitelist.get(url) or [])
+        point = str(bullet.get("point") or "")
+        tickers = [
+            symbol
+            for symbol in (
+                _normalize_market_symbol(ticker)
+                for ticker in bullet.get("tickers") or []
+            )
+        ]
+        unexpected = (_source_market_symbols({"text": point}) | set(tickers)) - allowed
+        if unexpected:
+            logger.warning(
+                "dropping layer2 bullet with out-of-source symbols: %s",
+                ", ".join(sorted(unexpected)),
+            )
+            continue
+        point = _format_allowed_market_symbols(point, allowed)
+        displayed = {
+            _normalize_market_symbol(symbol)
+            for symbol in MARKET_SYMBOL_TEXT_RE.findall(point.upper())
+        }
+        bullet["point"] = point
+        bullet["tickers"] = sorted(set(tickers) | displayed)
+        sanitized_bullets.append(bullet)
+    parsed["bullets"] = sanitized_bullets
+    if unexpected_core:
+        parsed["core_view"] = (
+            _truncate_text(sanitized_bullets[0]["point"], 30)
+            if sanitized_bullets
+            else "无市场相关内容"
+        )
+    else:
+        parsed["core_view"] = _format_allowed_market_symbols(
+            core_view, allowed_for_kol
+        )
+    return parsed
+
+
+def _format_allowed_market_symbols(text: str, allowed: set[str]) -> str:
+    formatted = text
+    for symbol in sorted(allowed, key=len, reverse=True):
+        formatted = re.sub(
+            rf"(?<![$A-Za-z0-9]){re.escape(symbol)}(?![A-Za-z0-9])",
+            f"${symbol}",
+            formatted,
+        )
+    return formatted
+
+
 async def summarize_one_kol(
+    kol: dict[str, Any],
+    tweets: list[dict[str, Any]],
+    media_files: list[Path],
+) -> dict[str, Any]:
+    usage = LLMTokenUsage()
+    token = _llm_usage_accumulator.set(usage)
+    try:
+        parsed = await _summarize_one_kol_result(kol, tweets, media_files)
+    except Exception as exc:
+        setattr(exc, "llm_input_tokens", usage.input_tokens)
+        setattr(exc, "llm_output_tokens", usage.output_tokens)
+        raise
+    finally:
+        _llm_usage_accumulator.reset(token)
+    parsed.update(
+        {
+            "screen_name": kol["screen_name"],
+            "tweet_count": len(tweets),
+            "input_tokens": usage.input_tokens,
+            "output_tokens": usage.output_tokens,
+        }
+    )
+    return parsed
+
+
+async def _summarize_one_kol_result(
     kol: dict[str, Any],
     tweets: list[dict[str, Any]],
     media_files: list[Path],
@@ -878,11 +1409,18 @@ async def summarize_one_kol(
         content.append(_image_block(path))
     content.append({"type": "text", "text": _layer2_prompt(kol, tweets, bool(selected_media))})
     messages = [{"role": "user", "content": content}]
-    retry_text = "请严格输出 JSON，不要包含 markdown 或解释。\n\n" + _layer2_prompt(
-        kol, tweets, bool(selected_media)
+    retry_text = (
+        "上次输出可能未完整闭合 JSON，或包含来源白名单外的市场标识符。"
+        "请在不遗漏市场相关信息的前提下精简表达，确保 JSON 完整闭合，"
+        "且每条 bullet 只使用其 tweet_url 对应白名单内的代码。"
+        "严格输出 JSON，不要包含 markdown、规则解释或核对过程。\n\n"
+        + _layer2_prompt(kol, tweets, bool(selected_media))
     )
     retry_messages = [{"role": "user", "content": [{"type": "text", "text": retry_text}]}]
-    parsed, response = await _call_layer2_until_parsed(messages, retry_messages)
+    validator = lambda result: _layer2_symbol_validation_error(result, tweets)
+    parsed, response = await _call_layer2_until_parsed(
+        messages, retry_messages, validator=validator
+    )
     if parsed is not None and _layer2_needs_chinese_retry(parsed):
         chinese_retry = (
             "上次输出仍包含较多非中文内容。请把所有 core_view 和 bullets.point 翻译成简体中文，"
@@ -892,6 +1430,7 @@ async def summarize_one_kol(
         parsed_retry, response_retry = await _call_layer2_until_parsed(
             [{"role": "user", "content": [{"type": "text", "text": chinese_retry}]}],
             [{"role": "user", "content": [{"type": "text", "text": chinese_retry}]}],
+            validator=validator,
         )
         if parsed_retry is not None:
             parsed, response = parsed_retry, response_retry
@@ -905,16 +1444,13 @@ async def summarize_one_kol(
     parsed = await _translate_residual_layer2(parsed)
     parsed = _normalize_layer2_result(parsed)
     parsed = _ground_layer2_sources(parsed, tweets)
-
-    usage = getattr(response, "usage", None) if response else None
-    parsed.update(
-        {
-            "screen_name": kol["screen_name"],
-            "tweet_count": len(tweets),
-            "input_tokens": getattr(usage, "input_tokens", 0) if usage else 0,
-            "output_tokens": getattr(usage, "output_tokens", 0) if usage else 0,
-        }
+    parsed = _sanitize_layer2_symbols_to_sources(parsed, tweets)
+    postprocess_error = _layer2_symbol_validation_error(
+        parsed, tweets, require_dollar_display=True
     )
+    if postprocess_error:
+        raise ValueError(postprocess_error)
+
     return parsed
 
 
@@ -1021,7 +1557,7 @@ async def _translate_texts_to_chinese(texts: list[str]) -> list[str] | None:
     )
     messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
     try:
-        response = await call_claude_with_retry(
+        response = await call_llm_with_retry(
             messages=messages, max_tokens=settings.ai.max_tokens_layer2
         )
     except Exception as exc:
@@ -1055,52 +1591,73 @@ def _parse_string_array(text: str) -> list[str] | None:
 async def _call_layer2_until_parsed(
     messages: list[dict[str, Any]],
     retry_messages: list[dict[str, Any]],
+    validator: Callable[[dict[str, Any]], str | None] | None = None,
 ) -> tuple[dict[str, Any] | None, Any | None]:
     if _client is not None:
-        response = await _client.messages.create(
-            model=settings.ai.model,
-            max_tokens=settings.ai.max_tokens_layer2,
-            temperature=settings.ai.temperature,
-            messages=messages,
-        )
-        parsed = parse_layer2(_response_text(response))
-        if parsed is not None:
-            return parsed, response
-        response = await _client.messages.create(
-            model=settings.ai.model,
-            max_tokens=settings.ai.max_tokens_layer2,
-            temperature=settings.ai.temperature,
-            messages=retry_messages,
-        )
-        return parse_layer2(_response_text(response)), response
+        last_response = None
+        for attempt_messages in (messages, retry_messages):
+            response = await _client.messages.create(
+                model=settings.ai.model,
+                max_tokens=settings.ai.max_tokens_layer2,
+                temperature=settings.ai.temperature,
+                messages=attempt_messages,
+            )
+            _record_response_usage(response)
+            last_response = response
+            parsed, error = _validate_layer2_response(response, validator)
+            if parsed is not None:
+                return parsed, response
+            logger.warning("LLM layer2 response failed validation: %s", error)
+        return None, last_response
 
     last_error: Exception | None = None
     last_response: Any | None = None
     saw_response = False
-    for backend in _anthropic_backends():
+    for backend in _llm_backends():
         for attempt_messages in (messages, retry_messages):
             try:
-                response = await _call_claude_backend(
+                response = await _call_llm_backend(
                     backend,
                     attempt_messages,
                     settings.ai.max_tokens_layer2,
                 )
             except Exception as exc:
                 last_error = exc
-                logger.warning("Claude request failed via %s credentials: %s", backend.label, exc)
+                logger.warning("LLM request failed via %s credentials: %s", backend.label, exc)
                 break
             saw_response = True
             last_response = response
-            parsed = parse_layer2(_response_text(response))
+            parsed, validation_error = _validate_layer2_response(response, validator)
             if parsed is not None:
                 return parsed, response
+            logger.warning(
+                "LLM layer2 response via %s failed validation: %s",
+                backend.label,
+                validation_error,
+            )
         logger.warning(
-            "Claude response via %s credentials was not valid layer2 JSON; trying next backend",
+            "LLM response via %s credentials was not valid layer2 JSON; trying next backend",
             backend.label,
         )
     if not saw_response and last_error:
         raise last_error
     return None, last_response
+
+
+def _validate_layer2_response(
+    response: Any,
+    validator: Callable[[dict[str, Any]], str | None] | None = None,
+) -> tuple[dict[str, Any] | None, str | None]:
+    if getattr(response, "stop_reason", None) == "max_tokens":
+        return None, "response stopped at max_tokens"
+    parsed = parse_layer2(_response_text(response))
+    if parsed is None:
+        return None, "response was not valid layer2 JSON"
+    if validator is not None:
+        error = validator(parsed)
+        if error:
+            return None, error
+    return parsed, None
 
 
 def _image_block(path: Path) -> dict[str, Any]:
@@ -1116,19 +1673,29 @@ def _image_block(path: Path) -> dict[str, Any]:
 
 
 def _layer2_prompt(kol: dict[str, Any], tweets: list[dict[str, Any]], had_media: bool) -> str:
+    symbol_whitelist = _layer2_source_symbol_whitelist(tweets)
     lines = [
         f"请总结美股 KOL @{kol['screen_name']} 当日推文。你是在做“社媒观点摘要”，不是事实核验新闻稿。",
-        "所有 core_view 和 bullets.point 必须使用简体中文；非中文推文要翻译，专有名词和股票代码可保留原文。",
+        "所有 core_view 和 bullets.point 必须使用简体中文；非中文推文要翻译，专有名词和市场标识符可保留原文。",
+        MARKET_SYMBOL_SCOPE_RULES,
+        "下方 tweet_url -> allowed_symbols 是按原推明文抽取的来源级白名单。"
+        "白名单只控制代码许可，不控制内容是否与市场相关；"
+        "即使某条白名单为空，只要推文涉及公司、产业、宏观、政策或交易，仍必须保留 bullet，仅将 tickers 留空。"
+        "绝不在输出中提到白名单、规则或为何省略代码。",
+        "tweet_url -> allowed_symbols："
+        + json.dumps(symbol_whitelist, ensure_ascii=False, sort_keys=True),
         "只基于给定推文，不得补充外部背景、不得把传言或观点改写成已确认事实。",
         "如果推文是在猜测、传言、喊单或表达观点，point 必须包含“作者认为/称/转述/推测”等归因词。",
         "归因纪律：某条 bullet 里写的每个数字/指标/事件（如价格、RSI、财报数据、目标价）只能来自该条 point 真正引用的那一条推文；"
-        "tickers 字段只填该 point 文本里确实出现、且推文确有提及的股票代码，不要把推文里没提到的股票塞进 tickers；"
+        "tickers 字段只填该 point 文本里确实出现、且推文确有提及的市场标识符，不要把推文里没提到的代码塞进 tickers；"
         "尤其禁止把 A 股票的数据安到 B 股票上（例如某推说 $SNDK 的 RSI，就不能写成 $MU 的 RSI）。",
+        "同一原推包含多个机构、公司或人物时，必须保留每个主体与其各自动作；"
+        "不得漏掉主体，也不得把 A 与 B 分别采取的动作压缩成 A 单独重复、加倍或“双重”采取该动作。",
         "专有名词翻译要准确：公司名先用中文常用译名再视情况附原文，例如 Rheinmetall→莱茵金属、Virgin Galactic→维珍银河（$SPCE）；不确定就保留原文，不要音译生造。",
         "SpaceX 的展示代码统一写 $SPCX；不要写成 $SPACEX/$SPACE，也不要和维珍银河 $SPCE 混淆。",
         "京东方 A 的代码是 $000725；不要把公司英文简称 BOE 当成美股代码 $BOE。",
         "无市场相关内容时，bullets 输出 []，core_view 写“无市场相关内容”，sentiment 写 unclear。",
-        "涉及具体股票代码时，展示文本统一使用 $股票代码 格式，例如 $NVDA；tickers 字段仍只填不带 $ 的代码。",
+        "涉及具体市场标识符时，展示文本统一使用 $代码 格式，例如 $NVDA、$005930、$BTC；tickers 字段仍只填不带 $ 的原始代码。",
         "每条 bullet 必须保留对应 tweet_url；无法关联原推的内容不要写入 bullets。",
         "tweet_url 必须逐字符复制输入推文括号中的 url，禁止改写 handle、status ID，禁止截短或自行拼接。",
         "claim_type 只能填 news|opinion|trade_signal|market_data|policy|earnings|personal|irrelevant；confidence 只能填 high|medium|low。",
@@ -1190,13 +1757,101 @@ def _tweet_url_entities(tweet: dict[str, Any]) -> list[dict[str, Any]]:
     return [item for item in (urls or []) if isinstance(item, dict)]
 
 
+def _layer1_source_symbol_whitelist(
+    layer2_results: list[dict[str, Any]],
+) -> dict[str, list[str]]:
+    whitelist: dict[str, set[str]] = defaultdict(set)
+    for item in layer2_results:
+        for bullet in item.get("bullets") or []:
+            if not isinstance(bullet, dict):
+                continue
+            url = sanitize_tweet_url(bullet.get("tweet_url"))
+            if not url:
+                continue
+            whitelist[url].update(
+                symbol
+                for symbol in (
+                    _normalize_market_symbol(ticker)
+                    for ticker in bullet.get("tickers") or []
+                )
+                if symbol
+            )
+    return {url: sorted(symbols) for url, symbols in whitelist.items()}
+
+
+def _layer1_symbol_validation_error(
+    markdown: str, layer2_results: list[dict[str, Any]]
+) -> str | None:
+    whitelist = _layer1_source_symbol_whitelist(layer2_results)
+    all_allowed = {symbol for symbols in whitelist.values() for symbol in symbols}
+    violations = []
+    for line_no, line in enumerate(markdown.splitlines(), start=1):
+        urls = [sanitize_tweet_url(match.group(0)) for match in TWEET_URL_RE.finditer(line)]
+        allowed: set[str] = set()
+        for url in urls:
+            allowed.update(whitelist.get(url) or [])
+        mentioned = _source_market_symbols({"text": TWEET_URL_RE.sub("", line)})
+        unexpected = sorted(mentioned - allowed)
+        displayed = {
+            _normalize_market_symbol(symbol)
+            for symbol in MARKET_SYMBOL_TEXT_RE.findall(line.upper())
+        }
+        missing_display = sorted((mentioned & allowed) - displayed)
+        bare_numeric = sorted(
+            symbol
+            for symbol in allowed
+            if symbol.isdigit()
+            and re.search(
+                rf"(?<![$\d]){re.escape(symbol)}(?!\d)",
+                TWEET_URL_RE.sub("", line),
+            )
+        )
+        uncited_numeric = sorted(
+            symbol
+            for symbol in all_allowed
+            if not urls
+            and symbol.isdigit()
+            and re.search(
+                rf"(?<![$\d]){re.escape(symbol)}(?!\d)",
+                line,
+            )
+        )
+        if unexpected or missing_display or bare_numeric or uncited_numeric:
+            violations.append(
+                {
+                    "line": line_no,
+                    "unexpected": unexpected,
+                    "missing_dollar_display": missing_display,
+                    "bare_numeric": bare_numeric,
+                    "uncited_numeric": uncited_numeric,
+                    "allowed": sorted(allowed),
+                }
+            )
+    if not violations:
+        return None
+    return "layer1 market-symbol violations: " + json.dumps(violations, ensure_ascii=False)
+
+
+def _layer1_publication_validation_error(
+    markdown: str, layer2_results: list[dict[str, Any]]
+) -> str | None:
+    return _layer1_source_validation_error(markdown, layer2_results) or _layer1_symbol_validation_error(
+        markdown, layer2_results
+    )
+
+
 def build_layer1_prompt(
     layer2_results: list[dict[str, Any]],
     trump_summary: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
+    source_symbol_whitelist = _layer1_source_symbol_whitelist(layer2_results)
     intro = (
         "请基于以下 KOL JSON 总结生成中文 markdown，只输出正文，不要输出日报标题、分隔线或 emoji。"
         "这是社媒观点摘要，不是事实核验新闻稿；不要把 KOL 观点、传言或交易喊单改写成已确认事实。"
+        f"{MARKET_SYMBOL_SCOPE_RULES}"
+        "每条 Markdown bullet 或表格行中的 $代码，只能来自该行引用 source_url 对应的 allowed_symbols；"
+        "如果来源没有允许代码，仍可写公司、行业、事件和市场影响，但不得凭常识补代码。"
+        "绝不在正文中提到白名单、规则、校验、修复或为何省略代码。"
         "必须按顺序完整输出且只输出以下七个二级标题："
         "## 特朗普相关、## 今日关键词、## 重要新闻、## 宏观判断、"
         "## 产业/个股焦点、## 交易信号、## 投资理念。"
@@ -1204,9 +1859,11 @@ def build_layer1_prompt(
         "先合并重复信息，再写结论，避免逐条复述同一账号的相似推文。"
         "除非输入明确来自官方公告或客观市场数据，否则使用“@handle 称/认为/转述/推测”等可追溯归因表达，不要写“某 KOL”。"
         "如果信息互相冲突，保留“分歧”表述，不要强行合并成单一事实。"
-        "归因纪律（重要）：合并多个 KOL 的要点时，每个数字/指标/事件只能挂到它在源 JSON 里真正对应的那个股票代码上；"
+        "归因纪律（重要）：合并多个 KOL 的要点时，每个数字/指标/事件只能挂到它在源 JSON 里真正对应的那个市场标识符上；"
         "不要把某条要点里 A 股票的数据（价格、RSI、目标价、财报数字等）写成 B 股票的数据。"
         "如果不确定某个数字属于哪个 ticker，宁可不写该数字，也不要张冠李戴。"
+        "同一来源涉及多个机构、公司或人物时，保留每个主体与其各自动作；"
+        "不得漏掉主体，也不得把多个主体的动作错误归到单一主体或改写成单一主体的重复、加倍或“双重”动作。"
         "把 SpaceX 统一写 $SPCX，不要写 $SPACEX/$SPACE，也不要与维珍银河 $SPCE 混淆；公司名沿用源 JSON 里的中文译名，不要另行音译生造。"
         "总长度控制在 1800-2600 汉字，每条 bullet 尽量不超过 70 汉字，"
         "交易信号表格的“线索”列尽量不超过 30 汉字；严禁扩写背景知识。"
@@ -1219,7 +1876,7 @@ def build_layer1_prompt(
         "投资理念只能来自 KOL 明确表达的投资原则，禁止写总结过程、工程方法、提示词规则、系统原则。"
         "“特朗普相关”小节必须总结 realDonaldTrump 当天发言可能影响的美股标的、行业、事件线索，"
         "若只是推测也要明确写出推测依据。每条要点尽量附原推链接。"
-        "所有涉及具体股票代码的 markdown 文本必须使用 $代码 格式，例如 $TSLA，不要只写 TSLA。"
+        "所有涉及具体市场标识符的 markdown 文本必须使用 $代码 格式，例如 $TSLA、$005930、$BTC，不要只写原始代码。"
         "来源链接不要使用 [来源]、[链接]、[原文] 这类泛称；综合正文和交易信号表格中，"
         "链接文字必须显示来源账号，例如 [@screen_name](tweet_url)。"
         "所有来源 URL 必须逐字符复制源 JSON 中已有的 tweet_url，禁止改写 handle、status ID，禁止自行拼接或猜测 URL。"
@@ -1227,7 +1884,11 @@ def build_layer1_prompt(
         "特朗普本人发言使用 [@realDonaldTrump 原文](tweet_url)；其他账号对特朗普事件的解读使用 [@screen_name](tweet_url)。"
         "最后必须写完 ## 投资理念 后自然结束，不要在前几节耗尽篇幅。"
     )
-    parts = [intro]
+    parts = [
+        intro,
+        "### source_url -> allowed_symbols",
+        json.dumps(source_symbol_whitelist, ensure_ascii=False, sort_keys=True),
+    ]
     if trump_summary is not None:
         parts.append("### 特朗普相关数据")
         parts.append(json.dumps(trump_summary, ensure_ascii=False))
@@ -1300,7 +1961,7 @@ async def generate_layer3_tweet(date: str) -> str:
     layer1_md = _prepare_layer1_markdown(digest.get("summary_md") or "")
     if not layer1_md.strip():
         raise RuntimeError(f"empty layer1 summary for {date}; cannot build layer3 tweet")
-    response = await call_claude_with_retry(
+    response = await call_llm_with_retry(
         messages=build_layer3_prompt(date, layer1_md),
         max_tokens=getattr(settings.ai, "max_tokens_layer3", 2000),
     )
@@ -1327,7 +1988,7 @@ def _fallback_layer1_markdown(
         "",
         "## 今日关键词",
         "",
-        f"- 重点标的：{', '.join(tickers[:20]) if tickers else '暂无明确股票代码。'}",
+        f"- 重点标的：{', '.join(tickers[:20]) if tickers else '暂无明确市场标识符。'}",
         "- 活跃账号："
         + "、".join(
             f"@{item.get('screen_name')}（{item.get('tweet_count', 0)} 条）"
@@ -1581,6 +2242,17 @@ def _normalize_layer2_result(parsed: dict[str, Any]) -> dict[str, Any]:
         ]
         if "京东方" in point:
             tickers = ["000725" if ticker == "BOE" else ticker for ticker in tickers]
+        for ticker in tickers:
+            point = re.sub(
+                rf"(?<![$A-Za-z0-9]){re.escape(ticker)}(?![A-Za-z0-9])",
+                f"${ticker}",
+                point,
+            )
+        tickers = [
+            ticker
+            for ticker in tickers
+            if re.search(rf"\${re.escape(ticker)}(?![A-Z0-9])", point, re.IGNORECASE)
+        ]
         normalized_bullets.append(
             {
                 "point": point,
@@ -1655,20 +2327,35 @@ async def summarize_day(date: str) -> dict[str, Any]:
         if path.is_file():
             media_by_kol[media["screen_name"]].append(path)
 
-    layer2_results = []
-    for screen_name, kol_tweets in grouped.items():
+    layer2_semaphore = asyncio.Semaphore(settings.ai.layer2_concurrency)
+
+    async def summarize_group(
+        screen_name: str, kol_tweets: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         kol = {"screen_name": screen_name, "id": kol_tweets[0]["kol_id"]}
-        try:
-            layer2_results.append(
-                await summarize_one_kol(kol, kol_tweets, media_files=media_by_kol[screen_name])
-            )
-        except Exception as exc:
-            logger.warning(
-                "Layer2 Claude summary failed for @%s; using raw tweet fallback: %s",
-                screen_name,
-                exc,
-            )
-            layer2_results.append(_fallback_layer2_summary(kol, kol_tweets))
+        async with layer2_semaphore:
+            try:
+                return await summarize_one_kol(
+                    kol, kol_tweets, media_files=media_by_kol[screen_name]
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Layer2 LLM summary failed for @%s; using raw tweet fallback: %s",
+                    screen_name,
+                    exc,
+                )
+                fallback = _fallback_layer2_summary(kol, kol_tweets)
+                fallback["input_tokens"] = int(
+                    getattr(exc, "llm_input_tokens", 0) or 0
+                )
+                fallback["output_tokens"] = int(
+                    getattr(exc, "llm_output_tokens", 0) or 0
+                )
+                return fallback
+
+    layer2_results = await asyncio.gather(
+        *(summarize_group(screen_name, kol_tweets) for screen_name, kol_tweets in grouped.items())
+    )
 
     trump_summary = next(
         (item for item in layer2_results if item["screen_name"].lower() == "realdonaldtrump"),
@@ -1676,6 +2363,9 @@ async def summarize_day(date: str) -> dict[str, Any]:
     )
 
     layer1_response = None
+    digest_model = _preferred_model_name()
+    layer1_usage = LLMTokenUsage()
+    usage_token = _llm_usage_accumulator.set(layer1_usage)
     try:
         layer1_response = await call_layer1_with_validation(
             messages=build_layer1_prompt(layer2_results, trump_summary=trump_summary),
@@ -1688,15 +2378,18 @@ async def summarize_day(date: str) -> dict[str, Any]:
         )
         if validation_error:
             raise ValueError(validation_error)
-        source_error = _layer1_source_validation_error(summary_md, layer2_results)
-        if source_error:
+        publication_error = _layer1_publication_validation_error(summary_md, layer2_results)
+        if publication_error:
             retry_messages = build_layer1_prompt(
                 layer2_results,
                 trump_summary=trump_summary,
             )
             retry_messages[0]["content"][0]["text"] = (
-                "上次输出的来源链接未逐字符复制输入 JSON。"
-                f"错误：{source_error}。请重新生成全文，并确保每个来源 URL 都与输入 tweet_url 完全一致。\n\n"
+                "上次输出未通过确定性发布校验。"
+                f"错误：{publication_error}。请重新生成全文："
+                "来源 URL 必须逐字符复制 tweet_url；"
+                "越权代码不得仅去掉 `$`，应按 Layer 2 改用公司名或行业名。"
+                "不要在成稿中提到本次校验或修复。\n\n"
                 + retry_messages[0]["content"][0]["text"]
             )
             layer1_response = await call_layer1_with_validation(
@@ -1704,25 +2397,27 @@ async def summarize_day(date: str) -> dict[str, Any]:
                 max_tokens=settings.ai.max_tokens_layer1,
             )
             summary_md = _prepare_layer1_markdown(_response_text(layer1_response))
-            source_error = _layer1_source_validation_error(summary_md, layer2_results)
-            if source_error:
-                raise ValueError(source_error)
+            publication_error = _layer1_publication_validation_error(summary_md, layer2_results)
+            if publication_error:
+                raise ValueError(publication_error)
+        digest_model = getattr(layer1_response, "model", None) or digest_model
     except Exception as exc:
-        logger.warning("Layer1 Claude summary failed; using local fallback: %s", exc)
+        logger.warning("Layer1 LLM summary failed; using local fallback: %s", exc)
         summary_md = _fallback_layer1_markdown(layer2_results, trump_summary=trump_summary)
+        digest_model = "local-fallback"
+    finally:
+        _llm_usage_accumulator.reset(usage_token)
     input_tokens = sum(item.get("input_tokens", 0) for item in layer2_results)
     output_tokens = sum(item.get("output_tokens", 0) for item in layer2_results)
-    usage = getattr(layer1_response, "usage", None) if layer1_response else None
-    if usage:
-        input_tokens += getattr(usage, "input_tokens", 0)
-        output_tokens += getattr(usage, "output_tokens", 0)
+    input_tokens += layer1_usage.input_tokens
+    output_tokens += layer1_usage.output_tokens
     db.save_digest(
         date=date,
         summary_md=summary_md,
         layer2_json=json.dumps(layer2_results, ensure_ascii=False),
         kol_count=len(layer2_results),
         tweet_count=len(tweets),
-        model=settings.ai.model,
+        model=digest_model,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
     )

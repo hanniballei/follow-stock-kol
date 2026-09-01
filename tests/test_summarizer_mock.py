@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -7,19 +8,25 @@ from unittest.mock import AsyncMock
 import pytest
 
 from kol_monitor.summarizer import (
-    _anthropic_backends,
-    _anthropic_sdk_base_url,
+    _llm_backends,
+    _llm_sdk_base_url,
     _clean_layer1_markdown,
     _expand_tco_urls,
     _fallback_layer1_markdown,
     _is_valid_layer1_markdown,
     _line_has_suspicious_model_company_conflict,
+    _layer1_symbol_validation_error,
     _layer2_needs_chinese_retry,
     _layer2_prompt,
+    _layer2_symbol_validation_error,
+    _sanitize_layer2_symbols_to_sources,
+    _source_market_symbols,
     _normalize_layer2_result,
     _prepare_layer1_markdown,
     _response_text,
-    call_claude_with_retry,
+    _usage_input_tokens,
+    _validate_layer2_response,
+    call_llm_with_retry,
     build_layer1_prompt,
     normalize_layer1_source_links,
     parse_layer2,
@@ -29,6 +36,11 @@ from kol_monitor.summarizer import (
     _layer1_source_validation_error,
     summarize_day,
 )
+
+
+@pytest.fixture(autouse=True)
+def disable_deepseek_backend_by_default(monkeypatch):
+    monkeypatch.setattr(settings, "deepseek_api_key", None, raising=False)
 
 
 def test_parse_clean_json():
@@ -462,7 +474,16 @@ def test_prepare_layer1_markdown_keeps_parenthetical_source_links_together():
     assert "- [@jukan05](https://x.com/jukan05/status/4)" in prepared
 
 
-def test_anthropic_backends_use_requested_priority(monkeypatch):
+def test_llm_backends_use_requested_priority(monkeypatch):
+    monkeypatch.setattr(settings, "deepseek_api_key", "deepseek-key", raising=False)
+    monkeypatch.setattr(
+        settings,
+        "deepseek_base_url",
+        "https://api.deepseek.example/anthropic",
+        raising=False,
+    )
+    monkeypatch.setattr(settings, "deepseek_model", "deepseek-v4-pro", raising=False)
+    monkeypatch.setattr(settings, "deepseek_reasoning_effort", "max", raising=False)
     monkeypatch.setattr(settings, "anthropic_api_key", "primary-key", raising=False)
     monkeypatch.setattr(settings, "anthropic_base_url", "https://primary.example/v1", raising=False)
     monkeypatch.setattr(settings, "anthropic_fallback_api_key", "fallback-key", raising=False)
@@ -474,17 +495,325 @@ def test_anthropic_backends_use_requested_priority(monkeypatch):
     monkeypatch.setattr(settings, "anthropic_third_base_url", "https://third.example/v1", raising=False)
     monkeypatch.setattr(settings, "anthropic_third_model", "third-model", raising=False)
 
-    backends = _anthropic_backends()
+    backends = _llm_backends()
 
-    assert [backend.label for backend in backends] == ["fallback", "fourth", "third", "primary"]
+    assert [backend.label for backend in backends] == [
+        "deepseek",
+        "fallback",
+        "fourth",
+        "third",
+        "primary",
+    ]
     assert [backend.model for backend in backends] == [
+        "deepseek-v4-pro",
         settings.ai.model,
         "fourth-model",
         "third-model",
         settings.ai.model,
     ]
-    assert backends[2].temperature == 1
-    assert backends[2].thinking == {"type": "disabled"}
+    assert backends[0].temperature is None
+    assert backends[0].thinking == {"type": "enabled", "budget_tokens": 1024}
+    assert backends[0].output_config == {"effort": "max"}
+    assert backends[0].timeout_seconds == 10800
+    assert backends[0].max_tokens_cap is None
+    assert backends[3].temperature == 1
+    assert backends[3].thinking == {"type": "disabled"}
+    assert all(backend.max_tokens_cap == 8000 for backend in backends[1:])
+
+
+def test_layer2_validation_rejects_truncation_even_when_json_is_parseable():
+    response = SimpleNamespace(
+        content=[
+            SimpleNamespace(
+                text='{"core_view":"x","bullets":[],"sentiment":"neutral"}'
+            )
+        ],
+        stop_reason="max_tokens",
+    )
+
+    parsed, error = _validate_layer2_response(response)
+
+    assert parsed is None
+    assert error == "response stopped at max_tokens"
+
+
+def test_layer2_symbol_validation_uses_source_scope():
+    tweets = [
+        {
+            "text": "Samsung Electronics (005930), Bitcoin $BTC, and C3.ai stock $AI",
+            "url": "https://x.com/a/status/1",
+        },
+        {
+            "text": "NVIDIA discussed DRAM, GPT, FDA, SK, LG, SHS, SHHS, BIT, GOLD, MSCI, KOSPI and PTFE; I and A are prose",
+            "url": "https://x.com/a/status/2",
+        },
+        {
+            "text": "Barrick $GOLD and MSCI stock $MSCI moved higher",
+            "url": "https://x.com/a/status/3",
+        },
+    ]
+    valid = {
+        "bullets": [
+            {
+                "point": "作者关注三星电子 $005930、$BTC 和 C3.ai $AI。",
+                "tickers": ["005930", "BTC", "AI"],
+                "tweet_url": "https://x.com/a/status/1",
+            }
+        ]
+    }
+    inferred = {
+        "bullets": [
+            {
+                "point": "作者关注 $NVDA、$DRAM、$GPT、$FDA、$SK、$LG、$SHS、$SHHS、$BIT、$GOLD、$MSCI、$KOSPI、$PTFE、$I 和 $A。",
+                "tickers": [
+                    "NVDA",
+                    "DRAM",
+                    "GPT",
+                    "FDA",
+                    "SK",
+                    "LG",
+                    "SHS",
+                    "SHHS",
+                    "BIT",
+                    "GOLD",
+                    "MSCI",
+                    "KOSPI",
+                    "PTFE",
+                    "I",
+                    "A",
+                ],
+                "tweet_url": "https://x.com/a/status/2",
+            },
+            {
+                "point": "作者关注 $GOLD 和 $MSCI。",
+                "tickers": ["GOLD", "MSCI"],
+                "tweet_url": "https://x.com/a/status/3",
+            }
+        ]
+    }
+
+    assert _layer2_symbol_validation_error(valid, tweets) is None
+    error = _layer2_symbol_validation_error(inferred, tweets)
+    assert "NVDA" in error
+    assert "DRAM" in error
+    assert "GPT" in error
+    assert "FDA" in error
+    assert "SHHS" in error
+    assert "BIT" in error
+    assert "GOLD" in error
+    assert "MSCI" in error
+    assert "KOSPI" in error
+    assert "PTFE" in error
+
+
+def test_source_symbols_keep_explicit_year_like_codes_and_ignore_parenthetical_words():
+    tweets = [
+        {
+            "text": "$2027 rallied after results (earnings), while $AI also moved",
+            "url": "https://x.com/a/status/1",
+        }
+    ]
+    parsed = {
+        "core_view": "作者关注 $2027 和 $AI",
+        "bullets": [
+            {
+                "point": "作者称 $2027 和 $AI 上涨",
+                "tickers": ["2027", "AI"],
+                "tweet_url": "https://x.com/a/status/1",
+            }
+        ],
+    }
+
+    assert _layer2_symbol_validation_error(parsed, tweets) is None
+    assert _source_market_symbols(tweets[0]) == {"2027", "AI"}
+    assert _source_market_symbols({"text": "FABLE, NATO, MAGA, NYSE and OPEC"}) == set()
+    assert _source_market_symbols(
+        {"text": "BUY NOW, TURN ON AI, BE CAREFUL, APP and ARM"}
+    ) == set()
+    assert _source_market_symbols(
+        {"text": "$NOW $ON $BE $APP $ARM are explicit symbols"}
+    ) == {"NOW", "ON", "BE", "APP", "ARM"}
+    assert _source_market_symbols(
+        {"text": "BTC ETH SPX VIX remain unambiguous short symbols"}
+    ) == {"BTC", "ETH", "SPX", "VIX"}
+
+
+def test_layer2_symbol_postprocessing_closes_translation_boundary():
+    tweets = [
+        {
+            "text": "NVIDIA discussed DRAM supply without a stock symbol",
+            "url": "https://x.com/a/status/1",
+        }
+    ]
+    parsed = {
+        "core_view": "作者关注 $NVDA",
+        "bullets": [
+            {
+                "point": "翻译步骤补入了 $NVDA 和 $DRAM",
+                "tickers": ["NVDA", "DRAM"],
+                "tweet_url": "https://x.com/a/status/1",
+            }
+        ],
+    }
+
+    sanitized = _sanitize_layer2_symbols_to_sources(parsed, tweets)
+
+    assert sanitized["core_view"] == "无市场相关内容"
+    assert sanitized["bullets"] == []
+    assert _layer2_symbol_validation_error(sanitized, tweets) is None
+
+
+def test_layer2_symbol_postprocessing_formats_allowed_bare_symbols():
+    tweets = [
+        {
+            "text": "NVDA and Samsung Electronics (005930) moved higher",
+            "url": "https://x.com/a/status/1",
+        }
+    ]
+    parsed = {
+        "core_view": "NVDA 与 005930 走强",
+        "bullets": [
+            {
+                "point": "NVDA 与三星电子（005930）走强",
+                "tickers": ["NVDA", "005930"],
+                "tweet_url": "https://x.com/a/status/1",
+            }
+        ],
+    }
+
+    assert _layer2_symbol_validation_error(parsed, tweets) is None
+    assert "missing_dollar_display" in _layer2_symbol_validation_error(
+        parsed, tweets, require_dollar_display=True
+    )
+
+    sanitized = _sanitize_layer2_symbols_to_sources(parsed, tweets)
+
+    assert sanitized["core_view"] == "$NVDA 与 $005930 走强"
+    assert sanitized["bullets"][0]["point"] == "$NVDA 与三星电子（$005930）走强"
+    assert sanitized["bullets"][0]["tickers"] == ["005930", "NVDA"]
+    assert (
+        _layer2_symbol_validation_error(
+            sanitized, tweets, require_dollar_display=True
+        )
+        is None
+    )
+
+
+def test_layer1_symbol_validation_is_scoped_to_cited_sources():
+    layer2 = [
+        {
+            "bullets": [
+                {
+                    "point": "作者关注英伟达，但原推没有代码。",
+                    "tickers": [],
+                    "tweet_url": "https://x.com/a/status/1",
+                },
+                {
+                    "point": "作者关注 $BTC。",
+                    "tickers": ["BTC"],
+                    "tweet_url": "https://x.com/a/status/2",
+                },
+            ]
+        }
+    ]
+
+    assert _layer1_symbol_validation_error(
+        "- 英伟达需求强 [@a](https://x.com/a/status/1)", layer2
+    ) is None
+    assert "NVDA" in _layer1_symbol_validation_error(
+        "- $NVDA 需求强 [@a](https://x.com/a/status/1)", layer2
+    )
+    assert _layer1_symbol_validation_error(
+        "- $BTC 走强 [@a](https://x.com/a/status/2)", layer2
+    ) is None
+    assert _layer1_symbol_validation_error(
+        "- NATO 与 OPEC 成为焦点 [@a](https://x.com/a/status/1)", layer2
+    ) is None
+    assert "NVDA" in _layer1_symbol_validation_error("- 今日关键词：$NVDA", layer2)
+    assert "NVDA" in _layer1_symbol_validation_error("- 今日关键词：NVDA", layer2)
+
+
+def test_layer1_symbol_validation_rejects_bare_numeric_codes():
+    layer2 = [
+        {
+            "bullets": [
+                {
+                    "point": "作者关注三星电子 $005930。",
+                    "tickers": ["005930"],
+                    "tweet_url": "https://x.com/a/status/1",
+                }
+            ]
+        }
+    ]
+
+    error = _layer1_symbol_validation_error(
+        "- 三星电子（005930）需求强 [@a](https://x.com/a/status/1)", layer2
+    )
+
+    assert "005930" in error
+
+
+def test_usage_input_tokens_includes_automatic_cache_tokens():
+    usage = SimpleNamespace(
+        input_tokens=10,
+        cache_read_input_tokens=20,
+        cache_creation_input_tokens=30,
+    )
+
+    assert _usage_input_tokens(usage) == 60
+
+
+@pytest.mark.asyncio
+async def test_summarize_day_respects_layer2_concurrency(monkeypatch):
+    active = 0
+    peak = 0
+
+    monkeypatch.setattr(settings.ai, "layer2_concurrency", 2)
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.tweets_on_date",
+        lambda _date: [
+            {
+                "screen_name": f"kol{index}",
+                "kol_id": index,
+                "tweet_id": str(index),
+                "text": "market update",
+                "url": f"https://x.com/kol{index}/status/{index}",
+            }
+            for index in range(4)
+        ],
+    )
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.downloaded_media_for_date", lambda _date: []
+    )
+
+    async def fake_summarize(kol, tweets, media_files):
+        nonlocal active, peak
+        active += 1
+        peak = max(peak, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return {
+            "screen_name": kol["screen_name"],
+            "tweet_count": len(tweets),
+            "core_view": "无市场相关内容",
+            "bullets": [],
+            "sentiment": "unclear",
+            "input_tokens": 1,
+            "output_tokens": 1,
+        }
+
+    async def failing_layer1(*_args, **_kwargs):
+        raise RuntimeError("force local fallback")
+
+    monkeypatch.setattr("kol_monitor.summarizer.summarize_one_kol", fake_summarize)
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.call_layer1_with_validation", failing_layer1
+    )
+    monkeypatch.setattr("kol_monitor.summarizer.db.save_digest", lambda **_kwargs: None)
+
+    await summarize_day("2026-09-01")
+
+    assert peak == 2
 
 
 @pytest.mark.asyncio
@@ -660,6 +989,64 @@ async def test_summarize_day_saves_digest_when_layer2_and_layer1_fail(monkeypatc
 
 
 @pytest.mark.asyncio
+async def test_summarize_day_keeps_billable_usage_when_layer2_postprocess_fails(
+    monkeypatch,
+):
+    saved = {}
+    fake = SimpleNamespace()
+    fake.messages = SimpleNamespace(
+        create=AsyncMock(
+            return_value=SimpleNamespace(
+                content=[
+                    SimpleNamespace(
+                        text='{"core_view":"x","bullets":[],"sentiment":"neutral"}'
+                    )
+                ],
+                usage=SimpleNamespace(input_tokens=40, output_tokens=20),
+                stop_reason="end_turn",
+            )
+        )
+    )
+    monkeypatch.setattr("kol_monitor.summarizer._client", fake)
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.tweets_on_date",
+        lambda _date: [
+            {
+                "screen_name": "macroKOL",
+                "kol_id": 1,
+                "tweet_id": "1",
+                "text": "market update",
+                "url": "https://x.com/macroKOL/status/1",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.downloaded_media_for_date", lambda _date: []
+    )
+    monkeypatch.setattr(
+        "kol_monitor.summarizer._sanitize_layer2_symbols_to_sources",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("postprocess failed")),
+    )
+
+    async def failing_layer1(*_args, **_kwargs):
+        raise RuntimeError("force local fallback")
+
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.call_layer1_with_validation", failing_layer1
+    )
+    monkeypatch.setattr(
+        "kol_monitor.summarizer.db.save_digest", lambda **kwargs: saved.update(kwargs)
+    )
+
+    result = await summarize_day("2026-09-01")
+
+    assert result["layer2"][0]["input_tokens"] == 40
+    assert result["layer2"][0]["output_tokens"] == 20
+    assert saved["input_tokens"] == 40
+    assert saved["output_tokens"] == 20
+
+
+@pytest.mark.asyncio
 async def test_summarize_one_kol_builds_message(monkeypatch):
     fake = SimpleNamespace()
     fake.messages = SimpleNamespace(
@@ -737,15 +1124,19 @@ async def test_summarize_one_kol_uses_next_backend_when_json_parse_fails(monkeyp
     events = []
 
     class FakeClient:
-        def __init__(self, api_key, base_url):
+        def __init__(self, api_key, base_url, **kwargs):
             self.api_key = api_key
             self.base_url = base_url
+            self.timeout = kwargs.get("timeout")
             self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
 
         async def _create(self, **kwargs):
             events.append(self.api_key)
             if self.api_key == "fallback":
-                return SimpleNamespace(content=[SimpleNamespace(text="not json")])
+                return SimpleNamespace(
+                    content=[SimpleNamespace(text="not json")],
+                    usage=SimpleNamespace(input_tokens=7, output_tokens=3),
+                )
             return SimpleNamespace(
                 content=[
                     SimpleNamespace(
@@ -780,11 +1171,12 @@ async def test_summarize_one_kol_uses_next_backend_when_json_parse_fails(monkeyp
 
     assert events == ["fallback", "fallback", "primary"]
     assert res["core_view"] == "primary ok"
-    assert res["input_tokens"] == 10
+    assert res["input_tokens"] == 24
+    assert res["output_tokens"] == 11
 
 
 @pytest.mark.asyncio
-async def test_call_claude_uses_fallback_client(monkeypatch):
+async def test_call_llm_uses_fallback_client(monkeypatch):
     class FakeClient:
         def __init__(self, api_key, base_url):
             self.api_key = api_key
@@ -805,7 +1197,7 @@ async def test_call_claude_uses_fallback_client(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", None)
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
 
-    response = await call_claude_with_retry(
+    response = await call_llm_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
         max_tokens=10,
     )
@@ -814,7 +1206,73 @@ async def test_call_claude_uses_fallback_client(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_call_claude_closes_each_backend_client(monkeypatch):
+async def test_call_llm_falls_back_from_deepseek_to_claude(monkeypatch):
+    events = []
+
+    class FakeClient:
+        def __init__(self, api_key, base_url, **kwargs):
+            self.api_key = api_key
+            self.base_url = base_url
+            self.timeout = kwargs.get("timeout")
+            self.messages = SimpleNamespace(create=AsyncMock(side_effect=self._create))
+
+        async def _create(self, **kwargs):
+            events.append(
+                (
+                    self.api_key,
+                    self.base_url,
+                    kwargs["model"],
+                    kwargs.get("thinking"),
+                    kwargs.get("output_config"),
+                    self.timeout,
+                    kwargs.get("max_tokens"),
+                )
+            )
+            if self.api_key == "deepseek":
+                raise RuntimeError("deepseek unavailable")
+            return SimpleNamespace(content=[SimpleNamespace(text="ok-claude")])
+
+    monkeypatch.setattr("kol_monitor.summarizer._client", None)
+    monkeypatch.setattr("kol_monitor.summarizer.AsyncAnthropic", FakeClient)
+    monkeypatch.setattr(settings, "deepseek_api_key", "deepseek", raising=False)
+    monkeypatch.setattr(
+        settings,
+        "deepseek_base_url",
+        "https://api.deepseek.example/anthropic",
+        raising=False,
+    )
+    monkeypatch.setattr(settings, "deepseek_model", "deepseek-v4-pro", raising=False)
+    monkeypatch.setattr(settings, "deepseek_reasoning_effort", "max", raising=False)
+    monkeypatch.setattr(settings, "anthropic_fallback_api_key", "fallback", raising=False)
+    monkeypatch.setattr(
+        settings, "anthropic_fallback_base_url", "https://claude.example", raising=False
+    )
+    monkeypatch.setattr(settings, "anthropic_fourth_api_key", None, raising=False)
+    monkeypatch.setattr(settings, "anthropic_third_api_key", None, raising=False)
+    monkeypatch.setattr(settings, "anthropic_api_key", None, raising=False)
+
+    response = await call_llm_with_retry(
+        messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
+        max_tokens=384000,
+    )
+
+    assert response.content[0].text == "ok-claude"
+    assert [event[0] for event in events] == ["deepseek", "fallback"]
+    assert events[0][1] == "https://api.deepseek.example/anthropic"
+    assert events[0][2] == "deepseek-v4-pro"
+    assert events[0][3] == {"type": "enabled", "budget_tokens": 1024}
+    assert events[0][4] == {"effort": "max"}
+    assert events[0][5] == 10800
+    assert events[0][6] == 384000
+    assert events[1][2] == settings.ai.model
+    assert events[1][3] is None
+    assert events[1][4] is None
+    assert events[1][5] is None
+    assert events[1][6] == 8000
+
+
+@pytest.mark.asyncio
+async def test_call_llm_closes_each_backend_client(monkeypatch):
     closed = []
 
     class FakeClient:
@@ -839,7 +1297,7 @@ async def test_call_claude_closes_each_backend_client(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_api_key", None)
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
 
-    await call_claude_with_retry(
+    await call_llm_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
         max_tokens=10,
     )
@@ -848,7 +1306,7 @@ async def test_call_claude_closes_each_backend_client(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_call_claude_falls_through_to_third_client(monkeypatch):
+async def test_call_llm_falls_through_to_third_client(monkeypatch):
     events = []
 
     class FakeClient:
@@ -882,7 +1340,7 @@ async def test_call_claude_falls_through_to_third_client(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_model", "anthropic/claude-sonnet-4.6")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
 
-    response = await call_claude_with_retry(
+    response = await call_llm_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
         max_tokens=10,
     )
@@ -931,7 +1389,7 @@ async def test_third_backend_retries_temperature_thinking_error_with_provider_de
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_third_model", "anthropic/claude-sonnet-4.6")
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_api_key", None, raising=False)
 
-    response = await call_claude_with_retry(
+    response = await call_llm_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
         max_tokens=10,
     )
@@ -944,7 +1402,7 @@ async def test_third_backend_retries_temperature_thinking_error_with_provider_de
 
 
 @pytest.mark.asyncio
-async def test_call_claude_falls_through_to_fourth_client(monkeypatch):
+async def test_call_llm_falls_through_to_fourth_client(monkeypatch):
     events = []
 
     class FakeClient:
@@ -980,7 +1438,7 @@ async def test_call_claude_falls_through_to_fourth_client(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_base_url", "https://fourth.example", raising=False)
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_model", "claude-sonnet-4-6", raising=False)
 
-    response = await call_claude_with_retry(
+    response = await call_llm_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
         max_tokens=10,
     )
@@ -994,7 +1452,7 @@ async def test_call_claude_falls_through_to_fourth_client(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_call_claude_uses_third_after_fourth_fails(monkeypatch):
+async def test_call_llm_uses_third_after_fourth_fails(monkeypatch):
     events = []
 
     class FakeClient:
@@ -1030,7 +1488,7 @@ async def test_call_claude_uses_third_after_fourth_fails(monkeypatch):
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_base_url", "https://fourth.example", raising=False)
     monkeypatch.setattr("kol_monitor.summarizer.settings.anthropic_fourth_model", "claude-sonnet-4-6", raising=False)
 
-    response = await call_claude_with_retry(
+    response = await call_llm_with_retry(
         messages=[{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
         max_tokens=10,
     )
@@ -1046,9 +1504,9 @@ async def test_call_claude_uses_third_after_fourth_fails(monkeypatch):
     assert events[2][4] == {"type": "disabled"}
 
 
-def test_anthropic_sdk_base_url_keeps_clean_provider_root():
-    assert _anthropic_sdk_base_url("https://third.example") == "https://third.example"
-    assert _anthropic_sdk_base_url("https://third.example/v1") == "https://third.example"
+def test_llm_sdk_base_url_keeps_clean_provider_root():
+    assert _llm_sdk_base_url("https://third.example") == "https://third.example"
+    assert _llm_sdk_base_url("https://third.example/v1") == "https://third.example"
 
 
 def test_response_text_uses_text_blocks_after_thinking_blocks():
@@ -1084,6 +1542,34 @@ def test_build_layer1_prompt_includes_trump_section():
     assert "总长度控制在 1800-2600 汉字" in text
 
 
+def test_build_layer1_prompt_defines_cross_market_symbol_scope():
+    prompt = build_layer1_prompt(
+        [
+            {
+                "screen_name": "globalKOL",
+                "tweet_count": 1,
+                "core_view": "x",
+                "bullets": [],
+                "sentiment": "neutral",
+            }
+        ]
+    )
+
+    text = prompt[0]["content"][0]["text"]
+    assert "市场交易标识符" in text
+    assert "A 股 $688981" in text
+    assert "韩股 $005930" in text
+    assert "台股 $2330" in text
+    assert "日股 $8035" in text
+    assert "港股 $03308" in text
+    assert "加密资产 $BTC" in text
+    assert "商品/外汇交易符号 $WTI、$XAUUSD、$DXY、$USDJPY" in text
+    assert "DRAM" in text and "不能仅因大写" in text
+    assert "只是分类示例" in text
+    assert "多个机构、公司或人物" in text
+    assert "各自动作" in text
+
+
 def test_layer2_prompt_requires_dollar_ticker_display():
     text = _layer2_prompt(
         {"screen_name": "qinbafrank"},
@@ -1093,6 +1579,31 @@ def test_layer2_prompt_requires_dollar_ticker_display():
 
     assert "$NVDA" in text
     assert "tickers" in text
+
+
+def test_layer2_prompt_distinguishes_symbols_from_market_terms():
+    text = _layer2_prompt(
+        {"screen_name": "globalKOL"},
+        [
+            {
+                "text": "$005930 and $BTC; HBM and RSI are context only",
+                "favorite_count": 1,
+                "retweet_count": 0,
+                "url": "https://x.com/a/status/1",
+            }
+        ],
+        had_media=False,
+    )
+
+    assert "不只是美股" in text
+    assert "加密资产不得描述为公司股票" in text
+    assert "HBM" in text and "RSI" in text
+    assert "非美股数字代码必须同时保留市场或公司语境" in text
+    assert "三星电子（$005930）" in text
+    assert "禁止裸写 `005930`" in text
+    assert "C3.ai 股票时的 $AI" in text
+    assert "多个机构、公司或人物" in text
+    assert "各自动作" in text
 
 
 def test_normalize_layer1_source_links_uses_handles():
@@ -1232,6 +1743,31 @@ def test_normalize_layer2_result_fixes_boe_ticker_for_jingdongfang():
     assert normalized["bullets"][0]["tickers"] == ["000725"]
 
 
+def test_normalize_layer2_result_formats_or_drops_undisplayed_symbols():
+    normalized = _normalize_layer2_result(
+        {
+            "core_view": "作者关注跨市场标的",
+            "sentiment": "neutral",
+            "bullets": [
+                {
+                    "point": "作者称三星电子（005930）需求增长。",
+                    "tickers": ["005930"],
+                    "tweet_url": "https://x.com/a/status/1",
+                },
+                {
+                    "point": "作者只写了英伟达公司名。",
+                    "tickers": ["NVDA"],
+                    "tweet_url": "https://x.com/a/status/2",
+                },
+            ],
+        }
+    )
+
+    assert normalized["bullets"][0]["point"] == "作者称三星电子（$005930）需求增长。"
+    assert normalized["bullets"][0]["tickers"] == ["005930"]
+    assert normalized["bullets"][1]["tickers"] == []
+
+
 def test_normalize_layer2_result_filters_non_chinese_and_company_conflict():
     parsed = {
         "core_view": "OpenAI计划发布claude-sonnet-4-6",
@@ -1342,7 +1878,7 @@ async def test_translate_residual_layer2_preserves_info(monkeypatch):
             content = [SimpleNamespace(type="text", text='["日本央行加息至1%创31年新高", "SK海力士ADR七月上市"]')]
         return R()
 
-    monkeypatch.setattr(summarizer, "call_claude_with_retry", fake_call)
+    monkeypatch.setattr(summarizer, "call_llm_with_retry", fake_call)
 
     parsed = {
         "core_view": "强势",  # already Chinese -> not a target
@@ -1367,7 +1903,7 @@ async def test_translate_residual_failure_leaves_bullets_for_drop(monkeypatch):
     async def failing_call(messages, max_tokens):
         raise RuntimeError("backend down")
 
-    monkeypatch.setattr(summarizer, "call_claude_with_retry", failing_call)
+    monkeypatch.setattr(summarizer, "call_llm_with_retry", failing_call)
 
     parsed = {
         "core_view": "x",
@@ -1408,7 +1944,7 @@ async def test_generate_layer3_tweet_uses_cleaned_layer1(monkeypatch):
 
         return R()
 
-    monkeypatch.setattr(summarizer, "call_claude_with_retry", fake_call)
+    monkeypatch.setattr(summarizer, "call_llm_with_retry", fake_call)
     monkeypatch.setattr(
         summarizer.db,
         "get_digest",

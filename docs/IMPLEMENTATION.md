@@ -1,6 +1,6 @@
 # 实施计划（按文件粒度的 todo）
 
-最后更新：2026-06-30
+最后更新：2026-09-01
 配套文档：
 - 设计：[DESIGN.md](DESIGN.md)
 - 注意事项：[../AGENTS.md](../AGENTS.md)
@@ -17,7 +17,8 @@
 
 需用户准备：
 - [x] 6551.io Bearer token（`.env` 写入 `OPENTWITTER_TOKEN`）
-- [ ] Claude API base URL + key（`.env` 写入 `ANTHROPIC_BASE_URL` 和 `ANTHROPIC_API_KEY`）
+- [x] DeepSeek API key（`.env` / `.env.local` 写入 `DEEPSEEK_API_KEY`）
+- [x] Claude 降级备用 base URL + key（`ANTHROPIC_*`）
 - [x] GitHub remote 配好（`git remote -v` 能看到 `origin`）
 
 代码可以在 token 全部到位前先写好，最后一步首跑时再注入。
@@ -262,19 +263,20 @@ def validate_image(path: Path) -> bool: ...  # PIL Image.verify
 async def summarize_day(date) -> DigestResult: ...
 async def summarize_one_kol(kol, tweets, media_files) -> Layer2Result: ...
 def build_layer1_prompt(layer2_results) -> list[Message]: ...
-async def call_claude_with_retry(messages, max_tokens) -> ClaudeResponse: ...
+async def call_llm_with_retry(messages, max_tokens) -> LLMResponse: ...
 ```
 
 实现要点：
-- anthropic SDK 实例化时注入 `base_url`、`api_key`
+- anthropic SDK 实例化时注入 `base_url`、`api_key`；DeepSeek 首选与 Claude 降级共用 Anthropic-compatible 请求形式
 - 每次创建的 `AsyncAnthropic` 客户端必须在 `finally` 中关闭，daemon 跨日运行时不能把连接留给下一事件循环回收
 - `media.max_photos_per_kol_for_ai=0` 时不向 AI 发送图片；如需恢复，设为正整数后图片走 `{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": ...}}`
-- Layer 2 prompt 要求输出 JSON，用 `response.content[0].text` 后 json.loads，失败重试一次（带"请严格按此 JSON 输出"prompt 强化）
+- Layer 2 prompt 要求输出 JSON，从所有 `text` block 提取正文（跳过 DeepSeek reasoning block）；JSON 、截断或来源标识符校验失败时重试后再降级
 - Layer 1 prompt 是 markdown 输出，按 7 个章节（DESIGN §9.2）
 - 发布前对 Layer 1 做确定性清理：来源链接规范化、内部工件过滤、中文标点归一化、普通长段落整理成 bullet；清洗后仍有质量 error 时改用本地有来源兜底模板
+- Layer 1 / Layer 2 按被引用原推构建市场标识符白名单；翻译与归一化后再做一次确定性过滤，防止后处理重新引入越权代码
 - Layer 3 / premarket 长推文已停用，不再接入 `run-once` / `regen-digest`；`build_layer3_prompt` 等函数仅作为遗留 helper 保留
-- Layer 1 / Layer 2 展示文本里涉及具体股票代码时统一用 `$代码`，例如 `$NVDA`
-- token 计数累加到 `digests.input_tokens / output_tokens`
+- Layer 1 / Layer 2 展示文本里涉及具体市场标识符时统一用 `$代码`，包括全球股票、ETF/指数、加密及明确商品/外汇符号
+- 所有收到响应的 LLM 请求（包括截断、格式/质量失败、修复重试和降级前响应）的 token 都累加到 `digests.input_tokens / output_tokens`；连接/HTTP 失败若 provider 没有返回 usage，无法本地计数
 
 **输入**：当日 tweets + media
 **输出**：`digests` 表一条记录（summary_md + layer2_json）

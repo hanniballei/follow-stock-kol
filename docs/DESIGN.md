@@ -1,10 +1,10 @@
 # 美股 KOL 推特监控系统 · 设计文档
 
-最后更新：2026-06-30
+最后更新：2026-09-01
 
 ## 1. 项目目标
 
-每天**北京时间 20:30**（固定不随夏令时调整），自动抓取 64 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，用 Claude Sonnet 4.6 兼容后端做 AI 总结，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
+每天**北京时间 20:30**（固定不随夏令时调整），自动抓取 64 位美股相关 Twitter / X KOL 的最新推文（含图片），其中包含 `realDonaldTrump`，首选用 DeepSeek V4 Pro 做 AI 总结，Claude Sonnet 4.6 兼容后端作降级备用，把当日总结推送到 GitHub 仓库主页（README.md），并按月归档历史 digest，方便公开访问。
 
 ## 2. 技术栈
 
@@ -12,7 +12,7 @@
 |---|---|---|
 | 抓取 | 6551.io REST API（`https://ai.6551.io`） | 直接 httpx 调，不走 MCP 协议 |
 | 数据库 | SQLite（项目根 `kol_monitor.db`） | 单文件零维护 |
-| AI 总结 | Claude Sonnet 4.6（用户提供 base URL + key） | 走 anthropic SDK |
+| AI 总结 | DeepSeek V4 Pro 首选，Claude Sonnet 4.6 降级 | 统一走 Anthropic-compatible SDK |
 | 调度 | apscheduler `BlockingScheduler`，timezone `Asia/Shanghai` | 固定 cron `30 20 * * *` |
 | 发布 | git commit + push 到 GitHub 主仓库 | 仅 markdown，媒体不进 git |
 | 日志 | rich + Python logging | 控制台彩色 + 文件落盘 |
@@ -21,7 +21,7 @@
 ### 关键依赖
 ```
 httpx>=0.27           # 6551 REST + 图片下载
-anthropic>=0.40       # Claude SDK，支持 base_url 注入
+anthropic>=0.40       # Anthropic-compatible SDK，支持 DeepSeek / Claude base_url 注入
 apscheduler>=3.10
 pyyaml>=6.0
 python-dotenv>=1.0
@@ -64,18 +64,12 @@ WSS 实时事件（`wss://ai.6551.io/open/twitter_wss?token=...`）暂不接，�
 
 ## 4. AI 模型选型
 
-- **主选 Claude Sonnet 4.6**（用户指定）
-- 价格：$3/M 输入、$15/M 输出（Anthropic 官方标准价，截至 2026-07-14；兼容后端以实际扣费为准）
+- **主选 DeepSeek V4 Pro**（官方 Anthropic-compatible API，Think Max）
+- **Claude Sonnet 4.6 作多层降级备用**
 - 多模态：模型支持图片输入，但当前为控制 token 成本默认关闭（`media.max_photos_per_kol_for_ai=0`）；需要时可设为正整数恢复
 - 视频：不支持原生输入，本系统也只存 URL 不喂 AI
 
-走 anthropic SDK，构造时支持注入 `base_url`：
-
-```python
-from anthropic import Anthropic
-client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"),
-                   api_key=os.getenv("ANTHROPIC_API_KEY"))
-```
+实现统一使用异步 Anthropic-compatible SDK；当前模型参数、后端顺序、超时和费用口径分别以 [`config/settings.yaml`](../config/settings.yaml)、[OPERATIONS.md](OPERATIONS.md#6-llm-首选与降级机制) 和 [DeepSeek 研究记录](research/deepseek-v4-flash-pro-api.md) 为准，避免在设计文档复制易变运行值。
 
 ## 5. 模块划分
 
@@ -85,7 +79,7 @@ src/kol_monitor/
 ├── db.py            # SQLite 连接池 + DAO
 ├── fetcher.py       # 抓取主流程：增量 + 防漏拉 + 回填
 ├── media.py         # 图片下载（去重、重试、按日期分目录）
-├── summarizer.py    # Claude 调用：Layer 2 各 KOL + Layer 1 综合；保留遗留 Layer 3 helper
+├── summarizer.py    # DeepSeek 首选 + Claude 降级：Layer 2 各 KOL + Layer 1 综合；保留遗留 Layer 3 helper
 ├── quality.py       # 日报草稿修复 + 质量扫描（不写发布文件）
 ├── publisher.py     # Markdown 渲染 + README 更新 + git ops
 ├── scheduler.py     # apscheduler 入口
@@ -191,7 +185,7 @@ src/kol_monitor/
 
 ### 9.1 Layer 2 — 每 KOL 单独总结（折叠展示）
 
-按 KOL 维度循环调用，每个 KOL 一次 Claude 请求：
+按 KOL 维度循环调用，每个 KOL 一次首选 LLM 请求：
 
 **输入**：当日所有该 KOL 的推文（text + 互动数 + 配图 base64，单 KOL 最多 8 张图，按互动量截断）。
 
@@ -250,7 +244,7 @@ Layer 3 曾用于把已清洗的 Layer 1 综合摘要浓缩成可复制到 X 的
 ### 9.5 失败处理
 
 - 单 KOL 总结失败 → 该 KOL 标 `summary_failed`，不影响其他
-- Layer 1 失败 → 尝试多层 Claude 后端；全部失败时使用本地兜底模板，避免当天日报完全缺失
+- Layer 1 失败 → 先从 DeepSeek 降级到多层 Claude 后端；全部失败时使用本地兜底模板，避免当天日报完全缺失
 - 发布前清洗后的 Layer 1 如果仍触发质量扫描 error，`publisher.write_outputs()` 会改用本地有来源兜底模板；如果兜底也失败，只记录错误并使用清洗版 Layer 1，遵守发布流程不因扫描异常中断
 
 ## 10. 媒体存储策略
@@ -356,7 +350,7 @@ kol-monitor add-kol <handle> --validate       # 增加 KOL（去重 + 校验）
 | 首日 digest 内容稀疏 | 文档说明：第一天为冷启动，第二天起完整 |
 | AI 输出不符合 JSON 格式 | tenacity 重试 + JSON parse fallback；保底用纯文本切片 |
 | Git push 失败 | 重试 3 次后仅本地落盘，下次跑批一起 push |
-| 推文含违规 / 敏感内容 | 依赖 Claude 自身安全护栏；额外按 `possibly_sensitive` 字段标注 |
+| 推文含违规 / 敏感内容 | 依赖当前 LLM 安全护栏；额外按 `possibly_sensitive` 字段标注 |
 | SQLite 大小膨胀 | 90 天后 `raw_json` 字段置空（保留结构化字段）|
 
 ## 15. 不做的事
@@ -364,7 +358,7 @@ kol-monitor add-kol <handle> --validate       # 增加 KOL（去重 + 校验）
 明确不做以避免范围蔓延：
 
 - ❌ KOL 分类标签（用户明确否决）
-- ❌ 视频内容理解（GPT 无原生支持，Sonnet 4.6 也不支持）
+- ❌ 视频内容理解（当前文本总结链路只保留视频 URL，不解析视频）
 - ❌ 实时 WSS 推送（一天一次够用，留扩展位）
 - ❌ GitHub Pages（用户要求只 README）
 - ❌ 推送图片到 GitHub（仓库膨胀风险，X CDN 直链可用）

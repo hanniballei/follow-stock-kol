@@ -1,8 +1,8 @@
 # 测试策略与示例
 
-最后更新：2026-07-13
+最后更新：2026-09-01
 
-> 本项目所有测试**严禁依赖网络**。6551 / Anthropic / Git 远端调用一律 mock。
+> 本项目所有自动测试**严禁依赖网络**。6551 / DeepSeek / Claude / Git 远端调用一律 mock。
 > 运行方式：`.venv/bin/pytest`
 
 ---
@@ -394,9 +394,9 @@ def test_digest_md_no_collapse():
 - 发布前清洗后的 Layer 1 如果仍失败，`publisher._select_publishable_layer1()` 会改用本地兜底摘要
 - `write_quality_draft()` 只写指定草稿目录，生成 `draft.md`、`cleaned_existing.md`、`repaired_fallback.md`、`layer2_normalized.json`、`quality_report.json`
 
-测试样例使用 `tmp_db` 写入一条假 digest，再调用 `write_quality_draft()` 到 `tmp_path`，不调用真实 Claude、6551 或 git。
+测试样例使用 `tmp_db` 写入一条假 digest，再调用 `write_quality_draft()` 到 `tmp_path`，不调用真实 LLM、6551 或 git。
 
-`tests/test_summarizer_mock.py` 还需验证：每个临时 `AsyncAnthropic` 后端客户端都会关闭；已下载且本地存在的图片会传给对应 KOL；`t.co` 可从 URL 元数据展开；京东方 A 只在明确上下文中归一化为 `$000725`，不误改真实美股 `$BOE`。
+`tests/test_summarizer_mock.py` 还需验证：DeepSeek 首选与 Claude 降级顺序；Think Max / 384K 请求与 Claude 8K 封顶；`max_tokens` 截断拒绝；来源级全球市场标识符白名单、翻译后再校验与纯数字代码 `$` 展示；Layer 2 并发上限；截断/格式失败/修复重试的 usage 累加；每个临时 `AsyncAnthropic` 客户端关闭；媒体输入、`t.co` 展开和京东方 A 冲突归一化。
 
 ---
 
@@ -405,7 +405,7 @@ def test_digest_md_no_collapse():
 明确不在测试覆盖范围内（避免范围蔓延 + 网络依赖）：
 
 - ❌ 真调 6551 API 的集成测试
-- ❌ 真调 Claude 的端到端测试
+- ❌ 自动测试中真调 DeepSeek / Claude 的端到端请求
 - ❌ git push 到真远端
 - ❌ 真下载 X CDN 图片
 - ❌ apscheduler 触发时机测试（信任 apscheduler 自身）

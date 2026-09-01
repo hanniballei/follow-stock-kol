@@ -28,8 +28,8 @@ media:
 
 ai:
   model: claude-sonnet-4-6          # 用户提供的代理若用别的 ID 在此覆盖
-  max_tokens_layer2: 1500           # Layer 2：每个 KOL 单独总结
-  max_tokens_layer1: 6000           # Layer 1：综合总结；留足缓冲，实际篇幅由提示词约束
+  max_tokens_layer2: 384000         # DeepSeek V4 Pro 官方最大输出上限；包含思考+正文
+  max_tokens_layer1: 384000         # DeepSeek V4 Pro 官方最大输出上限；Claude 降级后端仍封顶 8000
   max_tokens_layer3: 2000           # 遗留 Layer 3 helper 参数；日常流程已停用盘前长推文
   temperature: 0.3
   retry_attempts: 3

@@ -1,6 +1,6 @@
 # 运维与运行说明
 
-最后更新：2026-08-11
+最后更新：2026-09-01
 
 ## 1. 如何持久化运行
 
@@ -167,14 +167,21 @@ KOL_MONITOR_DIGEST_ARCHIVE_DIR=/root/trading/data/us-stock/kol-monitor/digests
 
 日报镜像发生在最终渲染和质量扫描之后，并使用同目录临时文件加原子替换。镜像失败时本次流程会在 git 发布前停止，避免 GitHub 日报与本地长期归档静默分叉；修复目录权限后重跑当期日报即可。
 
-## 6. LLM 备用机制
+## 6. LLM 首选与降级机制
 
-Claude 调用按四层顺序尝试。环境变量名保留了历史命名，不等同于当前调用顺位：
+LLM 按以下顺序尝试。环境变量名保留了历史命名，不等同于当前调用顺位：
 
-1. 第一顺位备用：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同主配置
-2. 第二顺位备用：`ANTHROPIC_FOURTH_API_KEY` + `ANTHROPIC_FOURTH_BASE_URL` + `ANTHROPIC_FOURTH_MODEL`
-3. 第三顺位备用：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
-4. 最后兜底主凭据：`ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`，模型用 `config/settings.yaml` 的 `ai.model`
+1. 首选：`DEEPSEEK_API_KEY` + `DEEPSEEK_BASE_URL`，默认模型 `deepseek-v4-pro`
+2. Claude 第一降级：`ANTHROPIC_FALLBACK_API_KEY` + `ANTHROPIC_FALLBACK_BASE_URL`，模型同 `config/settings.yaml.ai.model`
+3. Claude 第二降级：`ANTHROPIC_FOURTH_API_KEY` + `ANTHROPIC_FOURTH_BASE_URL` + `ANTHROPIC_FOURTH_MODEL`
+4. Claude 第三降级：`ANTHROPIC_THIRD_API_KEY` + `ANTHROPIC_THIRD_BASE_URL` + `ANTHROPIC_THIRD_MODEL`
+5. Claude 最后兜底：`ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`，模型用 `config/settings.yaml.ai.model`
+
+DeepSeek 走官方 Anthropic-compatible 接口 `https://api.deepseek.com/anthropic`，显式使用 `thinking=enabled` + `output_config.effort=max`，thinking 模式不发送无效的 `temperature`。DeepSeek Layer 2/1 的 `max_tokens` 均拉到官方上限 384000，包含 reasoning 与正文；这是最大允许额，计费仍按实际使用 token，不会因为设为 384000 就固定扣费。Claude 降级后端仍单独封顶 8000。任何 `stop_reason=max_tokens` 都视为不完整，不会因 relaxed JSON 能解析就被接受。
+
+Max 是 DeepSeek 官方定位的“探索模型推理能力边界”档位，延迟和输出 token 明显高于 non-thinking。实测 2026-08-31 高负载 `cnfinancewatch` Layer 2 用 20,618 输出 token、约 326 秒；整期 Layer 1 用 18,664 输出 token、约 275 秒。这类 5 分钟级单请求是预期行为。为与 384K 极端上限匹配，DeepSeek 客户端超时设为 3 小时；这只放宽等待上限，正常请求仍会在模型完成时立即返回。
+
+reasoning 块不进入 Layer 2 JSON、`summary_md`、README 或 digest，但其 token 属于 `output_tokens` 并按输出价计费。`digests.input_tokens/output_tokens` 累加所有收到 usage 的响应，包括截断、JSON/质量失败、修复重试与降级前响应；连接或 HTTP 失败如果 provider 未返回 usage，本地无法计入，结算仍以 DeepSeek 控制台账单为准。
 
 四层 `BASE_URL` 都填服务根地址即可，不需要追加 `/v1`；代码仍兼容误填 `/v1` 的旧配置。只有上一层调用抛错或无结果时，才会尝试下一层。当前第二顺位模型名配置为 `claude-sonnet-4-6`，第三顺位模型名配置为 `anthropic/claude-sonnet-4.6`。
 
@@ -182,7 +189,7 @@ Claude 调用按四层顺序尝试。环境变量名保留了历史命名，不�
 
 `ANTHROPIC_FOURTH_*` 这组 Packy 后端当前作为第二顺位备用，按普通 Claude 兼容后端处理，使用 `config/settings.yaml` 的 `ai.temperature`，不额外发送 `thinking` 参数。
 
-如果 Layer 1 总摘要四层 LLM 都失败，程序会用已生成的各 KOL 结构化摘要拼出本地兜底日报，并在正文开头标注“本地兜底模板”。如果单个 KOL 的 Layer 2 摘要也失败，会从原始推文生成最小明细，避免当天 README 因单点 LLM 故障完全不更新。
+如果 Layer 1 的 DeepSeek + 四层 Claude 都失败，程序会用已生成的各 KOL 结构化摘要拼出本地兜底日报，并在正文开头标注“本地兜底模板”。如果单个 KOL 的 Layer 2 摘要也失败，会从原始推文生成最小明细，避免当天 README 因单点 LLM 故障完全不更新。
 
 日报发布前会做确定性质量清理：删除明显内部提示词/工作流污染、关键章节中没有 X 来源链接的要点、未链接来源标签、韩文/日文残留过多的行，以及“OpenAI 计划发布 Claude/Anthropic 模型”这类明显归属冲突。Layer 1 还会做中文标点归一化，并把非交易信号章节里的普通长段落整理为 markdown bullet；质量扫描会用 `long_plain_paragraph` warning 标记仍影响可读性的长段落。`quality_report.json` 会把这些问题按 error/warning 记录下来，方便回查是哪一层出错。
 

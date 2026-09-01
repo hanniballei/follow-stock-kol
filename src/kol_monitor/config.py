@@ -56,6 +56,10 @@ def load_settings(root: str | Path | None = None) -> SimpleNamespace:
         settings_data.setdefault("ai", {})["model"] = os.environ["ANTHROPIC_MODEL"]
 
     settings = _namespace(settings_data)
+    layer2_concurrency = getattr(settings.ai, "layer2_concurrency", 1)
+    if not isinstance(layer2_concurrency, int) or layer2_concurrency < 1:
+        raise ConfigError("ai.layer2_concurrency must be a positive integer")
+    settings.ai.layer2_concurrency = layer2_concurrency
     settings.project_root = project_root
     settings.kols = kols
     settings.db_path = Path(os.getenv("KOL_MONITOR_DB") or project_root / "kol_monitor.db")
@@ -64,6 +68,14 @@ def load_settings(root: str | Path | None = None) -> SimpleNamespace:
     settings.digest_archive_dir = Path(digest_archive_dir) if digest_archive_dir else None
     settings.opentwitter_token = os.getenv("OPENTWITTER_TOKEN")
     settings.opentwitter_base_url = os.getenv("OPENTWITTER_BASE_URL") or "https://ai.6551.io"
+    settings.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY")
+    settings.deepseek_base_url = (
+        os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com/anthropic"
+    )
+    settings.deepseek_model = os.getenv("DEEPSEEK_MODEL") or "deepseek-v4-pro"
+    settings.deepseek_reasoning_effort = os.getenv("DEEPSEEK_REASONING_EFFORT") or "max"
+    if settings.deepseek_reasoning_effort not in {"low", "high", "max"}:
+        raise ConfigError("DEEPSEEK_REASONING_EFFORT must be low, high, or max")
     settings.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
     settings.anthropic_base_url = os.getenv("ANTHROPIC_BASE_URL") or None
     settings.anthropic_fallback_api_key = os.getenv("ANTHROPIC_FALLBACK_API_KEY")

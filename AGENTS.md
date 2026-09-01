@@ -1,6 +1,6 @@
 # AGENTS.md · 给后续协作开发的注意事项
 
-最后更新：2026-06-30
+最后更新：2026-09-01
 项目：美股 KOL 推特监控
 配套文档：
 - 设计：[docs/DESIGN.md](docs/DESIGN.md)
@@ -27,26 +27,7 @@
 
 ### 1.1 必备环境变量（`.env`）
 
-模板见 [`.env.example`](.env.example)。核心变量：
-
-```bash
-OPENTWITTER_TOKEN=          # 必填，6551.io 注册申请
-OPENTWITTER_BASE_URL=https://ai.6551.io   # 一般不改
-ANTHROPIC_API_KEY=          # 必填
-ANTHROPIC_BASE_URL=         # 走代理时填，走官方留空
-# ANTHROPIC_MODEL=          # 可选覆盖；默认从 settings.yaml.ai.model 读
-ANTHROPIC_FALLBACK_API_KEY= # 可选备用 Claude key
-ANTHROPIC_FALLBACK_BASE_URL= # 可选备用 Claude base URL；为空则复用 ANTHROPIC_BASE_URL
-ANTHROPIC_THIRD_API_KEY=    # 可选第三层 Claude 兼容后端 key
-ANTHROPIC_THIRD_BASE_URL=   # 可选第三层 Claude 兼容后端 base URL
-ANTHROPIC_THIRD_MODEL=      # 可选第三层模型名；默认同 settings.yaml.ai.model
-ANTHROPIC_FOURTH_API_KEY=   # 可选第四层 Claude 兼容后端 key
-ANTHROPIC_FOURTH_BASE_URL=  # 可选第四层 Claude 兼容后端 base URL
-ANTHROPIC_FOURTH_MODEL=     # 可选第四层模型名；默认同 settings.yaml.ai.model
-# KOL_MONITOR_DB=           # 可选覆盖 SQLite 路径
-# KOL_MONITOR_MEDIA_DIR=    # 可选覆盖媒体目录
-KOL_MONITOR_ALLOW_PUSH=false # 可选；默认不执行远端 git push
-```
+环境变量的唯一模板是 [`.env.example`](.env.example)；当前 LLM 顺序、参数和费用口径见 [docs/OPERATIONS.md](docs/OPERATIONS.md#6-llm-首选与降级机制)。本机覆盖放在被忽略的 `.env.local`，不在仓库文档中复制实际凭据或运行值。
 
 ### 1.2 凭据安全
 
@@ -119,9 +100,23 @@ else:                         # 增量
 
 ---
 
-## 4. Claude API 注入
+## 4. LLM API 注入
 
-### 4.1 base_url 优先级
+### 4.1 DeepSeek 首选
+
+```python
+from anthropic import AsyncAnthropic
+
+client = AsyncAnthropic(
+    api_key=os.environ["DEEPSEEK_API_KEY"],
+    base_url=os.environ.get("DEEPSEEK_BASE_URL")
+    or "https://api.deepseek.com/anthropic",
+)
+```
+
+当前生产参数以 [config/settings.yaml](config/settings.yaml) 和 [docs/OPERATIONS.md](docs/OPERATIONS.md#6-llm-首选与降级机制) 为准。重要兼容性坑：只改 DeepSeek base URL 却继续传 `claude-sonnet-4-6`，官方兼容层会映射到 Flash，不是 Pro；因此必须传明确的 DeepSeek model ID。
+
+### 4.2 Claude 降级 base_url 优先级
 
 ```python
 from anthropic import Anthropic
@@ -135,11 +130,11 @@ client = Anthropic(
 
 不要写死 base_url。代理地址的协议头要带（`https://...`），SDK 不会自动补。
 
-### 4.2 模型 ID
+### 4.3 Claude 降级模型 ID
 
 `claude-sonnet-4-6` 是 2026 当前的有效 ID。如果代理服务用别的 ID（比如 `claude-3-sonnet-..`），需要在 `settings.yaml.ai.model` 字段覆盖。
 
-### 4.3 多模态消息构造
+### 4.4 多模态消息构造
 
 图片走 base64 inline：
 ```python
@@ -158,7 +153,7 @@ client = Anthropic(
 
 单条 message 总图数没有硬上限，但建议每个 KOL ≤ 8 张避免 token 爆炸。**JPEG 质量保留原图**，PNG 转 JPEG 时要处理透明通道（贴白底），不然 PIL 报错。
 
-### 4.4 JSON 输出 fallback
+### 4.5 JSON 输出 fallback
 
 Layer 2 要求 JSON 输出，模型偶尔会包一层 markdown ```json``` 代码块。Parse 顺序：
 
@@ -382,12 +377,13 @@ sqlite3 kol_monitor.db "SELECT date, kol_count, tweet_count, status FROM digests
   - **停止生成 HTML**：`write_outputs` 不再渲染/写 `digests/**/*.html`，只产出 `README.md` + 当天 `DD.md`；返回值从三元组改为 `list[Path]`。已 `git rm` 全部历史 `.html`。`render_daily_html()` 函数保留但不再被调用（如需恢复 HTML 可重新接上），其单元测试仍在。
   - **Layer 3 盘前长推文后来已停用**：`summarizer.build_layer3_prompt` / `generate_layer3_tweet` 和 `publisher.write_premarket` 仍作为遗留 helper 保留，但 CLI 的 `run-once` / `regen-digest` 不再调用，也不再写入或发布 `premarket/YYYY/MM/DD.md`。用户后续明确要求不再制作长推文，历史 `premarket/` 文件也已删除。
   - **#2 联网/本地事实核查：已评估后暂不做**。本地 `/root/trading/data/us-stock/reference/ticker_details.parquet` 只有美股（~1.28 万），但 KOL 常发 A 股（数字码 $002384）、港股、韩股（$005930）、加密（$BTC/$ETH）等非美股代码；任何"代码不在美股库即报错"的确定性校验都会对这些合法非美股代码大量误报。故 ticker 事实性继续靠提示词归因约束 + `spacex_ticker_conflation` 软检查。若将来要做，需先有覆盖多市场的代码库。（pyarrow 已装进 venv 但当前未使用、未写入 requirements。）
-- 2026-06-30：用户要求 LLM 优先级改为 `fallback -> fourth -> third -> primary`。当前 `summarizer._anthropic_backends()` 实际顺序为：`ANTHROPIC_FALLBACK_*` → `ANTHROPIC_FOURTH_*`（Packy，普通温度）→ `ANTHROPIC_THIRD_*`（Infron，`temperature=1` + `thinking=disabled`，必要时再不传 temperature/thinking 重试）→ `ANTHROPIC_API_KEY` 主凭据。
+- 2026-06-30：当时的 Claude 四层顺序调整为 `fallback -> fourth -> third -> primary`；该顺序现作为 DeepSeek 之后的整体降级链保留。
 - 2026-06-30：为改善日报可读性，Layer 1 发布前现在会做中文标点归一化，并把非交易信号章节的普通长段落整理成 markdown bullet；质量扫描新增 `long_plain_paragraph` warning。`publisher.write_outputs()` 在清洗后的 Layer 1 仍有 error 时，会改用有来源的本地兜底模板，避免读者看到坏摘要。注意历史 digest 不应因为这些清洗逻辑被大面积无差别重写，先用 `quality-draft` 或小范围重渲染核对。
 - 2026-06-30：新增监控 `JoeAnima`，当前 `config/kols.yaml` 为 64 位 KOL；README 由下一次日报生成时自动同步，如手工加 KOL 后发现 README 仍是旧数量，可只修 README 顶部文案和 KOL 列表，不要重跑 LLM。
 - 2026-07-12：审计最近两周发现旧版 `tweets_on_date` / `pending_media_for_date` 直接用 `substr(created_at, 1, 10)` 分日，但 6551 数据混合 `+00:00` 与 `+08:00`，且 20:30 后推文要到次日才抓取，导致 6/29–7/12 日报只纳入当时可用滚动窗口数据的 51.5%（1609/3123），媒体也持续留在 pending；同时发现 `summarize_day()` 始终传 `media_files=[]`，已下载图片实际从未送入 Layer 2。现统一改为按配置时区和调度时刻计算 `(前一日 20:30, 当日 20:30]` 滚动窗口，推文、按 KOL 汇总和媒体共用该边界，并把窗口内已下载且存在的图片传给对应 KOL；同时修复每次创建的 `AsyncAnthropic` 未关闭导致下一轮报 `Event loop is closed`、定时运行误记为 `manual`、模型分隔线被整理成 `- ---`、裸 `t.co` 未展开等问题。历史日报不会自动重跑；回补前先核对两周审计结果，再分批 `regen-digest --no-publish`。
 - 2026-07-14：7/13 正常生产日报把 79 张图片送入 Layer 2，输入达到 326.6 万 token，图片成为主要成本来源。按用户决定，`media.max_photos_per_kol_for_ai` 默认改为 `0`，日报仅分析推文文本；媒体下载和本地归档保持不变。`summarize_one_kol()` 只在实际选中并送入图片时才向提示词声明有配图，避免上限为 0 时提示词与输入不一致。
 - 2026-08-11：主 SQLite 已迁移到 `/root/trading/data/us-stock/kol-monitor/state/kol_monitor.db`，项目根旧库已在完整性、表计数和服务切换验证后删除；`.env.local` 通过 `KOL_MONITOR_DB` 指向新库。73 期历史日报已回灌到 `/root/trading/data/us-stock/kol-monitor/digests/YYYY/MM/DD.md`，后续 `write_outputs()` 会在最终质量扫描后原子镜像当期 Markdown；镜像失败会在 git 发布前抛错，归档路径不会加入 git 文件列表。媒体仍保留在项目根 `media/`，因为 `media.local_path` 是绝对路径，未经独立迁移和批量校验不要移动。
+- 2026-09-01：LLM 首选切换为官方 `deepseek-v4-pro`，Claude Sonnet 4.6 四层链路整体后移为降级备用；同时增加 Think Max、截断拒绝、全球市场标识符来源门禁和重试 usage 累计。当前数值以配置和运维文档为准。
 
 ---
 
